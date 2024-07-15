@@ -1,5 +1,6 @@
-package com.ssafy.picple.domain.board;
+package com.ssafy.picple.domain.board.entity;
 
+import com.ssafy.picple.domain.User.entity.User;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -9,12 +10,11 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "board")
 @Getter
-@Setter
 public class Board {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long boardId;
+    private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
