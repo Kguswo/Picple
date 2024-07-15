@@ -1,23 +1,24 @@
-package com.ssafy.picple.domain.photoUser;
+package com.ssafy.picple.domain.photoUser.entity;
 
+import com.ssafy.picple.domain.User.entity.User;
+import com.ssafy.picple.domain.photo.entity.Photo;
 import jakarta.persistence.*;
 import lombok.Getter;
-import lombok.Setter;
 
 @Entity
 @Table(name = "photo_user")
 @Getter
-@Setter
 public class PhotoUser {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long photoUserId;
+    private Long id;
 
     @ManyToOne
     @JoinColumn(name = "photo_id")
     private Photo photo;
 
+    @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
 

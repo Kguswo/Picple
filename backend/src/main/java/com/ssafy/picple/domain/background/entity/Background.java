@@ -1,4 +1,4 @@
-package com.ssafy.picple.domain.background;
+package com.ssafy.picple.domain.background.entity;
 
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -9,12 +9,11 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "background")
 @Getter
-@Setter
 public class Background {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long backgroundId;
+    private Long id;
 
     @Column(nullable = false, length = 45)
     private String backgroundTitle;
