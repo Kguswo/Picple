@@ -1,0 +1,68 @@
+.flex {
+	display: flex;
+}
+
+.flex-col {
+	flex-direction: column;
+}
+
+.justify-content-around {
+	justify-content: space-around;
+}
+
+.justify-content-bewteen {
+	justify-content: space-between;
+}
+
+.justify-content-start {
+	justify-content: start;
+}
+
+.border-normal {
+	border: 2px solid black;
+}
+
+.border-left-none {
+	border-left: none;
+}
+
+.button-none {
+	border: none;
+	background-color: transparent;
+}
+
+.background-color-BDC8CF {
+	background-color: #bdc8cf;
+}
+
+.background-color-white {
+	background-color: white;
+}
+
+.width-250 {
+	width: 250px;
+}
+
+.width-20per {
+	width: 20%;
+}
+
+.height-40 {
+	height: 40px;
+}
+
+.mt-5 {
+	margin-top: 5px;
+}
+
+.mt-10 {
+	margin-top: 10px;
+}
+
+.disabled {
+	background-color: rgb(216, 216, 216);
+}
+
+.text-align-right {
+	text-align: right;
+}
