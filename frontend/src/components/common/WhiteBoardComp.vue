@@ -1,6 +1,4 @@
-<script setup>
-
-</script>
+<script setup></script>
 
 <template>
     <div class="background">
@@ -25,7 +23,9 @@
     /* color */
     border: 8px solid rgba(0, 0, 0, 0.9);
     border-radius: 20px;
-    background-color: white;
-    opacity: 85%;
+    background-color: rgba(255, 255, 255, 0.85);
+
+    /* 그림자 효과 */
+    box-shadow: 10px 15px 10px rgb(0 0 0 / 85%);
 }
 </style>
