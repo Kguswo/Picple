@@ -13,6 +13,13 @@ html {
     font-family: "DNFBitBitv2";
     font-style: normal;
     font-weight: 400;
-    src: url("//cdn.df.nexon.com/img/common/font/DNFBitBitv2.otf")
-        format("opentype");
+    src: url("//cdn.df.nexon.com/img/common/font/DNFBitBitv2.otf") format("opentype");
+}
+
+/* 2. PF스타더스트체 */
+@font-face {
+    font-family: 'PFStardust';
+    src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/PFStardust.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
 }
