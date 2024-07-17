@@ -3,11 +3,16 @@
     padding: 0;
 }
 
+/* 커서 설정 */
+html {
+    cursor: url("@/assets/img/app/pointer.png") 5 5, auto;
+}
 
 /* 1. 던파 비트비트체 v2 */
 @font-face {
-    font-family: 'DNFBitBitv2';
+    font-family: "DNFBitBitv2";
     font-style: normal;
     font-weight: 400;
-    src: url('//cdn.df.nexon.com/img/common/font/DNFBitBitv2.otf')format('opentype')
+    src: url("//cdn.df.nexon.com/img/common/font/DNFBitBitv2.otf")
+        format("opentype");
 }
