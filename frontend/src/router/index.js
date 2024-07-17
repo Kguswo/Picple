@@ -1,23 +1,39 @@
-import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from '../views/HomeView.vue'
+import { createRouter, createWebHistory } from 'vue-router';
 
 const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
-  routes: [
-    {
-      path: '/',
-      name: 'home',
-      component: HomeView
-    },
-    {
-      path: '/about',
-      name: 'about',
-      // route level code-splitting
-      // this generates a separate chunk (About.[hash].js) for this route
-      // which is lazy-loaded when the route is visited.
-      component: () => import('../views/AboutView.vue')
-    }
-  ]
-})
+	history: createWebHistory(import.meta.env.BASE_URL),
+	routes: [
+		{
+			path: '/calendar',
+			name: 'CalendarView',
+			component: () => import('@/views/CalendarView.vue'),
+		},
+		{
+			path: '/login',
+			name: 'login',
+			component: () => import('@/views/account/LoginView.vue'),
+		},
+		{
+			path: '/signup',
+			name: 'signup',
+			component: () => import('@/views/account/SignupView.vue'),
+		},
+		{
+			path: '/modifyAccount',
+			name: 'modifyAccount',
+			component: () => import('@/views/account/ModifyAccountView.vue'),
+		},
+		{
+			path: '/modifyPassword/:path',
+			name: 'modifyPassword',
+			component: () => import('@/views/account/ModifyPasswordView.vue'),
+		},
+		{
+			path: '/findPassword',
+			name: 'findPassword',
+			component: () => import('@/views/account/FindPasswordView.vue'),
+		},
+	],
+});
 
-export default router
+export default router;
