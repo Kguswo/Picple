@@ -1,4 +1,4 @@
-package com.ssafy.picple.domain.photoUser.service;
+package com.ssafy.picple.domain.photouser.service;
 
 import org.springframework.stereotype.Service;
 

@@ -1,4 +1,4 @@
-package com.ssafy.picple.domain.photoUser.controller;
+package com.ssafy.picple.domain.photouser.controller;
 
 import org.springframework.web.bind.annotation.RestController;
 

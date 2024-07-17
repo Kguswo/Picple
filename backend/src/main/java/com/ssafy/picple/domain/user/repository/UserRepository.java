@@ -1,7 +1,8 @@
-package com.ssafy.picple.domain.User.repository;
+package com.ssafy.picple.domain.user.repository;
 
-import com.ssafy.picple.domain.User.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.ssafy.picple.domain.user.entity.User;
 
 public interface UserRepository extends JpaRepository<User, Long> {
 }
