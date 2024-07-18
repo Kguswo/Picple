@@ -3,7 +3,7 @@
 </script>
 
 <template>
-    <form class="flex flex-col width-250px">
+    <form class="flex-col" style="width: 300px;">
         <slot></slot>
     </form>
 </template>
