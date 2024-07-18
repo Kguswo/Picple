@@ -20,7 +20,7 @@ import { RouterView, RouterLink } from 'vue-router';
 	opacity: 1;
 
 	/* display */
-	/* display: flex; */
+	display: flex;
 	justify-content: center;
 	align-items: center;
 }

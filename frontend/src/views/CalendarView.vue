@@ -1,19 +1,21 @@
 <template>
-    <WhiteBoardComp>
-        <div class="name-area">추억 저장소</div>
-        <div class="calendar-area">
-            <div class="calendar">
-                <v-calendar
-                    class="my-calendar"
-                    transparent
-                    borderless
-                    expanded
-                    :attributes="attributes"
-                    :masks="{ title: 'YYYY MMM' }"
-                />
+    <div class="whiteboard-area">
+        <WhiteBoardComp>
+            <div class="name-area">추억 저장소</div>
+            <div class="calendar-area">
+                <div class="calendar">
+                    <v-calendar
+                        class="my-calendar"
+                        transparent
+                        borderless
+                        expanded
+                        :attributes="attributes"
+                        :masks="{ title: 'YYYY MMM' }"
+                    />
+                </div>
             </div>
-        </div>
-    </WhiteBoardComp>
+        </WhiteBoardComp>
+    </div>
 </template>
 
 <script setup>
@@ -42,6 +44,14 @@ const attributes = ref([
 </script>
 
 <style scoped>
+.whiteboard-area {
+    /* size */
+    width: 70%;
+    height: 80%;
+    min-height: 590.08px;
+    min-width: 1072.2px;
+}
+
 .name-area {
     /* size */
     width: 100%;
