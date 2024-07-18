@@ -1,0 +1,102 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    gap: 20px;
+  }
+  
+.logo-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+@keyframes bounce {
+    0% {
+      transform: translate3d(0, 0, 0);
+    }
+  
+    50% {
+      transform: translate3d(0, 50px, 0);
+    }
+  
+    100% {
+      transform: translate3d(0, 0, 0);
+    }
+  }
+  
+.logo {
+    height: 200px;
+    animation: bounce 2s infinite ease-in-out;
+  }
+  
+  
+.cardBox {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+  }
+  
+.card {
+    margin: 1rem;
+    width: 18rem;
+    align-items: center;
+    display: inline-grid;
+    position: relative;
+  
+    text-align: center;
+    align-items: center;
+    justify-content: center;
+    transition: transform 1s;
+    transform: perspective(800px) rotateY(0deg);
+    transform-style: preserve-3d;
+  
+    font-family: 'DNFBitBitv2';
+    font-weight: lighter;
+    font-style: normal;
+
+    background-color: white;
+    border-radius: 3px;
+  }
+  
+.card-title {
+  
+    font-size: 1.5rem;
+    line-height: 2em;
+  }
+  
+.imageincard {
+    margin: 10px 5px 2px 5px;
+    border-radius: 3px;
+    width: 14rem;
+    height: 18rem;
+    padding: 1rem;
+    border: 1px solid rgb(187, 187, 187);
+}
+
+.imageincard img{
+    width: 100%;
+    height: auto;
+    object-fit: fill;
+  }
+  
+.card>* {
+    grid-area: 1 / 1 / 1 / 1;
+    backface-visibility: hidden;
+  }
+  
+.card:hover {
+    transform: perspective(800px) rotateY(180deg);
+  }
+  
+.front {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+  }
+  
+.back {
+    transform: rotateY(180deg);
+  }
