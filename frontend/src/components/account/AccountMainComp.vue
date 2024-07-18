@@ -11,15 +11,6 @@ defineProps({
     </div>
 </template>
 
-<style scoped>
-.content {
-    display: flex;
-    justify-content: space-around;
-    width: 700px;
-}
-
-#title {
-    font-size: 50px;
-    margin: auto 0;
-}
+<style>
+@import "@/assets/css/account.css";
 </style>
