@@ -1,8 +1,10 @@
 <script setup>
-
+import mainHeader from '@/components/common/MainHeader.vue'
 </script>
 
 <template>
+  <mainHeader></mainHeader>
+  
   <div class="container">
     <div class="logo-container">
       <img src="@/assets/img/mainView/picpleLogo.png" class="logo">
