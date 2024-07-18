@@ -4,10 +4,15 @@ const router = createRouter({
 	history: createWebHistory(import.meta.env.BASE_URL),
 	routes: [
 		{
-			path: "/calendar",
-			name: "CalendarView",
-			component: () => import("@/views/CalendarView.vue"),
-		},
+            path: "/",
+            name: "main",
+            component: () => import("@/views/MainView.vue"),
+        },
+        {
+            path: "/calendar",
+            name: "CalendarView",
+            component: () => import("@/views/CalendarView.vue"),
+        },
 		{
 			path: "/login",
 			name: "login",
