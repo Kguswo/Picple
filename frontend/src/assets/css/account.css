@@ -30,12 +30,14 @@
 	height: 45px;
 	font-size: 20px;
 	border: 2px solid black;
+	background-color: #bdc8cf;
 }
 
 .button-small {
 	width: 25%;
 	font-size: 17px;
 	border-left: none;
+	background-color: #bdc8cf;
 }
 
 .input-big {
@@ -45,10 +47,6 @@
 	font-size: 17px;
 	border: 2px solid black;
 	box-sizing: border-box;
-}
-
-.background-color-accept {
-	background-color: #bdc8cf;
 }
 
 .background-color-cancel {
