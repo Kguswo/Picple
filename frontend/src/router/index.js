@@ -38,6 +38,11 @@ const router = createRouter({
 			name: 'findPassword',
 			component: () => import('@/views/account/FindPasswordView.vue'),
 		},
+		{
+			path: "/board",
+			name: "board",
+			component: () => import("@/views/BoardView.vue"),
+		},
 	],
 });
 
