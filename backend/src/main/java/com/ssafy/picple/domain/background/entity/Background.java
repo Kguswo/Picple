@@ -1,14 +1,14 @@
 package com.ssafy.picple.domain.background.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "background")
 @Getter
+@Table(name = "background")
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Background {
 
     @Id
@@ -18,7 +18,12 @@ public class Background {
     @Column(nullable = false, length = 45)
     private String backgroundTitle;
 
-    @Column(nullable = false)
-    private LocalDateTime createdAt;
+//    @Column(nullable = false)
+//    private LocalDateTime createdAt;
+
+    @Builder
+    public Background(String backgroundTitle) {
+        this.backgroundTitle = backgroundTitle;
+    }
 
 }

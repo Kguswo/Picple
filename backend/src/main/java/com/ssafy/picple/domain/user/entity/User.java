@@ -6,14 +6,19 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "user")
 @Getter
+@Table(name = "user")
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class User {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name="user_id")
 	private Long id;
 
 	@Column(nullable = false, length = 45)
@@ -25,12 +30,14 @@ public class User {
 	@Column(nullable = false, length = 21)
 	private String nickname;
 
-	//	@Column(nullable = false, updatable = false)
-	//	private LocalDateTime createdAt = LocalDateTime.now();
-	//
-	//	@Column(nullable = false)
-	//	private LocalDateTime updatedAt = LocalDateTime.now();
-
 	@Column(nullable = false)
-	private boolean isDeleted = false;
+	private boolean isDeleted;
+
+	@Builder
+	public User(String email, String password, String nickname, boolean isDeleted) {
+		this.email = email;
+		this.password = password;
+		this.nickname = nickname;
+		this.isDeleted = isDeleted;
+	}
 }

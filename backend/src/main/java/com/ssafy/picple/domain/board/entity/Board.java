@@ -13,11 +13,15 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "board")
 @Getter
+@Table(name = "board")
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Board {
 
 	@Id
@@ -32,9 +36,13 @@ public class Board {
 	private int hit;
 
 	@Column(nullable = false)
-	private LocalDateTime createdAt;
-
-	@Column(nullable = false)
 	private boolean isDeleted;
+
+	@Builder
+	public Board(User user, int hit, boolean isDeleted) {
+		this.user = user;
+		this.hit = hit;
+		this.isDeleted = isDeleted;
+	}
 
 }

@@ -11,11 +11,15 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "calendar")
 @Getter
+@Table(name = "calendar")
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Calendar {
 
 	@Id
@@ -30,4 +34,9 @@ public class Calendar {
 	@JoinColumn(name = "user_id", nullable = false)
 	private User user;
 
+	@Builder
+	public Calendar(Photo photo, User user) {
+		this.photo = photo;
+		this.user = user;
+	}
 }
