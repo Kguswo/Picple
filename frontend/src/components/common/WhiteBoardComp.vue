@@ -9,10 +9,8 @@
 <style scoped>
 .background {
     /* size */
-    width: 70%;
-    height: 80%;
-    min-height: 590.08px;
-    min-width: 1072.2px;
+    width: 100%;
+    height: 100%;
 
     /* display */
     display: flex;

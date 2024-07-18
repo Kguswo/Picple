@@ -8,24 +8,32 @@ a {
     color: black;
 }
 
+* {
+    font-family: "PFStardust";
+}
+
 .navbar {
-    padding: 5px 30px 0px 30px;
+    padding: 0 15px;
+
+    height: 100%;
+
     z-index: 100;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background-color: rgba(255, 255, 255, 0.5);
+    background-color: rgba(255, 255, 255, 0.4);
     color: black;
-    font-family: 'PFStardust';
-    font-weight: normal;
+    font-family: "PFStardust";
+    font-weight: bold;
     font-style: normal;
     font-size: 30px;
 
-    .right, .left {
+    .right,
+    .left {
         display: flex;
         align-items: center;
 
-        >* {
+        > * {
             padding: 0 10px 0 10px;
         }
     }
@@ -66,7 +74,7 @@ a {
     box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
     padding: 12px 16px;
     z-index: 10;
-    border-radius: .4em;
+    border-radius: 0.4em;
     border: 3px solid black;
 
     left: 80%;
@@ -76,7 +84,7 @@ a {
     align-items: center;
 
     &:after {
-        content: '';
+        content: "";
         position: absolute;
         top: 0;
         left: 50%;
@@ -91,7 +99,7 @@ a {
     }
 
     &:before {
-        content: '';
+        content: "";
         position: absolute;
         top: 0;
         left: 50%;
@@ -105,11 +113,6 @@ a {
         margin-top: -19px;
     }
 }
-
-
-
-
-
 
 .dropdown:hover .dropdown-content {
     display: block;
