@@ -6,13 +6,13 @@ import ButtonComp from "@/components/account/ButtonComp.vue";
 
 <template>
     <AccountMainComp title="로그인">
-        <form class="flex flex-col">
+        <form class="flex flex-col width-250px">
             <InputComp label="email" text-label="이메일" type="email" />
             <InputComp label="password" text-label="비밀번호" type="password" class="mt-5" />
 
             <ButtonComp>로그인</ButtonComp>
 
-            <div class="flex justify-content-bewteen mt-10">
+            <div class="flex justify-content-between mt-10">
                 <ButtonComp type="none">회원가입</ButtonComp>
                 <ButtonComp type="none">비밀번호 찾기</ButtonComp>
             </div>

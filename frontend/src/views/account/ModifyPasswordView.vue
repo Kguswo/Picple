@@ -9,7 +9,7 @@ const route = useRoute();
 
 <template>
     <AccountMainComp title="비밀번호 변경">
-        <form class="flex flex-col width-250">
+        <form class="flex flex-col width-250px">
             <InputComp v-if="route.params.path === 'modify'" label="password-current" text-label="현재 비밀번호"
                 type="password" class="mt-5" />
             <InputComp label="password-new" text-label="새 비밀번호" type="password" class="mt-5" />
