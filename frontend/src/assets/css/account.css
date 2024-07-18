@@ -1,4 +1,4 @@
-.content {
+.account-content {
 	display: flex;
 	justify-content: space-around;
 	width: 700px;
@@ -85,4 +85,13 @@
 
 .text-align-right {
 	text-align: right;
+}
+
+a {
+	text-decoration-line: none;
+	color: black;
+}
+
+.font-size-button-none {
+	font-size: 13px;
 }

@@ -16,8 +16,8 @@ import WhiteBoardComp from "@/components/common/WhiteBoardComp.vue";
                 <ButtonComp>로그인</ButtonComp>
 
                 <div class="flex justify-content-between mt-10">
-                    <ButtonComp type="none">회원가입</ButtonComp>
-                    <ButtonComp type="none">비밀번호 찾기</ButtonComp>
+                    <router-link :to="{ name: 'signup' }" class="font-size-button-none">회원가입</router-link>
+                    <router-link :to="{ name: 'findPassword' }" class="font-size-button-none">비밀번호 찾기</router-link>
                 </div>
             </FormComp>
         </AccountMainComp>
