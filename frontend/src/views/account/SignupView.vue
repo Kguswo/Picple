@@ -1,23 +1,46 @@
 <script setup>
 import AccountMainComp from "@/components/account/AccountMainComp.vue";
-import InputComp from "@/components/account/InputComp.vue";
-import ButtonComp from "@/components/account/ButtonComp.vue";
-import FormComp from "@/components/account/FormComp.vue";
 </script>
 
 <template>
     <AccountMainComp title="회원가입">
-        <FormComp>
-            <InputComp label="password" text-label="이메일" text-button="인증" type="email" display="flex" />
-            <InputComp label="cert-number" text-label="인증번호" text-button="확인" type="text" display="flex"
-                class="mt-10" />
-            <InputComp label="nickname" text-label="닉네임" text-button="중복" type="text" display="flex" class="mt-10" />
+        <form class="account-form">
+            <div class="flex-col">
+                <label>이메일</label>
+                <div class="flex">
+                    <input type="email" class="input-big" />
+                    <button class="button-small">인증</button>
+                </div>
+            </div>
 
-            <InputComp label="password" text-label="비밀번호" type="password" class="mt-10" />
-            <InputComp label="password-check" text-label="비밀번호 확인" type="password" class="mt-10" />
+            <div class="flex-col mt-10">
+                <label>인증번호</label>
+                <div class="flex">
+                    <input type="text" class="input-big" />
+                    <button class="button-small">확인</button>
+                </div>
+            </div>
 
-            <ButtonComp>가입</ButtonComp>
-        </FormComp>
+            <div class="flex-col mt-10">
+                <label>닉네임</label>
+                <div class="flex">
+                    <input type="text" class="input-big" />
+                    <button class="button-small">중복</button>
+                </div>
+            </div>
+
+            <div class="flex-col mt-10">
+                <label>비밀번호</label>
+                <input type="password" class="input-big" />
+            </div>
+
+            <div class="flex-col mt-10">
+                <label>비밀번호 확인</label>
+                <input type="password" class="input-big" />
+            </div>
+
+            <button class="button-big mt-10">가입</button>
+        </form>
     </AccountMainComp>
 </template>
 
