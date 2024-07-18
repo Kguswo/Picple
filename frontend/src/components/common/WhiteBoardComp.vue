@@ -1,12 +1,38 @@
 <script setup></script>
 
 <template>
-    <div class="background">
-        <slot></slot>
+    <div>
+        <div class="background">
+            <slot></slot>
+        </div>
     </div>
 </template>
 
 <style scoped>
+.whiteboard-area-calendar {
+    /* size */
+    width: 50%;
+    height: 80%;
+    min-height: 545px;
+    min-width: 960px;
+}
+
+.whiteboard-area-account {
+    /* size */
+    width: 50%;
+    height: 80%;
+    min-height: 545px;
+    min-width: 960px;
+}
+
+.whiteboard-area-booth {
+    /* size */
+    width: 50%;
+    height: 80%;
+    min-height: 545px;
+    min-width: 960px;
+}
+
 .background {
     /* size */
     width: 100%;

@@ -12,6 +12,10 @@ a {
     font-family: "PFStardust";
 }
 
+header {
+    height: 13%;
+}
+
 .navbar {
     padding: 0 15px;
 
