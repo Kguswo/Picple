@@ -1,7 +1,6 @@
 package com.ssafy.picple.domain.board.entity;
 
-import java.time.LocalDateTime;
-
+import com.ssafy.picple.config.BaseTimeEntity;
 import com.ssafy.picple.domain.user.entity.User;
 
 import jakarta.persistence.Column;
@@ -22,7 +21,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @Table(name = "board")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Board {
+public class Board extends BaseTimeEntity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
