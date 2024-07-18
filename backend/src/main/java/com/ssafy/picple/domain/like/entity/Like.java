@@ -1,7 +1,7 @@
 package com.ssafy.picple.domain.like.entity;
 
-import com.ssafy.picple.domain.User.entity.User;
 import com.ssafy.picple.domain.board.entity.Board;
+import com.ssafy.picple.domain.user.entity.User;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
