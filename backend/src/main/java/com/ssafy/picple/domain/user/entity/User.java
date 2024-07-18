@@ -1,17 +1,10 @@
-package com.ssafy.picple.domain.board.entity;
-
-import java.time.LocalDateTime;
-
-import com.ssafy.picple.domain.user.entity.User;
+package com.ssafy.picple.domain.user.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -20,29 +13,31 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
-@Table(name = "board")
+@Table(name = "user")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Board {
-
+public class User {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name="user_id")
 	private Long id;
 
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "user_id", nullable = false)
-	private User user;
+	@Column(nullable = false, length = 45)
+	private String email;
 
-	@Column(nullable = false)
-	private int hit;
+	@Column(nullable = false, length = 200)
+	private String password;
+
+	@Column(nullable = false, length = 21)
+	private String nickname;
 
 	@Column(nullable = false)
 	private boolean isDeleted;
 
 	@Builder
-	public Board(User user, int hit, boolean isDeleted) {
-		this.user = user;
-		this.hit = hit;
+	public User(String email, String password, String nickname, boolean isDeleted) {
+		this.email = email;
+		this.password = password;
+		this.nickname = nickname;
 		this.isDeleted = isDeleted;
 	}
-
 }

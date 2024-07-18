@@ -2,12 +2,13 @@ package com.ssafy.picple.domain.photo.entity;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "photo")
 @Getter
+@Table(name = "photo")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Photo {
 
@@ -23,5 +24,12 @@ public class Photo {
 
     @Column(nullable = false)
     private boolean isDeleted;
+
+    @Builder
+    public Photo(String photoUrl, boolean isShared, boolean isDeleted) {
+        this.photoUrl = photoUrl;
+        this.isShared = isShared;
+        this.isDeleted = isDeleted;
+    }
 
 }
