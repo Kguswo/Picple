@@ -6,7 +6,7 @@ import ButtonComp from "@/components/account/ButtonComp.vue";
 
 <template>
     <AccountMainComp title="비밀번호 찾기">
-        <form class="flex flex-col width-250">
+        <form class="flex flex-col width-250px">
             <InputComp label="password" text-label="이메일" text-button="인증" type="email" with-button="true"
                 class="mt-5" />
             <InputComp label="cert-number" text-label="인증번호" text-button="확인" type="text" with-button="true"
