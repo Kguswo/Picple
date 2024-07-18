@@ -1,11 +1,9 @@
 <script setup>
 import { RouterView, RouterLink } from 'vue-router';
-import mainHeader from '@/components/common/MainHeader.vue';
 </script>
 
 <template>
 	<div class="main">
-		<mainHeader></mainHeader>
 		<RouterView />
 		<!-- <router-link :to="{ name: '' }"></router-link> -->
 	</div>
@@ -14,8 +12,8 @@ import mainHeader from '@/components/common/MainHeader.vue';
 <style scoped>
 .main {
 	position: relative;
-	width: 100%;
-	height: 100%;
+	width: 100vw;
+	height: 100vh;
 	background-image: url('@/assets/img/app/backgroundImg.png');
 	background-repeat: no-repeat;
 	background-size: cover;
