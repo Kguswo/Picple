@@ -14,12 +14,14 @@ import WhiteBoardComp from "@/components/common/WhiteBoardComp.vue";
 
                 <InputComp label="nickname" text-label="닉네임" text-button="중복" type="text" with-button="true"
                     class="mt-5" />
-                <InputComp label="password" text-label="비밀번호" text-button="변경" type="password" with-button="true"
-                    class="mt-5" is-disabled="true" />
+                <router-link :to="{ name: 'modifyPassword', params: { path: 'modify' } }">
+                    <InputComp label="password" text-label="비밀번호" text-button="변경" type="password" with-button="true"
+                        class="mt-5" is-disabled="true" />
+                </router-link>
 
                 <ButtonComp>저장</ButtonComp>
                 <div class="text-align-right mt-10">
-                    <ButtonComp type="none">회원탈퇴</ButtonComp>
+                    <router-link class="font-size-button-none">회원탈퇴</router-link>
                 </div>
             </FormComp>
         </AccountMainComp>

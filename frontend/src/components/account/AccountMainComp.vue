@@ -5,7 +5,7 @@ defineProps({
 </script>
 
 <template>
-    <div class="content">
+    <div class="account-content">
         <div id="title">{{ title }}</div>
         <slot></slot>
     </div>

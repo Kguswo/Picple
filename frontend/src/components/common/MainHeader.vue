@@ -7,9 +7,7 @@
                 <img src="@/assets/img/mainView/picpleLogo.png" alt="" />
             </div>
             <div class="right">
-                <a href="/" style="text-decoration-line: none; color: black"
-                    >로그인</a
-                >
+                <router-link :to="{ name: 'login' }">로그인</router-link>
 
                 <!-- 로그인 이후 화면 작업 필요 -->
                 <!-- <div class="dropdown">
@@ -27,6 +25,7 @@
 
 <style scoped>
 @import url("@/assets/css/header.css");
+
 header {
     height: 13%;
 }
