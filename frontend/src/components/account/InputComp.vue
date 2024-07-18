@@ -7,17 +7,17 @@ defineProps({
     textButton: String,
     type: String,
     isDisabled: String,
-    withButton: String,
+    display: String,
 })
 </script>
 
 <template>
-    <div class="flex flex-col">
+    <div class="flex-col">
         <label :for="label" class="">{{ textLabel }}</label>
-        <div :class="{ flex: withButton == 'true' }">
-            <input :type="type" class="border-normal width-100 height-40px border-box"
-                :class="{ 'disabled-color': isDisabled == 'true' }" :id="label" :disabled="isDisabled == 'true'" />
-            <ButtonComp v-if="withButton == 'true'" type="check">{{ textButton }}</ButtonComp>
+        <div :style="{ display }">
+            <input :type="type" class="input-big" :class="{ 'background-color-disabled': isDisabled == 'true' }"
+                :id="label" :disabled="isDisabled == 'true'" />
+            <ButtonComp v-if="display == 'flex'" type="check">{{ textButton }}</ButtonComp>
         </div>
     </div>
 </template>
