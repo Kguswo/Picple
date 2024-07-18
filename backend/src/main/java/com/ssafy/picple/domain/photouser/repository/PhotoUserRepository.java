@@ -1,7 +1,8 @@
-package com.ssafy.picple.domain.photoUser.repository;
+package com.ssafy.picple.domain.photouser.repository;
 
-import com.ssafy.picple.domain.photoUser.entity.PhotoUser;
 import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.ssafy.picple.domain.photouser.entity.PhotoUser;
 
 public interface PhotoUserRepository extends JpaRepository<PhotoUser, Long> {
 }
