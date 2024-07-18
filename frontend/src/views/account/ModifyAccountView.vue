@@ -1,5 +1,12 @@
 <script setup>
 import AccountMainComp from "@/components/account/AccountMainComp.vue";
+import { useRouter } from "vue-router";
+
+const router = useRouter();
+
+const modifyPassword = () => {
+    router.push({ name: 'modifyPassword', params: { path: 'modify' } });
+}
 </script>
 
 <template>
@@ -22,7 +29,7 @@ import AccountMainComp from "@/components/account/AccountMainComp.vue";
                 <label>비밀번호</label>
                 <div class="flex">
                     <input type="password" class="input-big background-color-disabled" disabled />
-                    <button class="button-small">변경</button>
+                    <button type="button" class="button-small" @click="modifyPassword">변경</button>
                 </div>
             </div>
 
