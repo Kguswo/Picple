@@ -1,26 +1,37 @@
 <script setup>
 import AccountMainComp from "@/components/account/AccountMainComp.vue";
-import InputComp from "@/components/account/InputComp.vue";
-import ButtonComp from "@/components/account/ButtonComp.vue";
-import FormComp from "@/components/account/FormComp.vue";
 </script>
 
 <template>
     <AccountMainComp title="정보 수정">
-        <FormComp>
-            <InputComp label="email" text-label="이메일" type="email" is-disabled="true" />
+        <form class="account-form">
+            <div class="flex-col">
+                <label>이메일</label>
+                <input type="email" class="input-big background-color-disabled" disabled />
+            </div>
 
-            <InputComp label="nickname" text-label="닉네임" text-button="중복" type="text" display="flex" class="mt-10" />
-            <router-link :to="{ name: 'modifyPassword', params: { path: 'modify' } }">
-                <InputComp label="password" text-label="비밀번호" text-button="변경" type="password" display="flex"
-                    class="mt-10" is-disabled="true" />
-            </router-link>
+            <div class="flex-col mt-10">
+                <label>닉네임</label>
+                <div class="flex">
+                    <input type="text" class="input-big" />
+                    <button class="button-small">중복</button>
+                </div>
+            </div>
 
-            <ButtonComp>저장</ButtonComp>
+            <div class="flex-col mt-10">
+                <label>비밀번호</label>
+                <div class="flex">
+                    <input type="password" class="input-big background-color-disabled" disabled />
+                    <button class="button-small">변경</button>
+                </div>
+            </div>
+
+            <button class="button-big mt-10">저장</button>
+
             <div class="text-align-right mt-10">
                 <router-link class="button-none">회원탈퇴</router-link>
             </div>
-        </FormComp>
+        </form>
     </AccountMainComp>
 </template>
 
