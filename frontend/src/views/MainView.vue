@@ -10,9 +10,9 @@ const navigateTo = (path) => {
 </script>
 
 <template>
-    <div class="main-view">
+    <div class="page">
         <mainHeader></mainHeader>
-        <div class="container">
+        <div class="container main-container">
             <div class="logo-container">
                 <img src="@/assets/img/mainView/picpleLogo.png" class="logo" />
             </div>

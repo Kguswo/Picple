@@ -1,6 +1,6 @@
 <template>
-    <div class="whiteboard-area">
-        <WhiteBoardComp>
+    <Page>
+        <WhiteBoardComp class="whiteboard-area-calendar">
             <div class="name-area">추억 저장소</div>
             <div class="calendar-area">
                 <div class="calendar">
@@ -15,10 +15,11 @@
                 </div>
             </div>
         </WhiteBoardComp>
-    </div>
+    </Page>
 </template>
 
 <script setup>
+import Page from "@/components/common/Page.vue";
 import WhiteBoardComp from "@/components/common/WhiteBoardComp.vue";
 
 import { ref } from "vue";
@@ -44,14 +45,6 @@ const attributes = ref([
 </script>
 
 <style scoped>
-.whiteboard-area {
-    /* size */
-    width: 70%;
-    height: 80%;
-    min-height: 590.08px;
-    min-width: 1072.2px;
-}
-
 .name-area {
     /* size */
     width: 100%;
