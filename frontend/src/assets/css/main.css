@@ -24,3 +24,15 @@
 	font-weight: normal;
 	font-style: normal;
 }
+
+.page {
+	width: 100%;
+	height: 100%;
+}
+
+.container {
+	height: 87%;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
