@@ -12,12 +12,12 @@ const route = useRoute();
     <AccountMainComp title="비밀번호 변경">
         <FormComp>
             <InputComp v-if="route.params.path === 'modify'" label="password-current" text-label="현재 비밀번호"
-                type="password" class="mt-5" />
-            <InputComp label="password-new" text-label="새 비밀번호" type="password" class="mt-5" />
-            <InputComp label="password-new-check" text-label="새 비밀번호 확인" type="password" class="mt-5" />
+                type="password" />
+            <InputComp label="password-new" text-label="새 비밀번호" type="password" class="mt-10" />
+            <InputComp label="password-new-check" text-label="새 비밀번호 확인" type="password" class="mt-10" />
 
             <ButtonComp>확인</ButtonComp>
-            <ButtonComp v-if="route.params.path === 'modify'" class="background-color-white">취소</ButtonComp>
+            <ButtonComp v-if="route.params.path === 'modify'" class="background-color-cancel">취소</ButtonComp>
         </FormComp>
     </AccountMainComp>
 </template>
