@@ -1,10 +1,10 @@
 <script setup>
-import AccountMainComp from "@/components/account/AccountMainComp.vue";
+import FormComp from "@/components/common/FormComp.vue";
 </script>
 
 <template>
-    <AccountMainComp title="로그인">
-        <form class="account-form">
+    <FormComp title="로그인">
+        <form class="form-content">
             <div class="flex-col">
                 <label>이메일</label>
                 <input type="email" class="input-big" />
@@ -22,7 +22,7 @@ import AccountMainComp from "@/components/account/AccountMainComp.vue";
                 <router-link :to="{ name: 'findPassword' }" class="button-none">비밀번호 찾기</router-link>
             </div>
         </form>
-    </AccountMainComp>
+    </FormComp>
 </template>
 
 <style scoped></style>

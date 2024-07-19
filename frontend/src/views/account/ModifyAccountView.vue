@@ -1,5 +1,5 @@
 <script setup>
-import AccountMainComp from "@/components/account/AccountMainComp.vue";
+import FormComp from "@/components/common/FormComp.vue";
 import { useRouter } from "vue-router";
 
 const router = useRouter();
@@ -10,8 +10,8 @@ const modifyPassword = () => {
 </script>
 
 <template>
-    <AccountMainComp title="정보 수정">
-        <form class="account-form">
+    <FormComp title="정보 수정">
+        <form class="form-content">
             <div class="flex-col">
                 <label>이메일</label>
                 <input type="email" class="input-big background-color-disabled" disabled />
@@ -21,7 +21,7 @@ const modifyPassword = () => {
                 <label>닉네임</label>
                 <div class="flex">
                     <input type="text" class="input-big" />
-                    <button class="button-small">중복</button>
+                    <button type="button" class="button-small">중복</button>
                 </div>
             </div>
 
@@ -36,10 +36,10 @@ const modifyPassword = () => {
             <button class="button-big mt-10">저장</button>
 
             <div class="text-align-right mt-10">
-                <router-link class="button-none">회원탈퇴</router-link>
+                <button type="button" class="button-none">회원탈퇴</button>
             </div>
         </form>
-    </AccountMainComp>
+    </FormComp>
 </template>
 
 <style scoped></style>
