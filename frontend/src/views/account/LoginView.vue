@@ -1,25 +1,40 @@
 <script setup>
 import FormComp from "@/components/common/FormComp.vue";
+import { ref } from 'vue';
+
+const email = ref({ value: '', isFocused: false });
+const password = ref({ value: '', isFocused: false });
+
+const handleFocus = (field) => {
+    field.isFocused = true;
+};
+
+const handleBlur = (field) => {
+    field.isFocused = false;
+};
 </script>
 
 <template>
     <FormComp title="로그인">
         <form class="form-content">
-            <div class="flex-col">
-                <label>이메일</label>
-                <input type="email" class="input-big" />
+            <div class="input-container">
+                <input type="text" @focus="handleFocus(email)" @blur="handleBlur(email)" v-model="email.value"
+                    class="form-input" :class="{ 'has-content': email.value }" />
+                <label class="form-label">이메일</label>
             </div>
 
-            <div class="flex-col mt-10">
-                <label>비밀번호</label>
-                <input type="password" class="input-big" />
+            <div class="input-container mt-10">
+                <input type="password" @focus="handleFocus(password)" @blur="handleBlur(password)"
+                    v-model="password.value" class="form-input" :class="{ 'has-content': password.value }"
+                    autoComplete="off" />
+                <label class="form-label">비밀번호</label>
             </div>
 
-            <button class="button-big mt-10">로그인</button>
+            <button class="form-button-big mt-20">로그인</button>
 
             <div class="flex-justify-content-between mt-10">
-                <router-link :to="{ name: 'signup' }" class="button-none">회원가입</router-link>
-                <router-link :to="{ name: 'findPassword' }" class="button-none">비밀번호 찾기</router-link>
+                <router-link :to="{ name: 'signup' }" class="form-button-none">회원가입</router-link>
+                <router-link :to="{ name: 'findPassword' }" class="form-button-none">비밀번호 찾기</router-link>
             </div>
         </form>
     </FormComp>
