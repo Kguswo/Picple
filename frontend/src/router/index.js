@@ -45,10 +45,23 @@ const router = createRouter({
 			component: () => import("@/views/BoardView.vue"),
 		},
 		{
+			path: "/booth",
+			name: "booth",
+			component: () => import("@/views/booth/BoothView.vue"),
+			children: [
+					{
+				  		path: "",
+				  		name: "boothCreate",
+				  		component: () => import("@/components/booth/CreateBoothComp.vue"),
+					},
+				]
+		},
+		{
 			path: "/boothCode",
 			name: "boothCode",
-			component: () => import("@/views/booth/BootCodeView.vue"),
+			component: () => import("@/views/booth/BoothCodeView.vue"),
 		},
+
 	],
 });
 
