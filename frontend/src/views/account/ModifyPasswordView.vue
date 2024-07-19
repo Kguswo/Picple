@@ -1,30 +1,50 @@
 <script setup>
 import FormComp from "@/components/common/FormComp.vue";
 import { useRoute } from "vue-router";
+import { ref } from 'vue';
 
 const route = useRoute();
+
+const currentPassword = ref({ value: '', isFocused: false });
+const newPassword = ref({ value: '', isFocused: false });
+const newPasswordCheck = ref({ value: '', isFocused: false });
+
+const handleFocus = (field) => {
+    field.isFocused = true;
+};
+
+const handleBlur = (field) => {
+    field.isFocused = false;
+};
 </script>
 
 <template>
     <FormComp title="비밀번호 변경">
         <form class="form-content">
-            <div class="flex-col mt-10" v-if="route.params.path === 'modify'">
-                <label>현재 비밀번호</label>
-                <input type="password" class="input-big" />
+            <div class="input-container" v-if="route.params.path === 'modify'">
+                <input type="password" @focus="handleFocus(currentPassword)" @blur="handleBlur(currentPassword)"
+                    v-model="currentPassword.value" class="form-input" :class="{ 'has-content': currentPassword.value }"
+                    autoComplete="off" />
+                <label class="form-label">현재 비밀번호</label>
             </div>
 
-            <div class="flex-col mt-10">
-                <label>새 비밀번호</label>
-                <input type="password" class="input-big" />
+            <div class="input-container mt-10">
+                <input type="password" @focus="handleFocus(newPassword)" @blur="handleBlur(newPassword)"
+                    v-model="newPassword.value" class="form-input" :class="{ 'has-content': newPassword.value }"
+                    autoComplete="off" />
+                <label class="form-label">새 비밀번호</label>
             </div>
 
-            <div class="flex-col mt-10">
-                <label>새 비밀번호 확인</label>
-                <input type="password" class="input-big" />
+            <div class="input-container mt-10">
+                <input type="password" @focus="handleFocus(newPasswordCheck)" @blur="handleBlur(newPasswordCheck)"
+                    v-model="newPasswordCheck.value" class="form-input"
+                    :class="{ 'has-content': newPasswordCheck.value }" autoComplete="off" />
+                <label class="form-label">새 비밀번호
+                    확인</label>
             </div>
 
-            <button class="button-big mt-10">확인</button>
-            <button class="button-big background-color-cancel mt-10" v-if="route.params.path === 'modify'">취소</button>
+            <button class="form-button-big mt-20">확인</button>
+            <button class="form-button-big form-button-cancel mt-10" v-if="route.params.path === 'modify'">취소</button>
         </form>
     </FormComp>
 </template>
