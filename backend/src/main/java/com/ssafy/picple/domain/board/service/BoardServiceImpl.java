@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 import com.ssafy.picple.domain.board.dto.BoardDto;
 import com.ssafy.picple.domain.board.entity.Board;
 import com.ssafy.picple.domain.board.repository.BoardRepository;
-import com.ssafy.picple.domain.like.repository.BoardLikeRepository;
+import com.ssafy.picple.domain.boardlike.repository.BoardLikeRepository;
 import com.ssafy.picple.domain.photo.entity.Photo;
 import com.ssafy.picple.domain.photo.repository.PhotoRepository;
 import com.ssafy.picple.domain.user.repository.UserRepository;

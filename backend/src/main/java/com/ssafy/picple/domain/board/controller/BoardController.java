@@ -13,7 +13,7 @@ import com.ssafy.picple.config.baseResponse.BaseResponse;
 import com.ssafy.picple.config.baseResponse.BaseResponseStatus;
 import com.ssafy.picple.domain.board.dto.BoardDto;
 import com.ssafy.picple.domain.board.service.BoardService;
-import com.ssafy.picple.domain.like.repository.BoardLikeRepository;
+import com.ssafy.picple.domain.boardlike.repository.BoardLikeRepository;
 
 import lombok.RequiredArgsConstructor;
 
