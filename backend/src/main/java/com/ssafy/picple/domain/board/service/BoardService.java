@@ -15,13 +15,13 @@ public interface BoardService {
 	// 최신순으로 정렬
 	List<BoardDto> findAllBoardsOrderByCreatedAtDesc();
 
-	// 사진 좋아요 여부 확인
-	boolean isPhotoLikedByUser(Long boardId, Long userId);
+	// // 사진 좋아요 여부 확인
+	// boolean isPhotoLikedByUser(Long boardId, Long userId);
 
-	// 사진 좋아요 누르기
+	// 사진 좋아요 1증가
 	void increaseBoardHit(Long boardId);
 
-	// 사진 좋아요 취소하기
+	// 사진 좋아요 1감소
 	void decreaseBoardHit(Long boardId);
 
 	// 사용자 닉네임 검색으로 해당 유저(닉네임) 포함된 사진 조회

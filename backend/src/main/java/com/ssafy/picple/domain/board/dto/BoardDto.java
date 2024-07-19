@@ -1,5 +1,7 @@
 package com.ssafy.picple.domain.board.dto;
 
+import java.util.Optional;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -15,4 +17,12 @@ public class BoardDto {
 	private String photoUrl;
 	private boolean isLiked;
 	private int hit;
+
+	public BoardDto(Long id, String createdAt, Optional<String> photoUrl, boolean isLiked, int hit) {
+		this.id = id;
+		this.createdAt = createdAt;
+		this.photoUrl = photoUrl.orElse("");
+		this.isLiked = isLiked;
+		this.hit = hit;
+	}
 }
