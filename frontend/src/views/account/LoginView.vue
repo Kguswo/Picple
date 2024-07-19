@@ -1,17 +1,9 @@
 <script setup>
 import FormComp from "@/components/common/FormComp.vue";
-import { ref } from 'vue';
+import { useFormInput } from "@/stores/form";
 
-const email = ref({ value: '', isFocused: false });
-const password = ref({ value: '', isFocused: false });
-
-const handleFocus = (field) => {
-    field.isFocused = true;
-};
-
-const handleBlur = (field) => {
-    field.isFocused = false;
-};
+const { objects, handleFocus, handleBlur } = useFormInput(['email', 'password']);
+const { email, password } = objects;
 </script>
 
 <template>

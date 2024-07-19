@@ -1,21 +1,12 @@
 <script setup>
 import FormComp from "@/components/common/FormComp.vue";
 import { useRoute } from "vue-router";
-import { ref } from 'vue';
+import { useFormInput } from "@/stores/form";
 
 const route = useRoute();
 
-const currentPassword = ref({ value: '', isFocused: false });
-const newPassword = ref({ value: '', isFocused: false });
-const newPasswordCheck = ref({ value: '', isFocused: false });
-
-const handleFocus = (field) => {
-    field.isFocused = true;
-};
-
-const handleBlur = (field) => {
-    field.isFocused = false;
-};
+const { objects, handleFocus, handleBlur } = useFormInput(['currentPassword', 'newPassword', 'newPasswordCheck']);
+const { currentPassword, newPassword, newPasswordCheck } = objects;
 </script>
 
 <template>

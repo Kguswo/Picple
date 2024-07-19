@@ -1,21 +1,12 @@
 <script setup>
 import FormComp from "@/components/common/FormComp.vue";
 import { useRouter } from "vue-router";
-import { ref } from 'vue';
+import { useFormInput } from "@/stores/form";
 
 const router = useRouter();
 
-const email = ref({ value: '', isFocused: false });
-const nickname = ref({ value: '', isFocused: false });
-const password = ref({ value: '', isFocused: false });
-
-const handleFocus = (field) => {
-    field.isFocused = true;
-};
-
-const handleBlur = (field) => {
-    field.isFocused = false;
-};
+const { objects, handleFocus, handleBlur } = useFormInput(['nickname']);
+const { nickname } = objects;
 
 const modifyPassword = () => {
     router.push({ name: 'modifyPassword', params: { path: 'modify' } });
@@ -26,7 +17,7 @@ const modifyPassword = () => {
     <FormComp title="정보 수정">
         <form class="form-content">
             <div class="input-container background-color-disabled">
-                <input type="text" v-model="email.value" class="form-input has-content" disabled />
+                <input type="text" class="form-input has-content" disabled />
                 <label class="form-label">이메일</label>
             </div>
 
@@ -37,12 +28,10 @@ const modifyPassword = () => {
                 <button class="form-button-small">중복</button>
             </div>
 
-            <div class="input-container mt-10">
-                <input type="password" @focus="handleFocus(password)" @blur="handleBlur(password)"
-                    v-model="password.value" class="form-input" :class="{ 'has-content': password.value }"
-                    autoComplete="off" />
+            <div class="input-container background-color-disabled mt-10">
+                <input type="password" class="form-input has-content" autoComplete="off" disabled />
                 <label class="form-label">비밀번호</label>
-                <button class="form-button-small">변경</button>
+                <button type="button" class="form-button-small" @click="modifyPassword">변경</button>
             </div>
 
             <button class="form-button-big mt-20">저장</button>
