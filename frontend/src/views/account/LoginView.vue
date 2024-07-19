@@ -1,27 +1,28 @@
 <script setup>
-import AccountMainComp from "@/components/account/AccountMainComp.vue";
-import InputComp from "@/components/account/InputComp.vue";
-import ButtonComp from "@/components/account/ButtonComp.vue";
-import FormComp from "@/components/account/FormComp.vue";
-import WhiteBoardComp from "@/components/common/WhiteBoardComp.vue";
+import FormComp from "@/components/common/FormComp.vue";
 </script>
 
 <template>
-    <WhiteBoardComp>
-        <AccountMainComp title="로그인">
-            <FormComp>
-                <InputComp label="email" text-label="이메일" type="email" />
-                <InputComp label="password" text-label="비밀번호" type="password" class="mt-5" />
+    <FormComp title="로그인">
+        <form class="form-content">
+            <div class="flex-col">
+                <label>이메일</label>
+                <input type="email" class="input-big" />
+            </div>
 
-                <ButtonComp>로그인</ButtonComp>
+            <div class="flex-col mt-10">
+                <label>비밀번호</label>
+                <input type="password" class="input-big" />
+            </div>
 
-                <div class="flex justify-content-between mt-10">
-                    <ButtonComp type="none">회원가입</ButtonComp>
-                    <ButtonComp type="none">비밀번호 찾기</ButtonComp>
-                </div>
-            </FormComp>
-        </AccountMainComp>
-    </WhiteBoardComp>
+            <button class="button-big mt-10">로그인</button>
+
+            <div class="flex-justify-content-between mt-10">
+                <router-link :to="{ name: 'signup' }" class="button-none">회원가입</router-link>
+                <router-link :to="{ name: 'findPassword' }" class="button-none">비밀번호 찾기</router-link>
+            </div>
+        </form>
+    </FormComp>
 </template>
 
 <style scoped></style>
