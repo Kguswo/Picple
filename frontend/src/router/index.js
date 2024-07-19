@@ -39,9 +39,14 @@ const router = createRouter({
 			component: () => import('@/views/account/FindPasswordView.vue'),
 		},
 		{
-			path: "/board",
-			name: "board",
-			component: () => import("@/views/BoardView.vue"),
+			path: '/board',
+			name: 'board',
+			component: () => import('@/views/BoardView.vue'),
+		},
+		{
+			path: '/boothCode',
+			name: 'boothCode',
+			component: () => import('@/views/booth/BootCodeView.vue'),
 		},
 	],
 });
