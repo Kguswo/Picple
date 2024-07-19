@@ -9,7 +9,6 @@ import com.ssafy.picple.domain.board.dto.BoardDto;
 import com.ssafy.picple.domain.board.entity.Board;
 import com.ssafy.picple.domain.board.repository.BoardRepository;
 import com.ssafy.picple.domain.boardlike.repository.BoardLikeRepository;
-import com.ssafy.picple.domain.photo.entity.Photo;
 import com.ssafy.picple.domain.photo.repository.PhotoRepository;
 import com.ssafy.picple.domain.user.repository.UserRepository;
 
@@ -52,8 +51,9 @@ public class BoardServiceImpl implements BoardService {
 
 	// 사진 표시 위함
 	private String getPhotoUrl(Board board) {
-		Photo photo = photoRepository.findById(board.getPhoto().getId()).get();
-		return photo.getPhotoUrl();
+		// Photo photo = photoRepository.findById(board.getPhoto().getId()).get();
+		// return photo.getPhotoUrl();
+		return photoRepository.findById(board.getPhoto().getId()).get().getPhotoUrl();
 	}
 
 	// 좋아요 내림차순으로 정렬
