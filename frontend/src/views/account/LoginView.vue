@@ -1,9 +1,18 @@
 <script setup>
 import FormComp from "@/components/common/FormComp.vue";
 import { useFormInput } from "@/stores/form";
+import { ref } from "vue";
 
 const { objects, handleFocus, handleBlur } = useFormInput(['email', 'password']);
 const { email, password } = objects;
+
+const errorMsg = ref('');
+
+function validateAccount() {
+    if (!email.value) {
+        errorMsg.value = "이메일을 입력하세요";
+    }
+}
 </script>
 
 <template>
@@ -22,7 +31,11 @@ const { email, password } = objects;
                 <label class="form-label">비밀번호</label>
             </div>
 
-            <button class="form-button-big mt-20">로그인</button>
+            <div class="form-error-msg" v-if="errorMsg">
+                {{ errorMsg }}
+            </div>
+
+            <button type="button" class="form-button-big mt-20" @click="">로그인</button>
 
             <div class="flex-justify-content-between mt-10">
                 <router-link :to="{ name: 'signup' }" class="form-button-none">회원가입</router-link>
