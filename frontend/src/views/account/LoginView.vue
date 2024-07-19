@@ -1,5 +1,5 @@
 <script setup>
-import FormComp from "@/components/FormComp.vue";
+import FormComp from "@/components/common/FormComp.vue";
 </script>
 
 <template>
