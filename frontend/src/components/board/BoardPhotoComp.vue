@@ -71,8 +71,16 @@ const closeModal = () => {
 
     <div class="modal" v-if="showModal">
     <div class="modal-content">
-      <span class="close" @click="closeModal">&times;</span>
-      <h1>야호~</h1>
+        <div class="close-box">
+            <span class="close" @click="closeModal">&times;</span>
+        </div>
+        <div class="modal-img">
+            <img src="@/assets/img/tempImg.jpg" alt="">
+            <div class="modal-text">
+                <span class="modal-like">Like. 22</span>
+                <span class="modal-date">Date. 2024.07.19</span>
+            </div>
+        </div>
     </div>
   </div>
 </template>
@@ -143,13 +151,20 @@ const closeModal = () => {
   height: 60%;
   max-height: 80vh;
   overflow-y: auto;
+  border-radius: 10px;
 }
-
+.close-box{
+    padding-top: 0px;
+    padding-bottom: 0px;
+    height: 8%;
+}
 .close {
   color: #aaa;
   float: right;
   font-size: 28px;
+  line-height: 28px;
   font-weight: bold;
+  height: 28px;
 }
 
 .close:hover,
@@ -158,4 +173,25 @@ const closeModal = () => {
   text-decoration: none;
   cursor: pointer;
 }
+.modal-img{
+    height: 90%;
+    display: flex;
+    align-items: center;
+    text-align: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    img{
+        height: 90%;
+        width: 95%;
+    }
+
+    .modal-text{
+        height: 10%;
+        width: 90%;
+        display: flex;
+        justify-content: space-between;
+        text-align: center;
+    }
+}
+
 </style>

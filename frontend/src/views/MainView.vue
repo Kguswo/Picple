@@ -55,7 +55,7 @@ const navigateTo = (path) => {
                 </div>
 
                 <div class="card-area">
-                    <div class="card">
+                    <div class="card" @click="navigateTo('board')">
                         <div class="front">
                             <div class="imageincard">
                                 <img
