@@ -108,6 +108,12 @@
 	margin: auto 0;
 }
 
+.form-error-msg {
+	font-size: 15px;
+	color: red;
+	margin-top: 15px;
+}
+
 .flex {
 	display: flex;
 }
