@@ -1,13 +1,13 @@
 <script setup>
-import AccountMainComp from "@/components/account/AccountMainComp.vue";
+import FormComp from "@/components/common/FormComp.vue";
 import { useRoute } from "vue-router";
 
 const route = useRoute();
 </script>
 
 <template>
-    <AccountMainComp title="비밀번호 변경">
-        <form class="account-form">
+    <FormComp title="비밀번호 변경">
+        <form class="form-content">
             <div class="flex-col mt-10" v-if="route.params.path === 'modify'">
                 <label>현재 비밀번호</label>
                 <input type="password" class="input-big" />
@@ -26,7 +26,7 @@ const route = useRoute();
             <button class="button-big mt-10">확인</button>
             <button class="button-big background-color-cancel mt-10" v-if="route.params.path === 'modify'">취소</button>
         </form>
-    </AccountMainComp>
+    </FormComp>
 </template>
 
 <style scoped></style>
