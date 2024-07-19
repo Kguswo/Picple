@@ -16,7 +16,7 @@
 .form-content {
 	display: flex;
 	flex-direction: column;
-	width: 350px;
+	width: 400px;
 }
 
 .form-input {
@@ -37,7 +37,7 @@
 	left: 3%;
 	transform: translateY(-50%);
 	transition: all 0.3s ease;
-	font-size: 15px;
+	font-size: 18px;
 	color: rgba(128, 128, 128, 0.6);
 }
 
@@ -50,7 +50,7 @@
 .form-input.has-content + .form-label {
 	top: 25%;
 	left: 3%;
-	font-size: 12px;
+	font-size: 13px;
 }
 
 .form-button-none {
@@ -70,7 +70,7 @@
 	top: 50%;
 	transform: translateY(-50%);
 	padding: 5px 10px;
-	font-size: 12px;
+	font-size: 15px;
 	cursor: pointer;
 	border-radius: 3px;
 	transition: background-color 0.3s ease;
@@ -103,8 +103,8 @@
 	color: black;
 }
 
-#title {
-	font-size: 50px;
+.form-title {
+	font-size: 60px;
 	margin: auto 0;
 }
 
