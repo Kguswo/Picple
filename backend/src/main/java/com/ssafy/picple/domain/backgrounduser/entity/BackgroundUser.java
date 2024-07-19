@@ -34,4 +34,11 @@ public class BackgroundUser {
 	@JoinColumn(name = "user_id", nullable = false)
 	private User user;
 
+	public BackgroundUser(Background background, User user) {
+		this.background = background;
+		this.user = user;
+		background.insertBackgroundUser(this);
+		user.insertBackgroundUser(this);
+	}
+
 }

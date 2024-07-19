@@ -1,17 +1,24 @@
 package com.ssafy.picple.domain.user.entity;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import com.ssafy.picple.domain.backgrounduser.entity.BackgroundUser;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.Getter;
 
 @Entity
-@Table(name = "user")
 @Getter
+@Table(name = "user")
 public class User {
+
 	@Id
 	@Column(name = "user_id")
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -33,5 +40,14 @@ public class User {
 	//	private LocalDateTime updatedAt = LocalDateTime.now();
 
 	@Column(nullable = false)
+	@OneToMany(mappedBy = "user")
+	private List<BackgroundUser> backgrounds = new ArrayList<>();
+
+	@Column(nullable = false)
 	private boolean isDeleted = false;
+
+	public void insertBackgroundUser(BackgroundUser backgroundUser) {
+		backgrounds.add(backgroundUser);
+	}
+
 }
