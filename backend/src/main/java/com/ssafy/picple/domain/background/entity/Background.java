@@ -11,9 +11,10 @@ import java.time.LocalDateTime;
 @Getter
 public class Background {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "background_id")
+	private Long id;
 
     @Column(nullable = false, length = 45)
     private String backgroundTitle;

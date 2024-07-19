@@ -3,6 +3,7 @@ package com.ssafy.picple.domain.backgrounduser.entity;
 import com.ssafy.picple.domain.background.entity.Background;
 import com.ssafy.picple.domain.user.entity.User;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -21,6 +22,7 @@ import lombok.NoArgsConstructor;
 public class BackgroundUser {
 
 	@Id
+	@Column(name = "background_user")
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 

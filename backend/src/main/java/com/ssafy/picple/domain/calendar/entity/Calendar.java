@@ -3,6 +3,7 @@ package com.ssafy.picple.domain.calendar.entity;
 import com.ssafy.picple.domain.photo.entity.Photo;
 import com.ssafy.picple.domain.user.entity.User;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -19,6 +20,7 @@ import lombok.Getter;
 public class Calendar {
 
 	@Id
+	@Column(name = "calendar_id")
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
