@@ -24,6 +24,37 @@ public class EmailServiceImpl implements EmailService {
     private final RedisUtil redisUtil;
     private static final String senderEmail = "kodd11021@gmail.com";
 
+    // 인증코드 이메일 발송 (수정 필요)
+    public String sendEmail(String toEmail) throws BaseException {
+        if (redisUtil.existData(toEmail)) {
+            redisUtil.deleteData(toEmail);
+        }
+        // 이메일 폼 생성
+        MimeMessage emailForm = createEmailForm(toEmail);
+        // 이메일 발송
+        javaMailSender.send(emailForm);
+        return null;
+    }
+
+    // 이메일 폼 생성
+    private MimeMessage createEmailForm(String email) throws BaseException {
+        String authCode = createCode();
+        try {
+            MimeMessage message = javaMailSender.createMimeMessage();
+            message.addRecipients(MimeMessage.RecipientType.TO, email);
+            message.setSubject("안녕하세요. 인증번호입니다.");
+            message.setFrom(senderEmail);
+            message.setText(setContext(authCode), "utf-8", "html");
+
+            // Redis 에 해당 인증코드 인증 시간 설정
+            redisUtil.setDataExpire(email, authCode, 60 * 30L);
+
+            return message;
+        } catch (MessagingException e) {
+            throw new BaseException(EMAIL_SEND_ERROR);
+        }
+    }
+
     // 코드 생성
     private String createCode() {
         int leftLimit = 48; // number '0'
@@ -56,43 +87,17 @@ public class EmailServiceImpl implements EmailService {
         return templateEngine.process("mail", context);
     }
 
-    // 이메일 폼 생성
-    private MimeMessage createEmailForm(String email) throws BaseException {
-        String authCode = createCode();
-        try {
-            MimeMessage message = javaMailSender.createMimeMessage();
-            message.addRecipients(MimeMessage.RecipientType.TO, email);
-            message.setSubject("안녕하세요. 인증번호입니다.");
-            message.setFrom(senderEmail);
-            message.setText(setContext(authCode), "utf-8", "html");
-
-            // Redis 에 해당 인증코드 인증 시간 설정
-            redisUtil.setDataExpire(email, authCode, 60 * 30L);
-
-            return message;
-        } catch (MessagingException e) {
-            throw new BaseException(EMAIL_SEND_ERROR);
-        }
-    }
-
-    // 인증코드 이메일 발송 (수정 필요)
-    public void sendEmail(String toEmail) throws BaseException {
-        if (redisUtil.existData(toEmail)) {
-            redisUtil.deleteData(toEmail);
-        }
-        // 이메일 폼 생성
-        MimeMessage emailForm = createEmailForm(toEmail);
-        // 이메일 발송
-        javaMailSender.send(emailForm);
-    }
-
     // 코드 검증
-    public Boolean verifyEmailCode(String email, String code) {
+    public String verifyEmailCode(String email, String code) throws BaseException {
         String codeFoundByEmail = redisUtil.getData(email);
         if (codeFoundByEmail == null) {
-            return false;
+            throw new BaseException(NOT_EXISTS_CODE);
         }
-        return codeFoundByEmail.equals(code);
+        if (codeFoundByEmail.equals(code)) {
+            return "SUCCESS";
+        } else {
+            throw new BaseException(NOT_EQUAL_EMAIL_CODE);
+        }
     }
 
 }

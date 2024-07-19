@@ -2,11 +2,17 @@ package com.ssafy.picple.domain.user.controller;
 
 import com.ssafy.picple.config.baseResponse.BaseException;
 import com.ssafy.picple.config.baseResponse.BaseResponse;
+import com.ssafy.picple.domain.user.dto.request.EmailCheckRequest;
+import com.ssafy.picple.domain.user.dto.request.EmailRequest;
 import com.ssafy.picple.domain.user.dto.response.UserListResponse;
 import com.ssafy.picple.domain.user.entity.User;
+import com.ssafy.picple.domain.user.service.EmailService;
 import com.ssafy.picple.domain.user.service.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+
+import static com.ssafy.picple.config.baseResponse.BaseResponseStatus.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -14,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserService userService;
+    private final EmailService emailService;
 
     /**
      * 로그인
@@ -32,6 +39,22 @@ public class UserController {
         return null;
     }
 
+    @PostMapping("/mail")
+    public BaseResponse<String> mailSend(@RequestBody @Valid EmailRequest emailDto) throws BaseException {
+        if (emailDto.getEmail() == null || emailDto.getEmail().trim().isEmpty()) {
+            throw new BaseException(USER_EMAIL_EMPTY);
+        }
+        return new BaseResponse<>(emailService.sendEmail(emailDto.getEmail()));
+    }
+
+    @PostMapping("/mailcheck")
+    public BaseResponse<String> mailCheck(@RequestBody @Valid EmailCheckRequest emailCheckDto) throws BaseException {
+        if (emailCheckDto.getEmail() == null || emailCheckDto.getEmail().trim().isEmpty()) {
+            throw new BaseException(USER_EMAIL_EMPTY);
+        }
+        return new BaseResponse<>(emailService.verifyEmailCode(emailCheckDto.getEmail(), emailCheckDto.getAuthNumber()));
+    }
+
     @GetMapping("/sign-up/{email}")
     public BaseResponse<String> checkEmailDuplication(@PathVariable String email) throws BaseException {
         return new BaseResponse<>(userService.checkEmailDuplication(email));
@@ -41,6 +64,5 @@ public class UserController {
     public BaseResponse<String> checkNicknameDuplication(@PathVariable String nickname) throws BaseException {
         return new BaseResponse<>(userService.checkNicknameDuplication(nickname));
     }
-
 
 }

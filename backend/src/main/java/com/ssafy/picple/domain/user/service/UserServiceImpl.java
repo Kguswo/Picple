@@ -34,6 +34,7 @@ public class UserServiceImpl implements UserService {
         } else if (userRepository.existsByNickname(user.getNickname())) {
             throw new BaseException(DUPLICATED_USER_NICKNAME);
         }
+        return null;
     }
 
     /**
