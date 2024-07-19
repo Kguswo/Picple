@@ -1,4 +1,4 @@
-.account-content {
+.form-container {
 	display: flex;
 	justify-content: space-around;
 	width: 100%;
@@ -54,7 +54,7 @@
 	box-sizing: border-box;
 }
 
-.account-form {
+.form-content {
 	display: flex;
 	flex-direction: column;
 	width: 300px;
