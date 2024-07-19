@@ -17,7 +17,7 @@
     min-width: 960px;
 }
 
-.whiteboard-area-account {
+.whiteboard-area-form {
     /* size */
     width: 50%;
     height: 80%;

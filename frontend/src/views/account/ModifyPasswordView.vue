@@ -1,28 +1,32 @@
 <script setup>
-import AccountMainComp from "@/components/account/AccountMainComp.vue";
-import InputComp from "@/components/account/InputComp.vue";
-import ButtonComp from "@/components/account/ButtonComp.vue";
-import FormComp from "@/components/account/FormComp.vue";
-import WhiteBoardComp from "@/components/common/WhiteBoardComp.vue";
+import FormComp from "@/components/common/FormComp.vue";
 import { useRoute } from "vue-router";
 
 const route = useRoute();
 </script>
 
 <template>
-    <WhiteBoardComp>
-        <AccountMainComp title="비밀번호 변경">
-            <FormComp>
-                <InputComp v-if="route.params.path === 'modify'" label="password-current" text-label="현재 비밀번호"
-                    type="password" class="mt-5" />
-                <InputComp label="password-new" text-label="새 비밀번호" type="password" class="mt-5" />
-                <InputComp label="password-new-check" text-label="새 비밀번호 확인" type="password" class="mt-5" />
+    <FormComp title="비밀번호 변경">
+        <form class="form-content">
+            <div class="flex-col mt-10" v-if="route.params.path === 'modify'">
+                <label>현재 비밀번호</label>
+                <input type="password" class="input-big" />
+            </div>
 
-                <ButtonComp>확인</ButtonComp>
-                <ButtonComp v-if="route.params.path === 'modify'" class="background-color-white">취소</ButtonComp>
-            </FormComp>
-        </AccountMainComp>
-    </WhiteBoardComp>
+            <div class="flex-col mt-10">
+                <label>새 비밀번호</label>
+                <input type="password" class="input-big" />
+            </div>
+
+            <div class="flex-col mt-10">
+                <label>새 비밀번호 확인</label>
+                <input type="password" class="input-big" />
+            </div>
+
+            <button class="button-big mt-10">확인</button>
+            <button class="button-big background-color-cancel mt-10" v-if="route.params.path === 'modify'">취소</button>
+        </form>
+    </FormComp>
 </template>
 
 <style scoped></style>

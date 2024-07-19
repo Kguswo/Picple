@@ -1,29 +1,45 @@
 <script setup>
-import AccountMainComp from "@/components/account/AccountMainComp.vue";
-import InputComp from "@/components/account/InputComp.vue";
-import ButtonComp from "@/components/account/ButtonComp.vue";
-import FormComp from "@/components/account/FormComp.vue";
-import WhiteBoardComp from "@/components/common/WhiteBoardComp.vue";
+import FormComp from "@/components/common/FormComp.vue";
+import { useRouter } from "vue-router";
+
+const router = useRouter();
+
+const modifyPassword = () => {
+    router.push({ name: 'modifyPassword', params: { path: 'modify' } });
+}
 </script>
 
 <template>
-    <WhiteBoardComp>
-        <AccountMainComp title="정보 수정">
-            <FormComp>
-                <InputComp label="email" text-label="이메일" type="email" is-disabled="true" />
+    <FormComp title="정보 수정">
+        <form class="form-content">
+            <div class="flex-col">
+                <label>이메일</label>
+                <input type="email" class="input-big background-color-disabled" disabled />
+            </div>
 
-                <InputComp label="nickname" text-label="닉네임" text-button="중복" type="text" with-button="true"
-                    class="mt-5" />
-                <InputComp label="password" text-label="비밀번호" text-button="변경" type="password" with-button="true"
-                    class="mt-5" is-disabled="true" />
-
-                <ButtonComp>저장</ButtonComp>
-                <div class="text-align-right mt-10">
-                    <ButtonComp type="none">회원탈퇴</ButtonComp>
+            <div class="flex-col mt-10">
+                <label>닉네임</label>
+                <div class="flex">
+                    <input type="text" class="input-big" />
+                    <button type="button" class="button-small">중복</button>
                 </div>
-            </FormComp>
-        </AccountMainComp>
-    </WhiteBoardComp>
+            </div>
+
+            <div class="flex-col mt-10">
+                <label>비밀번호</label>
+                <div class="flex">
+                    <input type="password" class="input-big background-color-disabled" disabled />
+                    <button type="button" class="button-small" @click="modifyPassword">변경</button>
+                </div>
+            </div>
+
+            <button class="button-big mt-10">저장</button>
+
+            <div class="text-align-right mt-10">
+                <button type="button" class="button-none">회원탈퇴</button>
+            </div>
+        </form>
+    </FormComp>
 </template>
 
 <style scoped></style>
