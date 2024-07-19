@@ -27,10 +27,10 @@
 
 .whiteboard-area-booth {
     /* size */
-    width: 50%;
-    height: 80%;
+    width: 70%;
+    height: 90%;
     min-height: 545px;
-    min-width: 960px;
+    min-width: 880px;
 }
 
 .background {

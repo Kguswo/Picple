@@ -19,7 +19,7 @@ const navigateTo = (path) => {
 
             <div class="cardBox">
                 <div class="card-area">
-                    <div class="card">
+                    <div class="card" @click="navigateTo('booth')">
                         <div class="front">
                             <div class="imageincard">
                                 <img
