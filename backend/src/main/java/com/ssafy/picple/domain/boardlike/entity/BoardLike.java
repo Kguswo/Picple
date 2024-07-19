@@ -1,4 +1,4 @@
-package com.ssafy.picple.domain.like.entity;
+package com.ssafy.picple.domain.boardlike.entity;
 
 import com.ssafy.picple.domain.board.entity.Board;
 import com.ssafy.picple.domain.user.entity.User;
@@ -11,16 +11,20 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "like")
+@Table(name = "boardlike")
 @Getter
-public class Like {
+@NoArgsConstructor
+public class BoardLike {
 
 	@Id
+	@Column(name = "boardlike_id")
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long likeId;
+	private Long id;
 
 	@ManyToOne
 	@JoinColumn(name = "user_id")
@@ -33,4 +37,10 @@ public class Like {
 	@Column(nullable = false)
 	private Boolean isLiked;
 
+	@Builder
+	public BoardLike(User user, Board board, Boolean isLiked) {
+		this.user = user;
+		this.board = board;
+		this.isLiked = isLiked;
+	}
 }
