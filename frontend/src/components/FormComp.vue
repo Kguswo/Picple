@@ -9,8 +9,8 @@ defineProps({
 
 <template>
     <Page>
-        <WhiteBoardComp class="whiteboard-area-account">
-            <div class="account-content">
+        <WhiteBoardComp class="whiteboard-area-form">
+            <div class="form-container">
                 <div id="title">{{ title }}</div>
                 <slot></slot>
             </div>
@@ -19,5 +19,5 @@ defineProps({
 </template>
 
 <style>
-@import "@/assets/css/account.css";
+@import "@/assets/css/form.css";
 </style>
