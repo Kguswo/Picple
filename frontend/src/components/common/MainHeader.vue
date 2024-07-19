@@ -1,10 +1,18 @@
-<script setup></script>
+<script setup>
+import { useRouter } from "vue-router";
+
+const router = useRouter();
+
+const navigateTo = (path) => {
+    router.push({ name: path });
+};
+</script>
 
 <template>
     <header>
         <nav class="navbar">
             <div class="left">
-                <img src="@/assets/img/mainView/picpleLogo.png" alt="" />
+                <img src="@/assets/img/mainView/picpleLogo.png" alt="" @click="navigateTo('main')"/>
             </div>
             <div class="right">
                 <router-link :to="{ name: 'login' }">로그인</router-link>
