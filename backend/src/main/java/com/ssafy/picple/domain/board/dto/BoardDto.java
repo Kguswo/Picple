@@ -1,6 +1,8 @@
 package com.ssafy.picple.domain.board.dto;
 
-import java.util.Optional;
+import com.ssafy.picple.domain.board.entity.Board;
+import com.ssafy.picple.domain.boardlike.repository.BoardLikeRepository;
+import com.ssafy.picple.domain.photo.repository.PhotoRepository;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -18,11 +20,12 @@ public class BoardDto {
 	private boolean isLiked;
 	private int hit;
 
-	public BoardDto(Long id, String createdAt, Optional<String> photoUrl, boolean isLiked, int hit) {
-		this.id = id;
-		this.createdAt = createdAt;
-		this.photoUrl = photoUrl.orElse("");
-		this.isLiked = isLiked;
-		this.hit = hit;
+	public BoardDto(Board board, PhotoRepository photoRepository, BoardLikeRepository boardLikeRepository,
+		Long userId) {
+		this.id = board.getId();
+		this.createdAt = board.getCreatedAt().toString();
+		this.photoUrl = photoRepository.findById(board.getPhoto().getId()).get().getPhotoUrl();
+		this.isLiked = boardLikeRepository.existsByBoardIdAndUserId(board.getId(), userId);
+		this.hit = board.getHit();
 	}
 }
