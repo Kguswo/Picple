@@ -26,10 +26,16 @@ public enum BaseResponseStatus {
     // Common
     RESPONSE_ERROR(false, 3000, "값을 불러오는데 실패하였습니다."),
 
-    // 3001 ~~ 3099 : 염규영
+    // 3001 ~~ 3099 : 박성훈
     GET_USER_EMPTY(false, 3001, "등록된 유저가 없습니다."),
+    DUPLICATED_USER_EMAIL(false, 3002, "해당 이메일이 이미 존재합니다."),
+    DUPLICATED_USER_NICKNAME(false, 3003, "해당 닉네임이 이미 존재합니다."),
+    EMAIL_SEND_ERROR(false, 3003, "이메일 발송 중 문제가 생겼습니다."),
+    MESSAGE_ERROR(false, 3004, ""),
 
     // 3100 ~~ 3199 : 김현재
+
+    // 3200 ~~ 3299 : 염규영
 
     /**
      * 4000 : Database, Server

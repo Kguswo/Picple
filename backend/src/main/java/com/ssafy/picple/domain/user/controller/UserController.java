@@ -6,11 +6,7 @@ import com.ssafy.picple.domain.user.dto.response.UserListResponse;
 import com.ssafy.picple.domain.user.entity.User;
 import com.ssafy.picple.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -20,24 +16,31 @@ public class UserController {
     private final UserService userService;
 
     /**
-     * 테스트 코드 (User 목록 불러오기 - Dto 사용)
+     * 로그인
      * @return
      * @throws BaseException
      */
-    @GetMapping("/test1")
-    public BaseResponse<UserListResponse> getUserDto() throws BaseException {
+    @GetMapping("/login")
+    public BaseResponse<UserListResponse> login() throws BaseException {
         UserListResponse userDto = new UserListResponse();
         userDto.setUsers(userService.getUser());
         return new BaseResponse<>(userDto);
     }
 
-    /**
-     * 테스트 코드 (User 목록 불러오기)
-     * @return
-     * @throws BaseException
-     */
-    @GetMapping("/test2")
-    public BaseResponse<List<User>> getUser() throws BaseException {
-        return new BaseResponse<>(userService.getUser());
+    @PostMapping("/sign-up")
+    public BaseResponse<User> signUp(@RequestBody User user) throws BaseException {
+        return null;
     }
+
+    @GetMapping("/sign-up/{email}")
+    public BaseResponse<String> checkEmailDuplication(@PathVariable String email) throws BaseException {
+        return new BaseResponse<>(userService.checkEmailDuplication(email));
+    }
+
+    @GetMapping("/sign-up/{nickname}")
+    public BaseResponse<String> checkNicknameDuplication(@PathVariable String nickname) throws BaseException {
+        return new BaseResponse<>(userService.checkNicknameDuplication(nickname));
+    }
+
+
 }

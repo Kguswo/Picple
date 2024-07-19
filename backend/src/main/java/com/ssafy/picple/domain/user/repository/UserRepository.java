@@ -9,4 +9,8 @@ import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User, Long> {
     List<User> findAll();
+
+    // 중복 체크
+    Boolean existsByEmail(String email);
+    Boolean existsByNickname(String nickname);
 }
