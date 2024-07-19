@@ -61,33 +61,34 @@
                             <img :src="getNextPhoto()" alt="Next Photo" />
                         </div>
                     </div>
-
-                    <button
-                        class="nav-button prev-button"
-                        :class="[
-                            getPhotoClass(getPrevPhoto()),
-                            { expanded: currentPhotoExpanded },
-                        ]"
-                        @click="prevPhoto"
-                    >
-                        <img
-                            src="@/assets/img/calendar/arrow-left.png"
-                            alt="Previous"
-                        />
-                    </button>
-                    <button
-                        class="nav-button next-button"
-                        :class="[
-                            getPhotoClass(getNextPhoto()),
-                            { expanded: currentPhotoExpanded },
-                        ]"
-                        @click="nextPhoto"
-                    >
-                        <img
-                            src="@/assets/img/calendar/arrow-right.png"
-                            alt="Next"
-                        />
-                    </button>
+                    <div class="nav-buttons">
+                        <button
+                            class="nav-button prev-button"
+                            :class="[
+                                getPhotoClass(getPrevPhoto()),
+                                { expanded: currentPhotoExpanded },
+                            ]"
+                            @click="prevPhoto"
+                        >
+                            <img
+                                src="@/assets/img/calendar/arrow-left.png"
+                                alt="Previous"
+                            />
+                        </button>
+                        <button
+                            class="nav-button next-button"
+                            :class="[
+                                getPhotoClass(getNextPhoto()),
+                                { expanded: currentPhotoExpanded },
+                            ]"
+                            @click="nextPhoto"
+                        >
+                            <img
+                                src="@/assets/img/calendar/arrow-right.png"
+                                alt="Next"
+                            />
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -165,7 +166,7 @@ const getPhotoClass = (photo) => {
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: rgba(0, 0, 0, 0.7);
+    background: rgba(0, 0, 0, 0.5);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -175,18 +176,19 @@ const getPhotoClass = (photo) => {
 
 .modal-content {
     position: relative;
-    width: 40%;
-    height: 80%;
-    background: white;
+    width: 35%;
+    height: 75%;
+
+    background: #faf9e6;
     border-radius: 15px;
-    border: 5px solid black;
+    border: 4px solid black;
     overflow: visible;
 }
 
 .modal-header {
     height: 15%;
     padding-bottom: 10px;
-    border-bottom: 5px solid black;
+    border-bottom: 4px solid black;
     display: flex;
     flex-direction: column;
     align-items: flex-end;
@@ -246,10 +248,15 @@ const getPhotoClass = (photo) => {
     margin-right: 6px;
 }
 
+.nav-buttons {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+}
+
 .nav-button {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
     background: none;
     border: none;
     cursor: pointer;
@@ -264,7 +271,7 @@ const getPhotoClass = (photo) => {
     left: 0px;
     opacity: 0.7;
     transition: opacity 0.3s, transform 0.5s ease-in-out, left 0.5s ease-in-out;
-    width: 50% !important;
+    width: 10% !important;
     height: 100% !important;
 }
 
@@ -276,12 +283,12 @@ const getPhotoClass = (photo) => {
     right: 0px;
     opacity: 0.7;
     transition: opacity 0.3s, transform 0.5s ease-in-out, right 0.5s ease-in-out;
-    width: 50% !important;
+    width: 10% !important;
     height: 100% !important;
 }
 
 .nav-button.expanded {
-    transform: scale(1.3) translateY(-60%);
+    transform: scale(1.3) translateY(-10%);
 }
 
 .nav-button.expanded.prev-button.portrait {
