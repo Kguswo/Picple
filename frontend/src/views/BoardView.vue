@@ -108,11 +108,15 @@ const likeSort=() =>{
     #nickname-btn{
         line-height: 30px;
         padding: 0px 4px 0px 4px;
+        
+        &:hover{
+            background-color: rgb(250, 198, 198);
+        }
     }
 
     .btn-group button {
         padding: 0px 4px 3px 4px;    
-        line-height: 30px; /* 버튼 높이와 동일하게 설정 */
+        line-height: 30px; 
         height: 30px;
         margin-left: 4px;
     }
@@ -131,6 +135,16 @@ const likeSort=() =>{
 .btn-group{
     button{
         padding: 0;
+        border-radius: 8px;
+    }
+
+    .timeSort, .likeSort {
+        &:hover{
+            background-color: rgb(250, 198, 198);
+        }
+        &:active{
+            transform: translateY(4px);
+        }
     }
 }
 .board{
