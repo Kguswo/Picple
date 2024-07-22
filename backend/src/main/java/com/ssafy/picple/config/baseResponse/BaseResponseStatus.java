@@ -9,32 +9,36 @@ public enum BaseResponseStatus {
 	 */
 	SUCCESS(true, 1000, "요청에 성공하였습니다."),
 
-	/**
-	 * 2000 : Request 오류
-	 */
-	// Common
-	REQUEST_ERROR(false, 2000, "입력값을 확인해주세요."),
-	EMPTY_JWT(false, 2001, "JWT를 입력해주세요."),
-	INVALID_JWT(false, 2002, "유효하지 않은 JWT입니다."),
-	INVALID_USER_JWT(false, 2003, "권한이 없는 유저의 접근입니다."),
+    // Common
+    REQUEST_ERROR(false, 2000, "입력값을 확인해주세요."),
+    EMPTY_JWT(false, 2001, "JWT를 입력해주세요."),
+    INVALID_JWT(false, 2002, "유효하지 않은 JWT입니다."),
+    INVALID_USER_JWT(false,2003,"권한이 없는 유저의 접근입니다."),
+    JWT_GET_USER_ERROR(false,2004,"User 권한 인증 중 에러가 발생하였습니다."),
+    JWT_KEY_GENERATE_ERROR(false,2004,"User 권한 인증 중 에러가 발생하였습니다."),
 
-	/**
-	 * 3000 : Response 오류
-	 */
-	// Common
-	RESPONSE_ERROR(false, 3000, "값을 불러오는데 실패하였습니다."),
+    /**
+     * 3000 : Response 오류
+     */
+    // Common
+    RESPONSE_ERROR(false, 3000, "값을 불러오는데 실패하였습니다."),
 
-	INVALID_BACKGROUND_ID(false, 3201, "올바르지 않은 배경화면 ID입니다."),
+    // 3001 ~~ 3099 : 염규영
+    GET_USER_EMPTY(false, 3001, "등록된 유저가 없습니다."),
+	INVALID_BACKGROUND_ID(false, 3002, "올바르지 않은 배경화면 ID입니다."),
 
-	/**
-	 * 4000 : Database, Server
-	 */
-	DATABASE_ERROR(false, 4000, "데이터베이스 연결에 실패하였습니다."),
+    // 3100 ~~ 3199 : 김현재
 
-	/**
-	 * 5000 : Server 오류
-	 */
-	SERVER_ERROR(false, 5000, "서버와의 연결에 실패하였습니다.");
+    /**
+     * 4000 : Database, Server
+     */
+    DATABASE_ERROR(false, 4000, "데이터베이스 연결에 실패하였습니다."),
+
+    /**
+     * 5000 : Server 오류
+     */
+    SERVER_ERROR(false, 5000, "서버와의 연결에 실패하였습니다.")
+    ;
 
 	private final boolean isSuccess;
 	private final int code;

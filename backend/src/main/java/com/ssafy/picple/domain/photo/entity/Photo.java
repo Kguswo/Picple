@@ -7,6 +7,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -29,5 +30,12 @@ public class Photo {
 
 	@Column(nullable = false)
 	private boolean isDeleted;
+
+    @Builder
+    public Photo(String photoUrl, boolean isShared, boolean isDeleted) {
+        this.photoUrl = photoUrl;
+        this.isShared = isShared;
+        this.isDeleted = isDeleted;
+    }
 
 }
