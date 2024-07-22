@@ -1,50 +1,54 @@
 <script setup>
 import FormComp from "@/components/form/FormComp.vue";
 import FormMessageComp from "@/components/form/FormMessageComp.vue";
-import { useFormInput, enableFocus } from "@/stores/form";
-import { ref, onMounted } from "vue";
+import FormInputComp from "@/components/form/FormInputComp.vue";
+import FormButtonComp from "@/components/form/FormButtonComp.vue";
+import { ref } from "vue";
 import validate from "@/stores/validation";
 
-onMounted(() => {
-    enableFocus();
-})
+const { message, validatePassword, confirmPassword, checkNickname, checkNicknameDup } = validate();
 
-const { objects, handleFocus, handleBlur } = useFormInput(['email', 'emailCheck', 'nickname', 'password', 'passwordCheck']);
-const { nickname, password, passwordCheck } = objects;
-const { message, validateSignup, checkNicknameDup } = validate();
+const nickname = ref({ type: "text", label: "닉네임", value: "" });
+const password = ref({ type: "password", label: "비밀번호", value: "" });
+const passwordConfirm = ref({ type: "password", label: "비밀번호 확인", value: "" });
+const checkedNickname = ref("");
+
+const clickNicknameDup = () => {
+  if (!checkNicknameDup(nickname.value.value)) {
+    return;
+  }
+  checkedNickname.value = nickname.value.value;
+};
+
+const signup = () => {
+  if (!checkNickname(nickname.value.value, checkedNickname.value)) {
+    return;
+  }
+  if (!validatePassword(password.value.value)) {
+    return;
+  }
+  if (!confirmPassword(password.value.value, passwordConfirm.value.value)) {
+    return;
+  }
+  // todo: 회원가입
+};
 </script>
 
 <template>
-    <FormComp title="회원가입">
-        <form class="form-content">
-            <div class="input-container">
-                <input type=" text" @focus="handleFocus(nickname)" @blur="handleBlur(nickname)" v-model="nickname.value"
-                    class="form-input" :class="{ 'has-content': nickname.value }" />
-                <label class="form-label">닉네임</label>
-                <button type="button" class="form-button-small" @click="checkNicknameDup(nickname)">중복</button>
-            </div>
+  <FormComp title="회원가입">
+    <form class="form-content">
+      <FormInputComp :params="nickname">
+        <FormButtonComp size="small" @click-button="clickNicknameDup">중복</FormButtonComp>
+      </FormInputComp>
 
-            <div class="input-container mt-10">
-                <input type="password" @focus="handleFocus(password)" @blur="handleBlur(password)"
-                    v-model="password.value" class="form-input" :class="{ 'has-content': password.value }"
-                    autoComplete="off" />
-                <label class="form-label">비밀번호</label>
-            </div>
+      <FormInputComp :params="password" class="mt-10" />
+      <FormInputComp :params="passwordConfirm" class="mt-10" />
 
-            <div class="input-container mt-10">
-                <input type="password" @focus="handleFocus(passwordCheck)" @blur="handleBlur(passwordCheck)"
-                    v-model="passwordCheck.value" class="form-input" :class="{ 'has-content': passwordCheck.value }"
-                    autoComplete="off" />
-                <label class="form-label">비밀번호
-                    확인</label>
-            </div>
+      <FormMessageComp :message="message" />
 
-            <FormMessageComp :message="message" />
-
-            <button type="button" class="form-button-big mt-20"
-                @click="validateSignup(nickname, password, passwordCheck)">가입</button>
-        </form>
-    </FormComp>
+      <FormButtonComp size="big" @click-button="signup">가입</FormButtonComp>
+    </form>
+  </FormComp>
 </template>
 
 <style scoped></style>
