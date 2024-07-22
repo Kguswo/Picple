@@ -1,7 +1,7 @@
 <script setup>
 import FormComp from "@/components/common/FormComp.vue";
-import { useFormInput } from "@/stores/form";
-import { ref } from "vue";
+import { useFormInput, enableFocus } from "@/stores/form";
+import { ref, onMounted } from "vue";
 
 const { objects, handleFocus, handleBlur } = useFormInput(['email', 'password']);
 const { email, password } = objects;
@@ -13,6 +13,9 @@ function validateAccount() {
         errorMsg.value = "이메일을 입력하세요";
     }
 }
+onMounted(() => {
+    enableFocus();
+})
 </script>
 
 <template>

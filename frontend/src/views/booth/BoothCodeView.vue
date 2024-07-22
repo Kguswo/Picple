@@ -1,16 +1,14 @@
 <script setup>
 import FormComp from "@/components/common/FormComp.vue";
-import { ref } from 'vue';
+import { onMounted } from 'vue';
+import { useFormInput, enableFocus } from "@/stores/form";
 
-const boothCode = ref({ value: '', isFocused: false });
+const { objects, handleFocus, handleBlur } = useFormInput(['boothCode']);
+const { boothCode } = objects;
 
-const handleFocus = (field) => {
-    field.isFocused = true;
-};
-
-const handleBlur = (field) => {
-    field.isFocused = false;
-};
+onMounted(() => {
+    enableFocus();
+})
 </script>
 
 <template>

@@ -1,7 +1,8 @@
 <script setup>
 import FormComp from "@/components/common/FormComp.vue";
 import { useRouter } from "vue-router";
-import { useFormInput } from "@/stores/form";
+import { useFormInput, enableFocus } from "@/stores/form";
+import { onMounted } from "vue";
 
 const router = useRouter();
 
@@ -11,6 +12,10 @@ const { nickname } = objects;
 const modifyPassword = () => {
     router.push({ name: 'modifyPassword', params: { path: 'modify' } });
 }
+
+onMounted(() => {
+    enableFocus();
+})
 </script>
 
 <template>
