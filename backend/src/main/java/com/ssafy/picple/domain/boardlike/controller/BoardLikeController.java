@@ -20,7 +20,7 @@ public class BoardLikeController {
 
 	private final BoardLikeService likeService;
 
-	@GetMapping("/{boardId}}")
+	@GetMapping("/{boardId}")
 	public BaseResponse<Boolean> isPhotoLikedByUser(@PathVariable Long boardId, @RequestParam Long userId) {
 		boolean isLiked = likeService.isPhotoLikedByUser(boardId, userId);
 		return new BaseResponse<>(isLiked);
