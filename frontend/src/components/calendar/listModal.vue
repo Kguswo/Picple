@@ -1,6 +1,6 @@
 <script setup>
-import { defineProps, defineEmits } from "vue";
-import calendarModal from "@/assets/js/calendarModal";
+import { defineProps, defineEmits, watch } from "vue";
+import useCalendarModal from "@/assets/js/calendarModal";
 
 const props = defineProps({
     visible: Boolean,
@@ -21,7 +21,17 @@ const {
     getNextPhoto,
     toggleCurrentPhoto,
     getPhotoClass,
-} = calendarModal(props, emits);
+    updatePhotos,
+} = useCalendarModal(props, emits);
+
+watch(
+    () => props.selectedDate,
+    (newDate) => {
+        if (newDate) {
+            updatePhotos(newDate);
+        }
+    }
+);
 </script>
 
 <template>
@@ -36,7 +46,7 @@ const {
                 </div>
             </div>
             <div class="modal-body">
-                <div class="photo-container">
+                <div v-if="photos.length > 0" class="photo-container">
                     <div
                         class="photo prev-photo"
                         :class="getPhotoClass(getPrevPhoto())"
@@ -45,7 +55,10 @@ const {
                             class="photo-background"
                             :class="getPhotoClass(getPrevPhoto())"
                         >
-                            <img :src="getPrevPhoto()" alt="Previous Photo" />
+                            <img
+                                :src="getPrevPhoto().src"
+                                alt="Previous Photo"
+                            />
                         </div>
                     </div>
                     <div
@@ -60,7 +73,10 @@ const {
                             class="photo-background"
                             :class="getPhotoClass(getCurrentPhoto())"
                         >
-                            <img :src="getCurrentPhoto()" alt="Current Photo" />
+                            <img
+                                :src="getCurrentPhoto().src"
+                                alt="Current Photo"
+                            />
                             <button
                                 class="nav-button share-button"
                                 :class="getPhotoClass(getCurrentPhoto())"
@@ -80,7 +96,7 @@ const {
                             class="photo-background"
                             :class="getPhotoClass(getNextPhoto())"
                         >
-                            <img :src="getNextPhoto()" alt="Next Photo" />
+                            <img :src="getNextPhoto().src" alt="Next Photo" />
                         </div>
                     </div>
                     <div class="nav-buttons">
@@ -106,6 +122,9 @@ const {
                         </button>
                     </div>
                 </div>
+                <div v-else class="no-photos">
+                    해당 날짜엔 이미지가 없습니다.
+                </div>
             </div>
         </div>
     </div>
@@ -113,4 +132,12 @@ const {
 
 <style scoped>
 @import url("@/assets/css/calendarModal.css");
+.no-photos {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    font-size: 1.5rem;
+    color: red;
+}
 </style>

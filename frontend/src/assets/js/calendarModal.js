@@ -1,23 +1,33 @@
-import { ref, watch } from "vue";
+import { ref } from "vue";
 import photo1 from "@/assets/img/calendar/portrait_48.png";
 import photo2 from "@/assets/img/calendar/landscape_84.png";
 import photo3 from "@/assets/img/calendar/portrait_messi3.png";
 import photo4 from "@/assets/img/calendar/portrait_jj4.jpeg";
 import photo5 from "@/assets/img/calendar/landscape_lion.png";
 
-// Example data structure for photos with associated dates
 const allPhotos = [
-    { src: photo1, date: "2024-07-17" },
-    { src: photo2, date: "2024-07-18" },
-    { src: photo3, date: "2024-07-17" },
-    { src: photo4, date: "2024-07-18" },
-    { src: photo5, date: "2024-07-19" },
+    { date: "2024-07-01", src: photo1, type: "portrait" },
+    { date: "2024-07-10", src: photo2, type: "landscape" },
+    { date: "2024-07-10", src: photo3, type: "portrait" },
+    { date: "2024-07-15", src: photo4, type: "portrait" },
+    { date: "2024-07-04", src: photo5, type: "landscape" },
 ];
 
 export default function useCalendarModal(props, emit) {
     const photos = ref([]);
     const currentIndex = ref(0);
     const currentPhotoExpanded = ref(false);
+
+    const updatePhotos = (date) => {
+        const filteredPhotos = allPhotos.filter((photo) => photo.date === date);
+        if (filteredPhotos.length === 0) {
+            alert("해당 날짜에는 이미지가 없습니다.");
+            emit("close");
+        } else {
+            photos.value = filteredPhotos;
+            currentIndex.value = 0; // Ensure the current index is reset
+        }
+    };
 
     const close = () => {
         emit("close");
@@ -37,16 +47,16 @@ export default function useCalendarModal(props, emit) {
         const prevIndex =
             (currentIndex.value - 1 + photos.value.length) %
             photos.value.length;
-        return photos.value[prevIndex]?.src;
+        return photos.value[prevIndex];
     };
 
     const getCurrentPhoto = () => {
-        return photos.value[currentIndex.value]?.src;
+        return photos.value[currentIndex.value];
     };
 
     const getNextPhoto = () => {
         const nextIndex = (currentIndex.value + 1) % photos.value.length;
-        return photos.value[nextIndex]?.src;
+        return photos.value[nextIndex];
     };
 
     const toggleCurrentPhoto = () => {
@@ -54,31 +64,13 @@ export default function useCalendarModal(props, emit) {
     };
 
     const getPhotoClass = (photo) => {
-        if (!photo) return "";
-        if (photo.includes("portrait")) {
+        if (photo.type === "portrait") {
             return "portrait";
-        } else if (photo.includes("landscape")) {
+        } else if (photo.type === "landscape") {
             return "landscape";
         }
         return "";
     };
-
-    // Watch for changes in selectedDate and update photos accordingly
-    watch(
-        () => props.selectedDate,
-        (newDate) => {
-            const filteredPhotos = allPhotos.filter(
-                (photo) => photo.date === newDate
-            );
-            if (filteredPhotos.length > 0) {
-                photos.value = filteredPhotos;
-                currentIndex.value = 0;
-            } else {
-                photos.value = [];
-            }
-        },
-        { immediate: true }
-    );
 
     return {
         photos,
@@ -92,5 +84,8 @@ export default function useCalendarModal(props, emit) {
         getNextPhoto,
         toggleCurrentPhoto,
         getPhotoClass,
+        updatePhotos,
     };
 }
+
+export { allPhotos };
