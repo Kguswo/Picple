@@ -11,17 +11,9 @@ const { message, validatePassword, confirmPassword, checkNickname, checkNickname
 const nickname = ref({ type: "text", label: "닉네임", value: "" });
 const password = ref({ type: "password", label: "비밀번호", value: "" });
 const passwordConfirm = ref({ type: "password", label: "비밀번호 확인", value: "" });
-const checkedNickname = ref("");
-
-const clickNicknameDup = () => {
-  if (!checkNicknameDup(nickname.value.value)) {
-    return;
-  }
-  checkedNickname.value = nickname.value.value;
-};
 
 const signup = () => {
-  if (!checkNickname(nickname.value.value, checkedNickname.value)) {
+  if (!checkNickname(nickname.value.value)) {
     return;
   }
   if (!validatePassword(password.value.value)) {
@@ -38,7 +30,9 @@ const signup = () => {
   <FormComp title="회원가입">
     <form class="form-content">
       <FormInputComp :params="nickname">
-        <FormButtonComp size="small" @click-button="clickNicknameDup">중복</FormButtonComp>
+        <FormButtonComp size="small" @click-button="checkNicknameDup(nickname.value)"
+          >중복</FormButtonComp
+        >
       </FormInputComp>
 
       <FormInputComp :params="password" class="mt-10" />
