@@ -53,6 +53,10 @@
 	font-size: 13px;
 }
 
+button {
+	cursor: pointer;
+}
+
 .form-button-none {
 	background-color: transparent;
 	font-size: 14px;
@@ -71,7 +75,6 @@
 	transform: translateY(-50%);
 	padding: 5px 10px;
 	font-size: 15px;
-	cursor: pointer;
 	border-radius: 3px;
 	transition: background-color 0.3s ease;
 }
