@@ -3,25 +3,38 @@ import Page from "@/components/common/Page.vue";
 import WhiteBoardComp from "@/components/common/WhiteBoardComp.vue";
 import ListModal from "@/components/calendar/listModal.vue";
 import { ref } from "vue";
+import { allPhotos } from "@/assets/js/calendarModal";
 
-const attributes = ref([
-    {
-        dot: "green",
-        dates: [
-            new Date(2024, 6, 1),
-            new Date(2024, 6, 10),
-            new Date(2025, 2, 31),
-        ],
-    },
-    {
-        dot: "red",
-        dates: [
-            new Date(2024, 6, 4),
-            new Date(2024, 6, 10),
-            new Date(2024, 6, 15),
-        ],
-    },
-]);
+const attributes = ref([]);
+
+const updateAttributes = () => {
+    const datesWithPhotos = {};
+    allPhotos.forEach((photo) => {
+        if (!datesWithPhotos[photo.date]) {
+            datesWithPhotos[photo.date] = { count: 1, dot: getRandomColor() };
+        } else {
+            datesWithPhotos[photo.date].count += 1;
+        }
+    });
+
+    attributes.value = Object.keys(datesWithPhotos).map((date) => {
+        const attribute = {
+            dates: new Date(date),
+            dot: datesWithPhotos[date].dot,
+        };
+        if (datesWithPhotos[date].count > 3) {
+            attribute.popover = {
+                label: `+${datesWithPhotos[date].count - 3}`,
+            };
+        }
+        return attribute;
+    });
+};
+
+const getRandomColor = () => {
+    const colors = ["green", "red", "blue", "yellow"];
+    return colors[Math.floor(Math.random() * colors.length)];
+};
 
 const showModal = ref(false);
 const selectedDate = ref("");
@@ -48,6 +61,8 @@ const openModal = (date) => {
 const closeModal = () => {
     showModal.value = false;
 };
+
+updateAttributes(); // 초기 로드 시 attributes 설정
 </script>
 
 <template>
