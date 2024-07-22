@@ -70,6 +70,16 @@ const validate = () => {
     return true;
   };
 
+  const checkBoothCode = (boothCode) => {
+    if (!boothCode) {
+      setFormMessage("부스 코드를 입력하세요.", true);
+      return false;
+    }
+    // todo: 부스 코드 일치 여부 검사
+    setFormMessage("", false);
+    return true;
+  };
+
   const setFormMessage = (text, isError) => {
     message.value.text = text;
     message.value.isError = isError;
@@ -84,6 +94,7 @@ const validate = () => {
     checkNickname,
     checkNicknameDup,
     checkOldPassword,
+    checkBoothCode,
     setFormMessage,
   };
 };
