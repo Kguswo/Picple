@@ -22,6 +22,7 @@ const focusInput = () => {
       :class="{ 'has-content': params.value }"
     />
     <label class="form-label">{{ params.label }}</label>
+    <slot></slot>
   </div>
 </template>
 
