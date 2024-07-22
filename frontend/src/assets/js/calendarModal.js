@@ -6,10 +6,10 @@ import photo4 from "@/assets/img/calendar/portrait_jj4.jpeg";
 import photo5 from "@/assets/img/calendar/landscape_lion.png";
 
 const allPhotos = [
-    { date: "2024-07-01", src: photo1, type: "portrait" },
+    { date: "2024-07-10", src: photo1, type: "portrait" },
     { date: "2024-07-10", src: photo2, type: "landscape" },
     { date: "2024-07-10", src: photo3, type: "portrait" },
-    { date: "2024-07-15", src: photo4, type: "portrait" },
+    { date: "2024-07-12", src: photo4, type: "portrait" },
     { date: "2024-07-04", src: photo5, type: "landscape" },
 ];
 
@@ -25,7 +25,7 @@ export default function useCalendarModal(props, emit) {
             emit("close");
         } else {
             photos.value = filteredPhotos;
-            currentIndex.value = 0; // Ensure the current index is reset
+            currentIndex.value = 0;
         }
     };
 
