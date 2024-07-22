@@ -1,9 +1,14 @@
 <script setup>
 import FormComp from "@/components/common/FormComp.vue";
-import { useFormInput } from "@/stores/form";
+import { useFormInput, enableFocus } from "@/stores/form";
+import { onMounted } from "vue";
 
 const { objects, handleFocus, handleBlur } = useFormInput(['email', 'emailCheck']);
 const { email, emailCheck } = objects;
+
+onMounted(() => {
+    enableFocus();
+})
 </script>
 
 <template>
