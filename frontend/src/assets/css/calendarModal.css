@@ -17,7 +17,6 @@
     position: relative;
     width: 35%;
     height: 75%;
-
     background: #faf9e6;
     border-radius: 15px;
     border: 4px solid black;
@@ -139,9 +138,9 @@ div.photo.current-photo.landscape.expanded > div {
 div.photo.current-photo.landscape.expanded > div > button {
     position: absolute;
     height: 9%;
-    width: 5%;
+    width: 4%;
     top: 4%;
-    left: 92%;
+    left: 93%;
     transform: rotate(0deg);
 }
 
@@ -179,29 +178,50 @@ div.photo.current-photo.landscape.expanded > div > button {
 
 .share-button.portrait {
     position: absolute;
-    height: 7%;
-    width: 5%;
-    top: 1%;
-    right: 26%;
+    height: 6%;
+    width: 4%;
+    top: 2%;
+    right: 27%;
 }
 
 .share-button.landscape {
     position: absolute;
-    height: 9%;
-    width: 5%;
+    height: 10%;
+    width: 4.5%;
     top: 6%;
-    left: 3%;
+    left: 4%;
     transform: rotate(-90deg);
 }
 
 .share-button > img {
     opacity: 0.5 !important;
     border-radius: 0px !important;
+    transition: opacity 0.3s;
 }
 
-.share-button > img:hover {
-    opacity: 1;
+.share-button:hover > img {
+    opacity: 1 !important;
+}
+
+.share-button.expanded > img {
+    opacity: 0.5 !important;
     transition: opacity 0.3s;
+}
+
+.share-button.expanded:hover > img {
+    opacity: 1 !important;
+}
+
+div.photo.current-photo.landscape.expanded > div > button {
+    transition: opacity 0.3s;
+}
+
+div.photo.current-photo.portrait.expanded > div > button {
+    transition: opacity 0.1s;
+}
+
+div.photo.current-photo.landscape.expanded > div:hover > button {
+    opacity: 1 !important;
 }
 
 /* Photo styles */
@@ -308,8 +328,10 @@ div.photo.current-photo.landscape.expanded > div > button {
     opacity: 0.5;
     transition: transform 0.5s ease-in-out, opacity 0.5s ease-in-out;
     border-radius: 0px;
+    max-width: 21px;
+    max-height: 29px;
 }
 
-.photo.expanded .share-button > img:hover {
-    opacity: 1;
+.photo.expanded .share-button:hover > img {
+    opacity: 1 !important;
 }
