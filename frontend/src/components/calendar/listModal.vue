@@ -49,6 +49,7 @@ watch(
                 <div v-if="photos.length > 0" class="photo-container">
                     <div
                         class="photo prev-photo"
+                        v-if="photos.length > 2"
                         :class="getPhotoClass(getPrevPhoto())"
                     >
                         <div
@@ -90,6 +91,7 @@ watch(
                     </div>
                     <div
                         class="photo next-photo"
+                        v-if="photos.length > 1"
                         :class="getPhotoClass(getNextPhoto())"
                     >
                         <div
@@ -132,6 +134,7 @@ watch(
 
 <style scoped>
 @import url("@/assets/css/calendarModal.css");
+
 .no-photos {
     display: flex;
     justify-content: center;
