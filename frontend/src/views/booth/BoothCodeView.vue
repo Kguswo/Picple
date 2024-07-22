@@ -1,14 +1,33 @@
 <script setup>
-import FormComp from "@/components/common/FormComp.vue";
+import FormComp from "@/components/form/FormComp.vue";
+import FormMessageComp from "@/components/form/FormMessageComp.vue";
+import { useRouter } from "vue-router";
 import { onMounted } from 'vue';
 import { useFormInput, enableFocus } from "@/stores/form";
-
-const { objects, handleFocus, handleBlur } = useFormInput(['boothCode']);
-const { boothCode } = objects;
+import { validate } from "@/stores/validation";
 
 onMounted(() => {
     enableFocus();
 })
+
+const router = useRouter();
+
+const { objects, handleFocus, handleBlur } = useFormInput(['boothCode']);
+const { boothCode } = objects;
+const { message, setFormMessage } = validate();
+
+function validateForm() {
+    if (!boothCode.value.value) {
+        setFormMessage("부스 코드를 입력하세요", true);
+        return;
+    }
+    // todo: 부스 코드 일치 여부 확인
+    // todo: 부스 참여 승인
+}
+
+function cancel() {
+    router.push({ name: 'main' });
+}
 </script>
 
 <template>
@@ -20,8 +39,10 @@ onMounted(() => {
                 <label class="form-label">부스 코드</label>
             </div>
 
-            <button class="form-button-big mt-20">확인</button>
-            <button class="form-button-big form-button-cancel mt-10">취소</button>
+            <FormMessageComp :message="message" />
+
+            <button type="button" class="form-button-big mt-20" @click="validateForm">확인</button>
+            <button type="button" class="form-button-big form-button-cancel mt-10" @click="cancel">취소</button>
         </form>
     </FormComp>
 </template>
