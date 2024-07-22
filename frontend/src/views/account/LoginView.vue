@@ -1,7 +1,9 @@
 <script setup>
-import FormComp from "@/components/common/FormComp.vue";
+import FormComp from "@/components/form/FormComp.vue";
+import FormMessageComp from "@/components/form/FormMessageComp.vue";
 import { useFormInput, enableFocus } from "@/stores/form";
 import { ref, onMounted } from "vue";
+import validate from "@/stores/validation";
 
 onMounted(() => {
     enableFocus();
@@ -9,19 +11,7 @@ onMounted(() => {
 
 const { objects, handleFocus, handleBlur } = useFormInput(['email', 'password']);
 const { email, password } = objects;
-
-const errorMsg = ref('');
-
-function validateAccount() {
-    if (!email.value.value) {
-        errorMsg.value = "이메일을 입력하세요";
-    } else if (!password.value.value) {
-        errorMsg.value = "비밀번호를 입력하세요";
-    } else {
-        errorMsg.value = '';
-    }
-    // todo: 모두 입력 시 계정 정보 일치 여부 확인
-}
+const { message, validateLogin } = validate();
 </script>
 
 <template>
@@ -40,11 +30,9 @@ function validateAccount() {
                 <label class="form-label">비밀번호</label>
             </div>
 
-            <div class="form-error-msg" v-if="errorMsg">
-                {{ errorMsg }}
-            </div>
+            <FormMessageComp :message="message" />
 
-            <button type="button" class="form-button-big mt-20" @click="validateAccount">로그인</button>
+            <button type="button" class="form-button-big mt-20" @click="validateLogin(email, password)">로그인</button>
 
             <div class="flex-justify-content-between mt-10">
                 <router-link :to="{ name: 'signupEmail' }">
