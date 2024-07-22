@@ -102,7 +102,7 @@ const toggleMicro = () => {
                 <div v-show="isCameraOn">
                   <video ref="videoElement" autoplay></video>
                 </div> 
-                <div v-if="!isCameraOn">카메라가 꺼져있습니다 !</div>
+                <div v-if="!isCameraOn">카메라가 꺼져있습니다!</div>
             </div>
 
 
@@ -181,9 +181,13 @@ border-radius: 50%;
 width: 50px;
 height: 50px;
 line-height: 50px;
-margin: 5px;
 padding: 5px;
-
+display: flex; 
+justify-content: center; 
+align-items: center; 
+margin: 0 5px;
+border: none; 
+background-color: transparent;
 }
 
 .ract-btn{
