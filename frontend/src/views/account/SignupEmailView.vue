@@ -9,6 +9,31 @@ onMounted(() => {
 
 const { objects, handleFocus, handleBlur } = useFormInput(['email', 'emailCheck', 'nickname', 'password', 'passwordCheck']);
 const { email, emailCheck } = objects;
+
+const isCertified = false;
+const errorMsg = ref('');
+const patternEmail = /^[A-Za-z0-9_\.\-]+@[A-Za-z0-9\-]+\.[A-za-z0-9\-]+/;
+
+function validateEmailPattern() {
+    if (!email.value.value || !patternEmail.test(email.value.value)) {
+        errorMsg.value = "이메일 형식이 올바르지 않습니다"
+    } else {
+        errorMsg.value = '';
+    }
+    // todo: 이메일 인증 번호 발송
+}
+
+function validateEmailCheck() {
+    if (!isCertified || !email.value.value || !emailCheck.value.value) {
+        errorMsg.value = "이메일을 인증하세요";
+        return;
+    }
+
+    // todo: 이메일 인증번호 일치 여부 확인
+    // todo: 이메일 중복 여부 확인
+    // todo: 이메일 인증 후 내용 변경 여부 확인 (재인증 필요)
+    // todo: 인증번호 시간 제한
+}
 </script>
 
 <template>
