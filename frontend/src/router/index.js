@@ -47,13 +47,7 @@ const router = createRouter({
 			path: '/booth',
 			name: 'booth',
 			component: () => import('@/views/booth/BoothView.vue'),
-			children: [
-				{
-					path: '',
-					name: 'boothCreate',
-					component: () => import('@/components/booth/CreateBoothComp.vue'),
-				},
-			],
+			children: [],
 		},
 		{
 			path: '/boothCode',
