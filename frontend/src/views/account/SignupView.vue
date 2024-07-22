@@ -1,33 +1,27 @@
 <script setup>
-import FormComp from "@/components/common/FormComp.vue";
-import { useFormInput } from "@/stores/form";
+import FormComp from "@/components/form/FormComp.vue";
+import FormMessageComp from "@/components/form/FormMessageComp.vue";
+import { useFormInput, enableFocus } from "@/stores/form";
+import { ref, onMounted } from "vue";
+import validate from "@/stores/validation";
+
+onMounted(() => {
+    enableFocus();
+})
 
 const { objects, handleFocus, handleBlur } = useFormInput(['email', 'emailCheck', 'nickname', 'password', 'passwordCheck']);
-const { email, emailCheck, nickname, password, passwordCheck } = objects;
+const { nickname, password, passwordCheck } = objects;
+const { message, validateSignup, checkNicknameDup } = validate();
 </script>
 
 <template>
     <FormComp title="회원가입">
         <form class="form-content">
             <div class="input-container">
-                <input type="text" @focus="handleFocus(email)" @blur="handleBlur(email)" v-model="email.value"
-                    class="form-input" :class="{ 'has-content': email.value }" />
-                <label class="form-label">이메일</label>
-                <button class="form-button-small">인증</button>
-            </div>
-
-            <div class="input-container mt-10">
-                <input type="text" @focus="handleFocus(emailCheck)" @blur="handleBlur(emailCheck)"
-                    v-model="emailCheck.value" class="form-input" :class="{ 'has-content': emailCheck.value }" />
-                <label class="form-label">인증번호</label>
-                <button class="form-button-small">확인</button>
-            </div>
-
-            <div class="input-container mt-10">
-                <input type="text" @focus="handleFocus(nickname)" @blur="handleBlur(nickname)" v-model="nickname.value"
+                <input type=" text" @focus="handleFocus(nickname)" @blur="handleBlur(nickname)" v-model="nickname.value"
                     class="form-input" :class="{ 'has-content': nickname.value }" />
                 <label class="form-label">닉네임</label>
-                <button class="form-button-small">중복</button>
+                <button type="button" class="form-button-small" @click="checkNicknameDup(nickname)">중복</button>
             </div>
 
             <div class="input-container mt-10">
@@ -45,7 +39,10 @@ const { email, emailCheck, nickname, password, passwordCheck } = objects;
                     확인</label>
             </div>
 
-            <button class="form-button-big mt-20">가입</button>
+            <FormMessageComp :message="message" />
+
+            <button type="button" class="form-button-big mt-20"
+                @click="validateSignup(nickname, password, passwordCheck)">가입</button>
         </form>
     </FormComp>
 </template>

@@ -1,9 +1,17 @@
 <script setup>
-import FormComp from "@/components/common/FormComp.vue";
-import { useFormInput } from "@/stores/form";
+import FormComp from "@/components/form/FormComp.vue";
+import FormMessageComp from "@/components/form/FormMessageComp.vue";
+import { useFormInput, enableFocus } from "@/stores/form";
+import { ref, onMounted } from "vue";
+import validate from "@/stores/validation";
+
+onMounted(() => {
+    enableFocus();
+})
 
 const { objects, handleFocus, handleBlur } = useFormInput(['email', 'password']);
 const { email, password } = objects;
+const { message, validateLogin } = validate();
 </script>
 
 <template>
@@ -22,11 +30,18 @@ const { email, password } = objects;
                 <label class="form-label">비밀번호</label>
             </div>
 
-            <button class="form-button-big mt-20">로그인</button>
+            <FormMessageComp :message="message" />
+
+            <button type="button" class="form-button-big mt-20" @click="validateLogin(email, password)">로그인</button>
 
             <div class="flex-justify-content-between mt-10">
-                <router-link :to="{ name: 'signup' }" class="form-button-none">회원가입</router-link>
-                <router-link :to="{ name: 'findPassword' }" class="form-button-none">비밀번호 찾기</router-link>
+                <router-link :to="{ name: 'signupEmail' }">
+                    <button class="form-button-none">회원가입</button>
+                </router-link>
+
+                <router-link :to="{ name: 'findPassword' }">
+                    <button class="form-button-none">비밀번호 찾기</button>
+                </router-link>
             </div>
         </form>
     </FormComp>
