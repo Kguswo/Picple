@@ -9,11 +9,13 @@ const { email, emailCheck, nickname, password, passwordCheck } = objects;
 onMounted(() => {
     enableFocus();
 })
+
+const isCertified = false;
 </script>
 
 <template>
     <FormComp title="회원가입">
-        <form class="form-content">
+        <form class="form-content" v-if="isCertified == false">
             <div class="input-container">
                 <input type="text" @focus="handleFocus(email)" @blur="handleBlur(email)" v-model="email.value"
                     class="form-input" :class="{ 'has-content': email.value }" />
@@ -25,9 +27,13 @@ onMounted(() => {
                 <input type="text" @focus="handleFocus(emailCheck)" @blur="handleBlur(emailCheck)"
                     v-model="emailCheck.value" class="form-input" :class="{ 'has-content': emailCheck.value }" />
                 <label class="form-label">인증번호</label>
-                <button class="form-button-small">확인</button>
+                <!-- <button class="form-button-small">확인</button> -->
             </div>
 
+            <button class="form-button-big mt-20">다음</button>
+        </form>
+
+        <form class="form-content" v-else>
             <div class="input-container mt-10">
                 <input type="text" @focus="handleFocus(nickname)" @blur="handleBlur(nickname)" v-model="nickname.value"
                     class="form-input" :class="{ 'has-content': nickname.value }" />
