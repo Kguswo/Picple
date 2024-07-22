@@ -1,12 +1,17 @@
 <script setup>
 import FormComp from "@/components/common/FormComp.vue";
 import { useRoute } from "vue-router";
-import { useFormInput } from "@/stores/form";
+import { useFormInput, enableFocus } from "@/stores/form";
+import { onMounted } from "vue";
 
 const route = useRoute();
 
 const { objects, handleFocus, handleBlur } = useFormInput(['currentPassword', 'newPassword', 'newPasswordCheck']);
 const { currentPassword, newPassword, newPasswordCheck } = objects;
+
+onMounted(() => {
+    enableFocus();
+})
 </script>
 
 <template>
