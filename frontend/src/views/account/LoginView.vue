@@ -2,6 +2,7 @@
 import FormComp from "@/components/form/FormComp.vue";
 import FormMessageComp from "@/components/form/FormMessageComp.vue";
 import FormInputComp from "@/components/form/FormInputComp.vue";
+import FormButtonComp from "@/components/form/FormButtonComp.vue";
 import validate from "@/stores/validation";
 import { ref } from "vue";
 
@@ -29,7 +30,7 @@ const login = () => {
 
       <FormMessageComp :message="message" />
 
-      <button type="button" class="form-button-big mt-20" @click="login">로그인</button>
+      <FormButtonComp size="big" @click-button="login">로그인</FormButtonComp>
 
       <div class="flex-justify-content-between mt-10">
         <router-link :to="{ name: 'signupEmail' }">
