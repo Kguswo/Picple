@@ -1,6 +1,7 @@
 <script setup>
 import FormComp from "@/components/common/FormComp.vue";
 import { useFormInput, enableFocus } from "@/stores/form";
+import { validate } from "@/stores/validation";
 import { ref, onMounted } from "vue";
 
 onMounted(() => {
@@ -9,23 +10,11 @@ onMounted(() => {
 
 const { objects, handleFocus, handleBlur } = useFormInput(['email', 'emailCheck', 'nickname', 'password', 'passwordCheck']);
 const { email, emailCheck } = objects;
+const { message, isCertified, validateEmail, setFormMessage } = validate();
 
-const isCertified = false;
-const errorMsg = ref('');
-const patternEmail = /^[A-Za-z0-9_\.\-]+@[A-Za-z0-9\-]+\.[A-za-z0-9\-]+/;
-
-function validateEmailPattern() {
-    if (!email.value.value || !patternEmail.test(email.value.value)) {
-        errorMsg.value = "이메일 형식이 올바르지 않습니다"
-    } else {
-        errorMsg.value = '';
-    }
-    // todo: 이메일 인증 번호 발송
-}
-
-function validateEmailCheck() {
-    if (!isCertified || !email.value.value || !emailCheck.value.value) {
-        errorMsg.value = "이메일을 인증하세요";
+function validateForm() {
+    if (!isCertified.value || !email.value.value || !emailCheck.value.value) {
+        setFormMessage("이메일을 인증하세요", true);
         return;
     }
 
@@ -43,7 +32,7 @@ function validateEmailCheck() {
                 <input type="text" @focus="handleFocus(email)" @blur="handleBlur(email)" v-model="email.value"
                     class="form-input" :class="{ 'has-content': email.value }" />
                 <label class="form-label">이메일</label>
-                <button type="button" class="form-button-small" @click="validateEmailPattern">인증</button>
+                <button type="button" class="form-button-small" @click="validateEmail(email)">인증</button>
             </div>
 
             <div class="input-container mt-10">
@@ -53,11 +42,11 @@ function validateEmailCheck() {
                 <!-- <button class="form-button-small">확인</button> -->
             </div>
 
-            <div class="form-error-msg" v-if="errorMsg">
-                {{ errorMsg }}
+            <div class="form-message" v-if="message.value" :style="{ color: message.isError ? 'red' : 'blue' }">
+                {{ message.value }}
             </div>
 
-            <button type="button" class="form-button-big mt-20" @click="validateEmailCheck">다음</button>
+            <button type="button" class="form-button-big mt-20" @click="validateForm">다음</button>
         </form>
     </FormComp>
 </template>
