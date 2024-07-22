@@ -151,6 +151,11 @@
 
 :deep(div.vc-day-content.vc-focusable.vc-focus.vc-attr) {
     font-size: 20px;
+    width: 60%;
+    height: 70%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 :deep(.vc-light) {

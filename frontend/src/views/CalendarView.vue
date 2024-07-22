@@ -1,9 +1,52 @@
+<template>
+    <Page>
+        <WhiteBoardComp class="whiteboard-area-calendar">
+            <div class="name-area">추억 저장소</div>
+            <div class="calendar-area">
+                <div class="calendar">
+                    <v-calendar
+                        class="my-calendar"
+                        transparent
+                        borderless
+                        expanded
+                        :attributes="attributes"
+                        :masks="{ title: 'YYYY MMM' }"
+                        @dayclick="openModal"
+                    >
+                        <template #day-popover="{ day, dayTitle, attributes }">
+                            <div class="vc-day-popover-container">
+                                <div class="vc-day-popover-header">
+                                    {{ formatDate(day.date) }}
+                                </div>
+                                <div
+                                    class="vc-day-popover-row"
+                                    v-for="attribute in attributes"
+                                    :key="attribute.key"
+                                >
+                                    {{ attribute.popover.label }}
+                                </div>
+                            </div>
+                        </template>
+                    </v-calendar>
+                </div>
+            </div>
+        </WhiteBoardComp>
+        <ListModal
+            :visible="showModal"
+            :selectedDate="selectedDate"
+            @close="closeModal"
+        />
+    </Page>
+</template>
+
 <script setup>
 import Page from "@/components/common/Page.vue";
 import WhiteBoardComp from "@/components/common/WhiteBoardComp.vue";
 import ListModal from "@/components/calendar/listModal.vue";
 import { ref } from "vue";
 import { allPhotos } from "@/assets/js/calendarModal";
+import { format } from "date-fns";
+import { ko } from "date-fns/locale";
 
 const attributes = ref([]);
 
@@ -11,7 +54,7 @@ const updateAttributes = () => {
     const datesWithPhotos = {};
     allPhotos.forEach((photo) => {
         if (!datesWithPhotos[photo.date]) {
-            datesWithPhotos[photo.date] = { count: 1, dot: getRandomColor() };
+            datesWithPhotos[photo.date] = { count: 3, dot: getRandomColor() };
         } else {
             datesWithPhotos[photo.date].count += 1;
         }
@@ -21,12 +64,12 @@ const updateAttributes = () => {
         const attribute = {
             dates: new Date(date),
             dot: datesWithPhotos[date].dot,
+            popover: {
+                label: `${datesWithPhotos[date].count - 2}개의 사진`,
+                placement: "top",
+                hideIndicator: true,
+            },
         };
-        if (datesWithPhotos[date].count > 3) {
-            attribute.popover = {
-                label: `+${datesWithPhotos[date].count - 3}`,
-            };
-        }
         return attribute;
     });
 };
@@ -47,9 +90,8 @@ const openModal = (date) => {
         date = new Date(date.date);
     }
 
-    // 날짜를 로컬 시간대로 변환하여 처리
     const year = date.getFullYear();
-    const month = date.getMonth() + 1; // 월은 0부터 시작하므로 1을 더해줍니다.
+    const month = date.getMonth() + 1;
     const day = date.getDate();
 
     selectedDate.value = `${year}-${String(month).padStart(2, "0")}-${String(
@@ -62,35 +104,24 @@ const closeModal = () => {
     showModal.value = false;
 };
 
+const formatDate = (date) => {
+    return format(date, "M월 d일, EEEE", { locale: ko });
+};
+
 updateAttributes(); // 초기 로드 시 attributes 설정
 </script>
 
-<template>
-    <Page>
-        <WhiteBoardComp class="whiteboard-area-calendar">
-            <div class="name-area">추억 저장소</div>
-            <div class="calendar-area">
-                <div class="calendar">
-                    <v-calendar
-                        class="my-calendar"
-                        transparent
-                        borderless
-                        expanded
-                        :attributes="attributes"
-                        :masks="{ title: 'YYYY MMM' }"
-                        @dayclick="openModal"
-                    />
-                </div>
-            </div>
-        </WhiteBoardComp>
-        <ListModal
-            :visible="showModal"
-            :selectedDate="selectedDate"
-            @close="closeModal"
-        />
-    </Page>
-</template>
-
 <style scoped>
 @import url("@/assets/css/calendar.css");
+
+:deep(.vc-popover-content-wrapper .vc-day-popover-header) {
+    font-weight: bold;
+    margin-bottom: 2px;
+    padding: 2px;
+}
+
+:deep(.vc-popover-content-wrapper .vc-day-popover-row) {
+    font-size: 12px;
+    padding: 2px;
+}
 </style>
