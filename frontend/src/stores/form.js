@@ -2,8 +2,10 @@ import { ref } from "vue";
 
 const useFormInput = (fields) => {
 	const objects = {};
-	for (let field of fields) {
-		objects[field] = ref({ value: "", isFocused: false });
+	if (fields) {
+		for (let field of fields) {
+			objects[field] = ref({ value: "", isFocused: false });
+		}
 	}
 
 	const handleFocus = (field) => {
