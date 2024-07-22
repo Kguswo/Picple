@@ -32,8 +32,9 @@ public enum BaseResponseStatus {
 	// 3100 ~~ 3199 : 김현재
 	GET_LIKE_EMPTY(false, 3101, "좋아요 기록이 없습니다."),
 	ALREADY_LIKED(false, 3102, "이미 좋아요 한 상태입니다."),
-	ALREADY_UNLIKED(false, 3102, "이미 좋아요 한 상태입니다."),
-
+	ALREADY_UNLIKED(false, 3103, "이미 좋아요하지 않은 상태입니다."),
+	GET_PHOTO_EMPTY(false, 3110, "해당 사진이 없습니다."),
+	ALREADY_SHARED(false, 3111, "이미 공유된 사진입니다."),
 	/**
 	 * 4000 : Database, Server
 	 */
