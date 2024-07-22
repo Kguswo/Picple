@@ -64,6 +64,12 @@ const validate = () => {
     return true;
   };
 
+  const checkOldPassword = (oldPassword) => {
+    // todo: 현재 비밀번호 일치 여부 검사
+    setFormMessage("", false);
+    return true;
+  };
+
   const setFormMessage = (text, isError) => {
     message.value.text = text;
     message.value.isError = isError;
@@ -77,6 +83,7 @@ const validate = () => {
     confirmPassword,
     checkNickname,
     checkNicknameDup,
+    checkOldPassword,
     setFormMessage,
   };
 };
