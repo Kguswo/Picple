@@ -35,7 +35,9 @@ public enum BaseResponseStatus {
     NOT_EQUAL_EMAIL_CODE(false, 3005, "인증 코드를 확인하세요."),
     NOT_EXISTS_CODE(false, 3006, "인증을 다시 시도하여 주십시오."),
 
+    // about user service
     GET_USER_EMPTY(false, 3016, "등록된 유저가 없습니다."),
+    FAILED_USER_SIGNUP(false, 3017, "등록된 유저가 없습니다."),
 
     // 3100 ~~ 3199 : 김현재
 

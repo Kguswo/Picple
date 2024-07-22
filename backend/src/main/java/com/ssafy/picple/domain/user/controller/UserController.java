@@ -2,6 +2,7 @@ package com.ssafy.picple.domain.user.controller;
 
 import com.ssafy.picple.config.baseResponse.BaseException;
 import com.ssafy.picple.config.baseResponse.BaseResponse;
+import com.ssafy.picple.config.baseResponse.BaseResponseStatus;
 import com.ssafy.picple.domain.user.dto.request.EmailCheckRequest;
 import com.ssafy.picple.domain.user.dto.request.EmailRequest;
 import com.ssafy.picple.domain.user.dto.response.UserListResponse;
@@ -35,8 +36,12 @@ public class UserController {
     }
 
     @PostMapping("/sign-up")
-    public BaseResponse<User> signUp(@RequestBody User user) throws BaseException {
-        return null;
+    public BaseResponse<BaseResponseStatus> signUp(@RequestBody User user) throws BaseException {
+        if (userService.signUp(user)) {
+            return new BaseResponse<>(SUCCESS);
+        } else {
+            return new BaseResponse<>(FAILED_USER_SIGNUP);
+        }
     }
 
     @PostMapping("/mail")
