@@ -19,10 +19,10 @@ public interface BoardService {
 	// boolean isPhotoLikedByUser(Long boardId, Long userId);
 
 	// 사진 좋아요 1증가
-	void increaseBoardHit(Long boardId);
+	// void increaseBoardHit(Long boardId);
 
 	// 사진 좋아요 1감소
-	void decreaseBoardHit(Long boardId);
+	// void decreaseBoardHit(Long boardId);
 
 	// 사용자 닉네임 검색으로 해당 유저(닉네임) 포함된 사진 조회
 	List<BoardDto> findAllBoardsByUserNickname(String nickname);

@@ -39,8 +39,8 @@ public class BoardServiceImpl implements BoardService {
 		Long userId = getUserId();
 		List<Board> boards = boardRepository.findAllByIsDeletedFalse();
 		return boards.stream()
-			.map(board -> new BoardDto(board, photoRepository, boardLikeRepository, userId))
-			.collect(Collectors.toList());
+				.map(board -> new BoardDto(board, photoRepository, boardLikeRepository, userId))
+				.collect(Collectors.toList());
 	}
 
 	// 좋아요 여부 표시위함
@@ -62,8 +62,8 @@ public class BoardServiceImpl implements BoardService {
 		Long userId = getUserId();
 		List<Board> boards = boardRepository.findAllByOrderByHitDesc();
 		return boards.stream()
-			.map(board -> new BoardDto(board, photoRepository, boardLikeRepository, userId))
-			.collect(Collectors.toList());
+				.map(board -> new BoardDto(board, photoRepository, boardLikeRepository, userId))
+				.collect(Collectors.toList());
 	}
 
 	// 최신순으로 정렬
@@ -72,21 +72,21 @@ public class BoardServiceImpl implements BoardService {
 		Long userId = getUserId();
 		List<Board> boards = boardRepository.findAllByOrderByCreatedAtDesc();
 		return boards.stream()
-			.map(board -> new BoardDto(board, photoRepository, boardLikeRepository, userId))
-			.collect(Collectors.toList());
+				.map(board -> new BoardDto(board, photoRepository, boardLikeRepository, userId))
+				.collect(Collectors.toList());
 	}
 
-	// 사진 좋아요 1증가
-	@Override
-	public void increaseBoardHit(Long boardId) {
-		boardRepository.increaseHit(boardId);
-	}
+	// // 사진 좋아요 1증가
+	// @Override
+	// public void increaseBoardHit(Long boardId) {
+	// 	boardRepository.increaseHit(boardId);
+	// }
 
-	// 사진 좋아요 1감소
-	@Override
-	public void decreaseBoardHit(Long boardId) {
-		boardRepository.decreaseHit(boardId);
-	}
+	// // 사진 좋아요 1감소
+	// @Override
+	// public void decreaseBoardHit(Long boardId) {
+	// 	boardRepository.decreaseHit(boardId);
+	// }
 
 	// 사용자 닉네임 검색으로 해당 유저(닉네임) 포함된 사진 조회
 	@Override
@@ -94,8 +94,8 @@ public class BoardServiceImpl implements BoardService {
 		Long userId = getUserId();
 		List<Board> boards = boardRepository.findAllByUserNickname(nickname);
 		return boards.stream()
-			.map(board -> new BoardDto(board, photoRepository, boardLikeRepository, userId))
-			.collect(Collectors.toList());
+				.map(board -> new BoardDto(board, photoRepository, boardLikeRepository, userId))
+				.collect(Collectors.toList());
 	}
 
 	// 내가 올린 사진 삭제
