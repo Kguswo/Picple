@@ -1,20 +1,33 @@
 <script setup>
-import FormComp from "@/components/common/FormComp.vue";
-import { useRoute } from "vue-router";
-import { useFormInput } from "@/stores/form";
+import FormComp from "@/components/form/FormComp.vue";
+import FormMessageComp from "@/components/form/FormMessageComp.vue";
+import { useRoute, useRouter } from "vue-router";
+import { useFormInput, enableFocus } from "@/stores/form";
+import { onMounted } from "vue";
+import validate from "@/stores/validation";
+
+onMounted(() => {
+    enableFocus();
+})
 
 const route = useRoute();
+const router = useRouter();
 
-const { objects, handleFocus, handleBlur } = useFormInput(['currentPassword', 'newPassword', 'newPasswordCheck']);
-const { currentPassword, newPassword, newPasswordCheck } = objects;
+const { objects, handleFocus, handleBlur } = useFormInput(['oldPassword', 'newPassword', 'newPasswordCheck']);
+const { oldPassword, newPassword, newPasswordCheck } = objects;
+const { message, validateModifyPassword } = validate();
+
+function cancel() {
+    router.push({ name: 'main' });
+}
 </script>
 
 <template>
     <FormComp title="비밀번호 변경">
         <form class="form-content">
             <div class="input-container" v-if="route.params.path === 'modify'">
-                <input type="password" @focus="handleFocus(currentPassword)" @blur="handleBlur(currentPassword)"
-                    v-model="currentPassword.value" class="form-input" :class="{ 'has-content': currentPassword.value }"
+                <input type="password" @focus="handleFocus(oldPassword)" @blur="handleBlur(oldPassword)"
+                    v-model="oldPassword.value" class="form-input" :class="{ 'has-content': oldPassword.value }"
                     autoComplete="off" />
                 <label class="form-label">현재 비밀번호</label>
             </div>
@@ -34,8 +47,12 @@ const { currentPassword, newPassword, newPasswordCheck } = objects;
                     확인</label>
             </div>
 
-            <button class="form-button-big mt-20">확인</button>
-            <button class="form-button-big form-button-cancel mt-10" v-if="route.params.path === 'modify'">취소</button>
+            <FormMessageComp :message="message" />
+
+            <button type="button" class="form-button-big mt-20"
+                @click="validateModifyPassword(newPassword, newPasswordCheck, oldPassword)">확인</button>
+            <button type="button" class="form-button-big form-button-cancel mt-10" v-if="route.params.path === 'modify'"
+                @click="cancel">취소</button>
         </form>
     </FormComp>
 </template>

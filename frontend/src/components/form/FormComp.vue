@@ -11,7 +11,7 @@ defineProps({
     <Page>
         <WhiteBoardComp class="whiteboard-area-form">
             <div class="form-container">
-                <div id="title">{{ title }}</div>
+                <div class="form-title">{{ title }}</div>
                 <slot></slot>
             </div>
         </WhiteBoardComp>
