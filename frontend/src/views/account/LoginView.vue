@@ -47,7 +47,7 @@ function validateAccount() {
             <button type="button" class="form-button-big mt-20" @click="validateAccount">로그인</button>
 
             <div class="flex-justify-content-between mt-10">
-                <router-link :to="{ name: 'signup' }">
+                <router-link :to="{ name: 'signupEmail' }">
                     <button class="form-button-none">회원가입</button>
                 </router-link>
 
