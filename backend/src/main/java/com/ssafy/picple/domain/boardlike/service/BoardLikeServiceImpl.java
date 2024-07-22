@@ -1,5 +1,7 @@
 package com.ssafy.picple.domain.boardlike.service;
 
+import java.util.Optional;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,37 +28,70 @@ public class BoardLikeServiceImpl implements BoardLikeService {
 	@Override
 	public void likePhoto(Long boardId, Long userId) {
 		User user = userRepository.findById(userId)
-			.orElseThrow(() -> new RuntimeException(BaseResponseStatus.GET_USER_EMPTY.getMessage()));
+				.orElseThrow(() -> new RuntimeException(BaseResponseStatus.GET_USER_EMPTY.getMessage()));
 		Board board = boardRepository.findById(boardId)
-			.orElseThrow(() -> new RuntimeException(BaseResponseStatus.RESPONSE_ERROR.getMessage()));
+				.orElseThrow(() -> new RuntimeException(BaseResponseStatus.RESPONSE_ERROR.getMessage()));
 
-		if (!boardLikeRepository.existsByBoardIdAndUserId(boardId, userId)) {
-			BoardLike like = BoardLike.builder()
-				.user(user)
-				.board(board)
-				.isLiked(true)
-				.build();
-			boardLikeRepository.save(like);
+		Optional<BoardLike> existingLike = boardLikeRepository.findByBoardIdAndUserId(boardId, userId);
+
+		if (existingLike.isPresent()) { // 좋아요 여부 존재시
+			BoardLike like = existingLike.get();
+			if (!like.getIsLiked()) { // 좋아요 false일때만 바꾸기
+				BoardLike updatedLike = BoardLike.builder()
+						.id(like.getId())
+						.user(like.getUser())
+						.board(like.getBoard())
+						.isLiked(true)
+						.build();
+				boardLikeRepository.save(updatedLike);
+				boardRepository.increaseHit(boardId);
+			} else {
+				throw new RuntimeException(BaseResponseStatus.ALREADY_LIKED.getMessage());
+			}
+		} else { // 좋아요 여부 존재하지 않으면 새로 생성
+			BoardLike newLike = BoardLike.builder()
+					.user(user)
+					.board(board)
+					.isLiked(true)
+					.build();
+			boardLikeRepository.save(newLike);
 			boardRepository.increaseHit(boardId);
 		}
 	}
 
 	// 좋아요 취소 및 숫자 1 감소
+	@Transactional
 	@Override
 	public void unlikePhoto(Long boardId, Long userId) {
 		User user = userRepository.findById(userId)
-			.orElseThrow(() -> new RuntimeException(BaseResponseStatus.GET_USER_EMPTY.getMessage()));
+				.orElseThrow(() -> new RuntimeException(BaseResponseStatus.GET_USER_EMPTY.getMessage()));
 		Board board = boardRepository.findById(boardId)
-			.orElseThrow(() -> new RuntimeException(BaseResponseStatus.RESPONSE_ERROR.getMessage()));
+				.orElseThrow(() -> new RuntimeException(BaseResponseStatus.RESPONSE_ERROR.getMessage()));
 
-		if (boardLikeRepository.existsByBoardIdAndUserId(boardId, userId)) {
-			boardLikeRepository.deleteByBoardIdAndUserId(boardId, userId);
-			boardRepository.decreaseHit(boardId);
+		Optional<BoardLike> existingLike = boardLikeRepository.findByBoardIdAndUserId(boardId, userId);
+
+		if (existingLike.isPresent()) { // 좋아요 여부 존재시
+			BoardLike like = existingLike.get();
+			if (like.getIsLiked()) { // 좋아요 true일때만 바꾸기
+				BoardLike updatedLike = BoardLike.builder()
+						.id(like.getId())
+						.user(like.getUser())
+						.board(like.getBoard())
+						.isLiked(false)
+						.build();
+				boardLikeRepository.save(updatedLike);
+				boardRepository.decreaseHit(boardId);
+			} else {
+				throw new RuntimeException(BaseResponseStatus.ALREADY_UNLIKED.getMessage());
+			}
+		} else { // 좋아요 여부 존재하지 않을시 취소하지 못하기 때문에
+			throw new RuntimeException(BaseResponseStatus.GET_LIKE_EMPTY.getMessage());
 		}
 	}
 
 	@Override
 	public boolean isPhotoLikedByUser(Long boardId, Long userId) {
-		return boardLikeRepository.existsByBoardIdAndUserId(boardId, userId);
+		Optional<BoardLike> boardLike = boardLikeRepository.findByBoardIdAndUserId(boardId, userId);
+		return boardLike.map(BoardLike::getIsLiked).orElse(false);
 	}
 }

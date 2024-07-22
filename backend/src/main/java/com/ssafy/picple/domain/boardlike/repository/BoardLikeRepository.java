@@ -1,5 +1,7 @@
 package com.ssafy.picple.domain.boardlike.repository;
 
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.ssafy.picple.domain.boardlike.entity.BoardLike;
@@ -18,10 +20,10 @@ public interface BoardLikeRepository extends JpaRepository<BoardLike, Long> {
 	// @Query("UPDATE Board b SET b.hit = b.hit -1 WHERE b.id = :boardId AND b.hit>0")
 	// void decreaseHit(@Param("boardId") Long boardId);
 
-	// 좋아요 조회
+	// 좋아요 조회 - boardlike테이블에 존재 여부
 	boolean existsByBoardIdAndUserId(Long boardId, Long userId);
 
-	// 좋아요 취소
-	void deleteByBoardIdAndUserId(Long boardId, Long userId);
+	// 좋아요 상태값 조회 - boardlike테이블에 존재시 isLiked값
+	Optional<BoardLike> findByBoardIdAndUserId(Long boardId, Long userId);
 
 }

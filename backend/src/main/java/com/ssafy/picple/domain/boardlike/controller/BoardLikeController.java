@@ -27,7 +27,10 @@ public class BoardLikeController {
 	}
 
 	@PatchMapping("/{boardId}")
-	public BaseResponse<?> changeIsLiked(@PathVariable Long boardId, @RequestParam Long userId) {
+	public BaseResponse<?> changeIsLiked(@PathVariable Long boardId, @RequestParam(required = false) Long userId) {
+		if (userId == null) {
+			return new BaseResponse<>(BaseResponseStatus.GET_USER_EMPTY);
+		}
 		try {
 			boolean isLiked = likeService.isPhotoLikedByUser(boardId, userId);
 			if (isLiked) {
@@ -37,6 +40,7 @@ public class BoardLikeController {
 			}
 			return new BaseResponse<>(BaseResponseStatus.SUCCESS);
 		} catch (Exception e) {
+			e.printStackTrace();
 			return new BaseResponse<>(BaseResponseStatus.RESPONSE_ERROR);
 		}
 	}

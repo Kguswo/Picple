@@ -38,7 +38,8 @@ public class BoardLike {
 	private Boolean isLiked;
 
 	@Builder
-	public BoardLike(User user, Board board, Boolean isLiked) {
+	public BoardLike(Long id, User user, Board board, Boolean isLiked) {
+		this.id = id;
 		this.user = user;
 		this.board = board;
 		this.isLiked = isLiked;
