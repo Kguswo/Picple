@@ -199,6 +199,11 @@ div.photo.current-photo.landscape.expanded > div > button {
     border-radius: 0px !important;
 }
 
+.share-button > img:hover {
+    opacity: 1;
+    transition: opacity 0.3s;
+}
+
 /* Photo styles */
 .photo {
     position: absolute;
