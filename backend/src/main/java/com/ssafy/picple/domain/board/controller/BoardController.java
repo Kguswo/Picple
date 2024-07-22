@@ -13,7 +13,6 @@ import com.ssafy.picple.config.baseResponse.BaseResponse;
 import com.ssafy.picple.config.baseResponse.BaseResponseStatus;
 import com.ssafy.picple.domain.board.dto.BoardDto;
 import com.ssafy.picple.domain.board.service.BoardService;
-import com.ssafy.picple.domain.boardlike.repository.BoardLikeRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -23,7 +22,6 @@ import lombok.RequiredArgsConstructor;
 public class BoardController {
 
 	private final BoardService boardService;
-	private final BoardLikeRepository boardLikeRepository;
 
 	@GetMapping("")
 	public BaseResponse<List<BoardDto>> findAllBoards() {
@@ -32,14 +30,14 @@ public class BoardController {
 	}
 
 	// 좋아요 내림차순으로 정렬된 Board 조회
-	@GetMapping("/sortedByHit")
+	@GetMapping("/hit")
 	public BaseResponse<List<BoardDto>> findAllBoardsOrderByHitDesc() {
 		List<BoardDto> boards = boardService.findAllBoardsOrderByHitDesc();
 		return new BaseResponse<>(boards);
 	}
 
 	// 최신순으로 정렬된 Board 조회
-	@GetMapping("/sortedByCreatedAt")
+	@GetMapping("/createdat")
 	public BaseResponse<List<BoardDto>> findAllBoardsOrderByCreatedAtDesc() {
 		List<BoardDto> boards = boardService.findAllBoardsOrderByCreatedAtDesc();
 		return new BaseResponse<>(boards);

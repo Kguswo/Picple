@@ -20,29 +20,25 @@ public class BoardLikeController {
 
 	private final BoardLikeService likeService;
 
-	@GetMapping("/isLiked")
-	public BaseResponse<Boolean> isPhotoLikedByUser(@RequestParam Long boardId, @RequestParam Long userId) {
+	@GetMapping("/{boardId}}")
+	public BaseResponse<Boolean> isPhotoLikedByUser(@PathVariable Long boardId, @RequestParam Long userId) {
 		boolean isLiked = likeService.isPhotoLikedByUser(boardId, userId);
 		return new BaseResponse<>(isLiked);
 	}
 
-	@PatchMapping("/like/{boardId}")
-	public BaseResponse<?> likePhoto(@PathVariable Long boardId, @RequestParam Long userId) {
+	@PatchMapping("/{boardId}")
+	public BaseResponse<?> changeIsLiked(@PathVariable Long boardId, @RequestParam Long userId) {
 		try {
-			likeService.likePhoto(boardId, userId);
+			boolean isLiked = likeService.isPhotoLikedByUser(boardId, userId);
+			if (isLiked) {
+				likeService.unlikePhoto(boardId, userId);
+			} else {
+				likeService.likePhoto(boardId, userId);
+			}
 			return new BaseResponse<>(BaseResponseStatus.SUCCESS);
 		} catch (Exception e) {
 			return new BaseResponse<>(BaseResponseStatus.RESPONSE_ERROR);
 		}
 	}
 
-	@PatchMapping("/likeCancel/{boardId}")
-	public BaseResponse<?> unlikePhoto(@PathVariable Long boardId, @RequestParam Long userId) {
-		try {
-			likeService.unlikePhoto(boardId, userId);
-			return new BaseResponse<>(BaseResponseStatus.SUCCESS);
-		} catch (Exception e) {
-			return new BaseResponse<>(BaseResponseStatus.RESPONSE_ERROR);
-		}
-	}
 }
