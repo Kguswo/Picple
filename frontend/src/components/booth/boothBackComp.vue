@@ -18,6 +18,21 @@
     border-radius: 20px;
 }
 
+.booth-select-box{
+    background-color: rgba(124, 124, 124, 0.232);
+    width: 20%;
+    height: 90%;
+
+    border-radius: 20px;
+}
+.booth-camera-box{
+    background-color: rgba(124, 124, 124, 0.232);
+    width: 75%;
+    height: 90%;
+
+    border-radius: 20px;
+}
+
 .booth-background {
 
     /* display */
