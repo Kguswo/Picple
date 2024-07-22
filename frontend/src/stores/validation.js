@@ -7,6 +7,7 @@ const patternWhiteSpace = /\s/;
 
 const validate = () => {
   const message = ref({ text: "", isError: true });
+  const checkedNickname = ref("");
 
   const validateEmail = (email) => {
     if (!patternEmail.test(email) || patternWhiteSpace.test(email)) {
@@ -44,8 +45,8 @@ const validate = () => {
     return true;
   };
 
-  const checkNickname = (nickname, checkedNickname) => {
-    if (!checkedNickname || checkedNickname !== nickname) {
+  const checkNickname = (nickname) => {
+    if (!checkedNickname.value || checkedNickname.value !== nickname) {
       setFormMessage("닉네임 중복 확인이 필요합니다.", true);
       return false;
     }
@@ -59,6 +60,7 @@ const validate = () => {
     }
     // todo: 닉네임 중복 여부 검사
     setFormMessage("사용 가능한 닉네임입니다.", false);
+    checkedNickname.value = nickname;
     return true;
   };
 
