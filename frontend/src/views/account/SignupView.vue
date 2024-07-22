@@ -1,41 +1,23 @@
 <script setup>
 import FormComp from "@/components/common/FormComp.vue";
 import { useFormInput, enableFocus } from "@/stores/form";
-import { onMounted } from "vue";
-
-const { objects, handleFocus, handleBlur } = useFormInput(['email', 'emailCheck', 'nickname', 'password', 'passwordCheck']);
-const { email, emailCheck, nickname, password, passwordCheck } = objects;
+import { ref, onMounted } from "vue";
 
 onMounted(() => {
     enableFocus();
 })
 
-const isCertified = false;
+const { objects, handleFocus, handleBlur } = useFormInput(['email', 'emailCheck', 'nickname', 'password', 'passwordCheck']);
+const { nickname, password, passwordCheck } = objects;
+
+const errorMsg = ref('');
 </script>
 
 <template>
     <FormComp title="회원가입">
-        <form class="form-content" v-if="isCertified == false">
+        <form class="form-content">
             <div class="input-container">
-                <input type="text" @focus="handleFocus(email)" @blur="handleBlur(email)" v-model="email.value"
-                    class="form-input" :class="{ 'has-content': email.value }" />
-                <label class="form-label">이메일</label>
-                <button class="form-button-small">인증</button>
-            </div>
-
-            <div class="input-container mt-10">
-                <input type="text" @focus="handleFocus(emailCheck)" @blur="handleBlur(emailCheck)"
-                    v-model="emailCheck.value" class="form-input" :class="{ 'has-content': emailCheck.value }" />
-                <label class="form-label">인증번호</label>
-                <!-- <button class="form-button-small">확인</button> -->
-            </div>
-
-            <button class="form-button-big mt-20">다음</button>
-        </form>
-
-        <form class="form-content" v-else>
-            <div class="input-container mt-10">
-                <input type="text" @focus="handleFocus(nickname)" @blur="handleBlur(nickname)" v-model="nickname.value"
+                <input type=" text" @focus="handleFocus(nickname)" @blur="handleBlur(nickname)" v-model="nickname.value"
                     class="form-input" :class="{ 'has-content': nickname.value }" />
                 <label class="form-label">닉네임</label>
                 <button class="form-button-small">중복</button>
@@ -54,6 +36,10 @@ const isCertified = false;
                     autoComplete="off" />
                 <label class="form-label">비밀번호
                     확인</label>
+            </div>
+
+            <div class="form-error-msg" v-if="errorMsg">
+                {{ errorMsg }}
             </div>
 
             <button class="form-button-big mt-20">가입</button>
