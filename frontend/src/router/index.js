@@ -44,20 +44,28 @@ const router = createRouter({
 			component: () => import('@/views/BoardView.vue'),
 		},
 		{
-			path: '/booth',
-			name: 'booth',
+			path: '/create',
+			name: 'createbooth',
 			component: () => import('@/views/booth/BoothCreateView.vue'),
 		},
 		{
-			path: '/photo',
+			path: '/booth',
 			component: () => import('@/views/booth/BoothShootView.vue'),
 			children: [
 				{
-					path: '',
-					name: 'photo',
+					path: 'bg',
+					name: 'background',
 					component: () => import('@/components/booth/BoothSelectBackComp.vue'),
+					props: true,
+				},
+				{
+					path: 'photo',
+					name: 'showphoto',
+					component: () => import('@/components/booth/BoothShowPhoto.vue'),
+					props: true,
 				},
 			],
+			props: true,
 		},
 		{
 			path: '/boothCode',
