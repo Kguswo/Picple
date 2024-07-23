@@ -105,4 +105,19 @@ const validate = () => {
 	};
 };
 
-export default validate;
+const printMessageAndFocus = (fields, messages) => {
+	let focused = false;
+	for (let i = 0; i < fields.length; i++) {
+		if (messages[i].isError) {
+			fields[i].message = messages[i];
+			if (!focused) {
+				focused = true;
+				fields[i].focusInput();
+			}
+			continue;
+		}
+		fields[i].message = null;
+	}
+};
+
+export { validate, printMessageAndFocus };
