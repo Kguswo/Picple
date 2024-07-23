@@ -40,11 +40,11 @@ const changeView = (viewName) => {
 
       <FormMessageComp :message="message" />
 
-      <FormButtonComp size="big" @click-button="login">로그인</FormButtonComp>
+      <FormButtonComp size="big" @click="login">로그인</FormButtonComp>
 
       <div class="flex-justify-content-between mt-10">
-        <FormButtonComp size="none" @click-button="changeView('signupEmail')">회원가입</FormButtonComp>
-        <FormButtonComp size="none" @click-button="changeView('findPassword')">비밀번호 찾기</FormButtonComp>
+        <FormButtonComp size="none" @click="changeView('signupEmail')">회원가입</FormButtonComp>
+        <FormButtonComp size="none" @click="changeView('findPassword')">비밀번호 찾기</FormButtonComp>
       </div>
     </form>
   </FormComp>

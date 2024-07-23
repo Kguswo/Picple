@@ -31,7 +31,8 @@ const signup = () => {
   // todo: 회원가입
 };
 
-const checkDuplicate = () => {
+const checkDuplicate = (e) => {
+  e.stopPropagation();
   if (!checkNicknameDup(nickname.value.value)) {
     return;
   }
@@ -42,7 +43,7 @@ const checkDuplicate = () => {
   <FormComp title="회원가입">
     <form class="form-content" @keyup.enter="signup">
       <FormInputComp :params="nickname" ref="nicknameField">
-        <FormButtonComp size="small" @click-button="checkDuplicate">중복
+        <FormButtonComp size="small" @keyup.enter="checkDuplicate" @click="checkDuplicate">중복
         </FormButtonComp>
       </FormInputComp>
 
@@ -51,7 +52,7 @@ const checkDuplicate = () => {
 
       <FormMessageComp :message="message" />
 
-      <FormButtonComp size="big" @click-button="signup">가입</FormButtonComp>
+      <FormButtonComp size="big" @click="signup">가입</FormButtonComp>
     </form>
   </FormComp>
 </template>
