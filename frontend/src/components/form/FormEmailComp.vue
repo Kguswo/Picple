@@ -5,31 +5,40 @@ import FormButtonComp from "@/components/form/FormButtonComp.vue";
 import validate from "@/stores/validation";
 import { ref } from "vue";
 
+const { message, validateEmail, setFormMessage } = validate();
+
 const email = ref({ type: "text", label: "이메일", value: "" });
 const certNumber = ref({ type: "text", label: "인증번호", value: "" });
-
-const { message, validateEmail } = validate();
+const isSend = ref(false);
+const emailField = ref(null);
+const certNumberField = ref(null);
 
 const sendCertNumber = () => {
   if (!validateEmail(email.value.value)) {
     return;
   }
   // todo: 인증번호 전송
+  isSend.value = true;
 };
 
 const certify = () => {
+  if (!isSend.value) {
+    setFormMessage("이메일 인증이 필요합니다.", true);
+    emailField.value.focusInput();
+    return;
+  }
   // todo: 인증번호 일치 여부 검사
   // todo: 이미 등록된 이메일 여부 검사
 };
 </script>
 
 <template>
-  <form class="form-content">
-    <FormInputComp :params="email">
+  <form class="form-content" @keyup.enter="certify">
+    <FormInputComp :params="email" ref="emailField">
       <FormButtonComp size="small" @click-button="sendCertNumber">인증</FormButtonComp>
     </FormInputComp>
 
-    <FormInputComp :params="certNumber" class="mt-10" />
+    <FormInputComp :params="certNumber" ref="certNumberField" class="mt-10" />
 
     <FormMessageComp :message="message" />
 
