@@ -1,28 +1,19 @@
 <script setup>
-import { ref, defineProps, defineEmits, onMounted, onBeforeMount } from 'vue';
+import { ref, defineEmits, onMounted } from 'vue';
 
 onMounted(()=>{
   console.log('BoothSelectBackComp 호출됨')
 })
 
-onBeforeMount(() =>{
-  console.log('Booth Select Back Comp ready')
-})
-    
-// background 변경을 위한 함수 부분
-const props = defineProps({
-  'bgImage':String
-});
-
 const emit = defineEmits(['update']);
 
 // background 변경을 위한 변수
-const changeImage = (image) => {
-    emit('update',image);
+const emitImage = (image) => {
+  emit('update', image); // 부모에게 변경된 이미지 전달
 };
 
 //임시 이미지
-const images = [
+const images = ref([
     'https://via.placeholder.com/400',
     'https://via.placeholder.com/400/ff7f7f/333333?text=Image+1',
     'https://via.placeholder.com/400/7f7fff/333333?text=Image+2',
@@ -35,7 +26,7 @@ const images = [
     'https://via.placeholder.com/400/ff7f7f/333333?text=Image+1',
     'https://via.placeholder.com/400/7f7fff/333333?text=Image+2',
     'https://via.placeholder.com/400/7fff7f/333333?text=Image+3',
-  ];
+  ]);
 
 
 
@@ -50,13 +41,10 @@ const fileUpload = () =>{
 const createAI = () =>{
   console.log('AI 생성 클릭')
 }
-
-
 </script>
 
 <template>
     <div class="select-text-box">
-      <div class="type-name"> 배경 선택 </div>
       <div class="select-btn-type">
           <button class="ract-btn" @click="createAI">AI 생성</button>
           <button class="ract-btn" @click="fileUpload">업로드</button>
@@ -67,8 +55,8 @@ const createAI = () =>{
             <img class="thumbnail" v-for=" (img,idx) in images" 
                 :key="idx" 
                 :src="img"
-                @click="changeImage(img)" 
-                alt="Thumbnail"/>
+                @click="emitImage(img)" 
+                alt="no_Image"/>
         </div>
     </div>
 </template>
@@ -76,7 +64,7 @@ const createAI = () =>{
 <style scoped>
 .select-text-box{
   display: flex;
-  height: 15%;
+  height: 10%;
   width: 90%;
   flex-direction: column;
   align-items: center;
@@ -111,7 +99,7 @@ const createAI = () =>{
       }
     }
     &::-webkit-scrollbar {
-      display: none;
+      display: none; /*스크롤 바 제거 */
     }
   }
 }
