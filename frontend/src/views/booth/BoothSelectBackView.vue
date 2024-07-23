@@ -155,10 +155,7 @@ const fileUpload = () =>{
             <div>
               배경 선택
             </div>
-            <div>
-              <button class="ract-btn">AI 생성</button>
-              <button class="ract-btn" @click="fileUpload">업로드</button>
-            </div>
+            
           </div>
           <div class="background-box">
             <div class="background-box-scroll">
