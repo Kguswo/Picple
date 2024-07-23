@@ -47,13 +47,18 @@ const router = createRouter({
             path: "/booth",
             name: "booth",
             component: () => import("@/views/booth/BoothCreateView.vue"),
-            children: [],
         },
         {
-            path: "/selectback",
-            name: "boothSelect",
-            component: () => import("@/views/booth/BoothSelectBackView.vue"),
-            children: [],
+            path: "/photo",
+            component: () => import("@/views/booth/BoothShootView.vue"),
+            children: [
+                {
+                    path: "",
+                    name: "photo",
+                    component: () =>
+                        import("@/components/booth/BoothSelectBackComp.vue"),
+                },
+            ],
         },
         {
             path: "/boothCode",
