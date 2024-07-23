@@ -5,7 +5,9 @@ import FormInputComp from "@/components/form/FormInputComp.vue";
 import FormButtonComp from "@/components/form/FormButtonComp.vue";
 import validate from "@/stores/validation";
 import { ref } from "vue";
+import { useRouter } from "vue-router";
 
+const router = useRouter();
 const { message, validateEmail, validatePassword } = validate();
 
 const email = ref({ type: "text", label: "이메일", value: "" });
@@ -20,6 +22,10 @@ const login = () => {
   }
   // todo: 계정 일치 여부 검사
 };
+
+const changeView = (viewName) => {
+  router.push({ name: viewName });
+}
 </script>
 
 <template>
@@ -33,13 +39,8 @@ const login = () => {
       <FormButtonComp size="big" @click-button="login">로그인</FormButtonComp>
 
       <div class="flex-justify-content-between mt-10">
-        <router-link :to="{ name: 'signupEmail' }">
-          <button class="form-button-none">회원가입</button>
-        </router-link>
-
-        <router-link :to="{ name: 'findPassword' }">
-          <button class="form-button-none">비밀번호 찾기</button>
-        </router-link>
+        <FormButtonComp size="none" @click-button="changeView('signupEmail')">회원가입</FormButtonComp>
+        <FormButtonComp size="none" @click-button="changeView('findPassword')">비밀번호 찾기</FormButtonComp>
       </div>
     </form>
   </FormComp>
