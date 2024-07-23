@@ -11,11 +11,9 @@ import com.ssafy.picple.config.baseResponse.BaseException;
 import com.ssafy.picple.domain.background.entity.Background;
 import com.ssafy.picple.domain.background.repository.BackgroundRepository;
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Service
-@Transactional
 @RequiredArgsConstructor
 public class BackgroundServiceImpl implements BackgroundService {
 
@@ -54,7 +52,7 @@ public class BackgroundServiceImpl implements BackgroundService {
 	public Background deleteBackground(Long backgroundId, Long userId) throws BaseException {
 
 		Background background = backgroundRepository.findById(backgroundId)
-			.orElseThrow(() -> new BaseException(INVALID_BACKGROUND_ID));
+				.orElseThrow(() -> new BaseException(INVALID_BACKGROUND_ID));
 
 		background.deleteBackground(background);
 		return background;
