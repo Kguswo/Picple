@@ -1,6 +1,5 @@
 <script setup>
 import FormComp from "@/components/form/FormComp.vue";
-import FormMessageComp from "@/components/form/FormMessageComp.vue";
 import FormInputComp from "@/components/form/FormInputComp.vue";
 import FormButtonComp from "@/components/form/FormButtonComp.vue";
 import validate from "@/stores/validation";
@@ -8,7 +7,7 @@ import { ref } from "vue";
 import { useRouter } from "vue-router";
 
 const router = useRouter();
-const { message, validateEmail, validatePassword } = validate();
+const { validateEmail, validatePassword } = validate();
 
 const email = ref({ type: "text", label: "이메일", value: "" });
 const password = ref({ type: "password", label: "비밀번호", value: "" });
@@ -16,16 +15,31 @@ const emailField = ref(null);
 const passwordField = ref(null);
 
 const login = () => {
-  if (!validateEmail(email.value.value)) {
+  const emailMessage = validateEmail(email.value.value);
+  const passwordMessage = validatePassword(password.value.value);
+
+  if (emailMessage.isError && passwordMessage.isError) {
+    emailField.value.message = { ...emailMessage };
+    passwordField.value.message = { ...passwordMessage };
     emailField.value.focusInput();
     return;
   }
-  if (!validatePassword(password.value.value)) {
+  if (emailMessage.isError) {
+    emailField.value.message = { ...emailMessage };
+    passwordField.value.message = null;
+    emailField.value.focusInput();
+    return;
+  }
+  if (passwordMessage.isError) {
+    emailField.value.message = null;
+    passwordField.value.message = { ...passwordMessage };
     passwordField.value.focusInput();
     return;
   }
+  emailField.value.message = null
+  passwordField.value.message = null
   // todo: 계정 일치 여부 검사
-};
+}
 
 const changeView = (viewName) => {
   router.push({ name: viewName });
@@ -37,8 +51,6 @@ const changeView = (viewName) => {
     <form class="form-content" @keyup.enter="login">
       <FormInputComp :params="email" ref="emailField" />
       <FormInputComp :params="password" ref="passwordField" class="mt-10" />
-
-      <FormMessageComp :message="message" />
 
       <FormButtonComp size="big" @click="login">로그인</FormButtonComp>
 

@@ -9,6 +9,7 @@
 	position: relative;
 	display: inline-block;
 	height: 60px;
+	width: 100%;
 	background-color: white;
 	border-radius: 10px;
 }
@@ -41,9 +42,14 @@
 	color: rgba(128, 128, 128, 0.6);
 }
 
-.input-container:focus-within {
-	border-color: #007bff;
-	box-shadow: 0 0 10px rgba(0, 123, 255, 0.5);
+.input-container-selected:focus-within {
+	box-shadow: 0 0 10px rgb(0, 123, 255);
+	transition: all 0.5s ease;
+}
+
+.input-container-error {
+	box-shadow: 0 0 5px rgb(255, 0, 0, 1);
+	transition: all 0.3s ease;
 }
 
 .form-input:focus + .form-label,
@@ -121,7 +127,7 @@ button {
 .form-message {
 	font-size: 15px;
 	color: red;
-	margin-top: 15px;
+	margin-bottom: 10px;
 }
 
 .flex {
