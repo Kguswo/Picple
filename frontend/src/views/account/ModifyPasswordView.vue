@@ -15,6 +15,9 @@ const { message, validatePassword, confirmPassword, checkOldPassword } = validat
 const oldPassword = ref({ type: "password", label: "현재 비밀번호", value: "" });
 const newPassword = ref({ type: "password", label: "새 비밀번호", value: "" });
 const newPasswordConfirm = ref({ type: "password", label: "새 비밀번호 확인", value: "" });
+const oldPasswordField = ref(null);
+const newPasswordField = ref(null);
+const newPasswordConfirmField = ref(null);
 
 const cancel = () => {
   router.push({ name: "main" });
@@ -23,13 +26,16 @@ const cancel = () => {
 const modify = () => {
   if (route.params.path === "modify") {
     if (!checkOldPassword(oldPassword.value.value)) {
+      oldPasswordField.value.focusInput();
       return;
     }
   }
   if (!validatePassword(newPassword.value.value)) {
+    newPasswordField.value.focusInput();
     return;
   }
-  if (confirmPassword(newPassword.value.value, newPasswordConfirm.value.value)) {
+  if (!confirmPassword(newPassword.value.value, newPasswordConfirm.value.value)) {
+    newPasswordConfirmField.value.focusInput();
     return;
   }
   // todo: 비밀번호 변경
@@ -38,21 +44,17 @@ const modify = () => {
 
 <template>
   <FormComp title="비밀번호 변경">
-    <form class="form-content">
-      <FormInputComp :params="oldPassword" v-if="route.params.path === 'modify'" />
-      <FormInputComp :params="newPassword" class="mt-10" />
-      <FormInputComp :params="newPasswordConfirm" class="mt-10" />
+    <form class="form-content" @keyup.enter="modify">
+      <FormInputComp :params="oldPassword" ref="oldPasswordField" v-if="route.params.path === 'modify'" />
+      <FormInputComp :params="newPassword" ref="newPasswordField" class="mt-10" />
+      <FormInputComp :params="newPasswordConfirm" ref="newPasswordConfirmField" class="mt-10" />
 
       <FormMessageComp :message="message" />
 
       <FormButtonComp size="big" @click-button="modify">확인</FormButtonComp>
 
-      <button
-        type="button"
-        class="form-button-big form-button-cancel mt-10"
-        v-if="route.params.path === 'modify'"
-        @click="cancel"
-      >
+      <button type="button" class="form-button-big form-button-cancel mt-10" v-if="route.params.path === 'modify'"
+        @click="cancel">
         취소
       </button>
     </form>
