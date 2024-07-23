@@ -35,6 +35,10 @@ public enum BaseResponseStatus {
 	ALREADY_UNLIKED(false, 3103, "이미 좋아요하지 않은 상태입니다."),
 	GET_PHOTO_EMPTY(false, 3110, "해당 사진이 없습니다."),
 	ALREADY_SHARED(false, 3111, "이미 공유된 사진입니다."),
+	FILE_UPLOAD_ERROR(false, 3120, "파일 업로드 중 오류가 발생했습니다."),
+	FILE_DOWNLOAD_ERROR(false, 3121, "파일 다운로드 중 오류가 발생했습니다."),
+	FILE_DELETE_ERROR(false, 3122, "파일 삭제 중 오류가 발생했습니다."),
+
 	/**
 	 * 4000 : Database, Server
 	 */
