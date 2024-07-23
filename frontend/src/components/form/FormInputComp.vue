@@ -5,6 +5,7 @@ import FormIconVisibilityComp from "@/components/form/FormIconVisibilityComp.vue
 
 const props = defineProps({
   params: Object,
+  isSend: Boolean,
 });
 
 const inputField = ref(null);
@@ -28,9 +29,10 @@ defineExpose({
 </script>
 
 <template>
-  <div class="input-container" @click="focusInput">
+  <div class="input-container" :class="{ 'background-color-disabled': isSend === true }" @click="focusInput">
     <input :type="params.type" v-model="params.value" ref="inputField" class="form-input"
-      :class="{ 'has-content': params.value }" :maxlength="maxLength" />
+      :class="{ 'has-content': params.value, 'background-color-disabled': isSend === true }" :maxlength="maxLength"
+      :disabled="isSend === true" />
     <label class="form-label">{{ params.label }}</label>
 
     <div class="form-input-etc">
@@ -42,6 +44,4 @@ defineExpose({
   </div>
 </template>
 
-<style scoped>
-
-</style>
+<style scoped></style>
