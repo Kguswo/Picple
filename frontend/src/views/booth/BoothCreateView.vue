@@ -1,9 +1,9 @@
 <script setup>
 import WhiteBoardComp from "@/components/common/WhiteBoardComp.vue";
-import BoothBack from "@/components/booth/boothBackComp.vue"
+import BoothBack from "@/components/booth/BoothBackComp.vue"
 
-import cameraOn from '@/assets/icon/camera_on.png';
-import cameraOff from '@/assets/icon/camera_off.png';
+import videoOn from '@/assets/icon/video_on.png';
+import videoOff from '@/assets/icon/video_off.png';
 import microOn from '@/assets/icon/micro_on.png';
 import microOff from '@/assets/icon/micro_off.png';
 
@@ -16,7 +16,7 @@ let mediaStream = null;
 
 // 화면 표시에 있어 사용되는 변수
 let isMirrored = false;
-let isCameraOn = ref(true); 
+let isvideoOn = ref(true); 
 let isMicroOn = ref(true);
 
 const router = useRouter();
@@ -51,10 +51,10 @@ const toggleMirror = () => {
 
 //카메라의 온오프 
 const toggleCamera = () => {
-  isCameraOn.value = !isCameraOn.value;
+  isvideoOn.value = !isvideoOn.value;
   console.log('비디오 온')
 
-  if (isCameraOn.value) {
+  if (isvideoOn.value) {
     mediaStream.getVideoTracks().forEach((track) => {
       track.enabled = true; // 비디오 트랙 활성화
     });
@@ -99,10 +99,10 @@ const toggleMicro = () => {
         <div class="create-content">
             <div class="mycam-box">
               <!-- v-if로 하면 카메라가 나오지 않아 v-show로 미리 렌더링 -->
-                <div v-show="isCameraOn">
+                <div v-show="isvideoOn">
                   <video ref="videoElement" autoplay></video>
                 </div> 
-                <div v-if="!isCameraOn">카메라가 꺼져있습니다!</div>
+                <div v-if="!isvideoOn">카메라가 꺼져있습니다!</div>
             </div>
 
 
@@ -112,13 +112,13 @@ const toggleMicro = () => {
                       <img :src="isMicroOn ? microOn : microOff"  alt="M">
                     </button>
                     <button class="circle-btn" @click="toggleCamera">
-                      <img :src="isCameraOn ? cameraOn : cameraOff"  alt="C">
+                      <img :src="isvideoOn ? videoOn : videoOff"  alt="C">
                     </button>
 
                     <button class="ract-btn" @click="toggleMirror">반전</button>
                 </div>
                 <div class="right-btn">
-                    <button class="ract-btn">생성</button>
+                    <button class="ract-btn" @click="navigateTo('photo')">생성</button>
                     <button class="ract-btn" @click="navigateTo('main')">취소</button>
                 </div>
             </div>
@@ -202,7 +202,9 @@ padding: 5px;
     background-color: rgb(136, 136, 136)
 }
 
-
+}
+.left-btn{
+  display: flex;
 }
 .close-btn{
 width: 90%;
