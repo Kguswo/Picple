@@ -68,7 +68,8 @@ button {
 	font-size: 20px;
 }
 
-.form-button-small {
+.form-button-small,
+.form-icon-visibility {
 	position: absolute;
 	right: 10px;
 	top: 50%;

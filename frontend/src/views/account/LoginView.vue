@@ -3,6 +3,7 @@ import FormComp from "@/components/form/FormComp.vue";
 import FormMessageComp from "@/components/form/FormMessageComp.vue";
 import FormInputComp from "@/components/form/FormInputComp.vue";
 import FormButtonComp from "@/components/form/FormButtonComp.vue";
+import FormIconVisibilityComp from "@/components/form/FormIconVisibilityComp.vue";
 import validate from "@/stores/validation";
 import { ref } from "vue";
 import { useRouter } from "vue-router";
@@ -14,6 +15,7 @@ const email = ref({ type: "text", label: "이메일", value: "" });
 const password = ref({ type: "password", label: "비밀번호", value: "" });
 const emailField = ref(null);
 const passwordField = ref(null);
+const visibility = ref(null);
 
 const login = () => {
   if (!validateEmail(email.value.value)) {
@@ -30,13 +32,19 @@ const login = () => {
 const changeView = (viewName) => {
   router.push({ name: viewName });
 }
+
+const toggleVisibility = (newType, field) => {
+  field.type = newType;
+}
 </script>
 
 <template>
   <FormComp title="로그인">
     <form class="form-content" @keyup.enter="login">
       <FormInputComp :params="email" ref="emailField" />
-      <FormInputComp :params="password" ref="passwordField" class="mt-10" />
+      <FormInputComp :params="password" ref="passwordField" class="mt-10">
+        <FormIconVisibilityComp :field="password" ref="visibility" @toggle-visibility="toggleVisibility" />
+      </FormInputComp>
 
       <FormMessageComp :message="message" />
 
