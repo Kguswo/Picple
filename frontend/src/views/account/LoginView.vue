@@ -18,8 +18,15 @@ const login = () => {
   const emailMessage = validateEmail(email.value.value);
   const passwordMessage = validatePassword(password.value.value);
 
-  printMessageAndFocus([emailField.value, passwordField.value], [emailMessage, passwordMessage])
+  const fields = [emailField.value, passwordField.value];
+  const messages = [emailMessage, passwordMessage]
+
   // todo: 계정 일치 여부 검사
+  const isFail = printMessageAndFocus(fields, messages);
+  if (isFail) {
+    return;
+  }
+  // todo: 로그인 성공
 }
 
 const changeView = (viewName) => {

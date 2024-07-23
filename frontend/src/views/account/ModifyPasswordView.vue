@@ -4,7 +4,7 @@ import FormMessageComp from "@/components/form/FormMessageComp.vue";
 import FormInputComp from "@/components/form/FormInputComp.vue";
 import FormButtonComp from "@/components/form/FormButtonComp.vue";
 import { useRoute, useRouter } from "vue-router";
-import validate from "@/stores/validation";
+import { validate, printMessageAndFocus } from "@/stores/validation";
 import { ref } from "vue";
 
 const route = useRoute();
@@ -24,21 +24,25 @@ const cancel = () => {
 };
 
 const modify = () => {
+  const oldPasswordMessage = checkOldPassword(oldPassword.value.value);
+  const newPasswordMessage = validatePassword(newPassword.value.value);
+  const newPasswordConfirmMessage = confirmPassword(newPassword.value.value, newPasswordConfirm.value.value);
+
+  const fields = [newPasswordField.value, newPasswordConfirmField.value];
+  const messages = [newPasswordMessage, newPasswordConfirmMessage];
+
   if (route.params.path === "modify") {
-    if (!checkOldPassword(oldPassword.value.value)) {
-      oldPasswordField.value.focusInput();
-      return;
-    }
+    fields.unshift(oldPasswordField.value);
+    messages.unshift(oldPasswordMessage);
   }
-  if (!validatePassword(newPassword.value.value)) {
-    newPasswordField.value.focusInput();
+
+  console.log(fields)
+
+  const isFail = printMessageAndFocus(fields, messages);
+  if (isFail) {
     return;
   }
-  if (!confirmPassword(newPassword.value.value, newPasswordConfirm.value.value)) {
-    newPasswordConfirmField.value.focusInput();
-    return;
-  }
-  // todo: 비밀번호 변경
+  // todo: 비밀번호 변경 성공
 };
 </script>
 

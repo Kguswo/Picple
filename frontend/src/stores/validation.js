@@ -118,6 +118,7 @@ const printMessageAndFocus = (fields, messages) => {
 		}
 		fields[i].message = null;
 	}
+	return focused;
 };
 
 export { validate, printMessageAndFocus };
