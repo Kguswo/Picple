@@ -10,17 +10,16 @@ const inputField = ref(null);
 const focusInput = () => {
   inputField.value.focus();
 };
+
+defineExpose({
+  focusInput,
+})
 </script>
 
 <template>
   <div class="input-container" @click="focusInput">
-    <input
-      :type="params.type"
-      v-model="params.value"
-      ref="inputField"
-      class="form-input"
-      :class="{ 'has-content': params.value }"
-    />
+    <input :type="params.type" v-model="params.value" ref="inputField" class="form-input"
+      :class="{ 'has-content': params.value }" />
     <label class="form-label">{{ params.label }}</label>
     <slot></slot>
   </div>

@@ -12,6 +12,7 @@ const router = useRouter();
 const { message, checkNickname, checkNicknameDup } = valdiate();
 
 const nickname = ref({ type: "text", label: "닉네임", value: "" });
+const nicknameField = ref(null);
 
 const modify = () => {
   if (!checkNickname(nickname.value.value)) {
@@ -27,13 +28,13 @@ const changeView = (viewName, params) => {
 
 <template>
   <FormComp title="정보 수정">
-    <form class="form-content">
+    <form class="form-content" @keyup.enter="modify">
       <div class="input-container background-color-disabled">
         <input type="text" class="form-input has-content background-color-disabled" disabled />
         <label class="form-label">이메일</label>
       </div>
 
-      <FormInputComp :params="nickname" class="mt-10">
+      <FormInputComp :params="nickname" ref="nicknameField" class="mt-10">
         <FormButtonComp size="small" @click-button="checkNicknameDup(nickname.value)">중복</FormButtonComp>
       </FormInputComp>
 
