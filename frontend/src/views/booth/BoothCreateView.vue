@@ -118,7 +118,7 @@ const toggleMicro = () => {
                     <button class="ract-btn" @click="toggleMirror">반전</button>
                 </div>
                 <div class="right-btn">
-                    <button class="ract-btn" @click="navigateTo('photo')">생성</button>
+                    <button class="ract-btn" @click="navigateTo('background')">생성</button>
                     <button class="ract-btn" @click="navigateTo('main')">취소</button>
                 </div>
             </div>

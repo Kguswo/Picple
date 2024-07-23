@@ -10,39 +10,40 @@ import microOff from '@/assets/icon/micro_off.png';
 import { RouterView, useRouter } from "vue-router";
 import { ref, onMounted, onUnmounted,defineProps, onUpdated } from 'vue';
 
-// 비디오 표현을 위한 변수
-const videoElement = ref(null); 
-let mediaStream = null;
-
-// 화면 표시에 있어 사용되는 변수
-let isMirrored = false;
-let isvideoOn = ref(true); 
-let isMicroOn = ref(true);
-
 const router = useRouter();
 
 const navigateTo = (path) => {
     router.push({ name: path });
 };
 
-onMounted(async () => {
-  console.log("Select Booth 페이지 호출되었습니다");
-  // try {
-  //   mediaStream = await navigator.mediaDevices.getUserMedia({ video: true,audio: true });
+// // 비디오 표현을 위한 변수
+// const videoElement = ref(null); 
+// let mediaStream = null;
 
-  //   videoElement.value.srcObject = mediaStream;
-  // } catch (error) {
-  //   console.error('Error accessing webcam:', error);
-  // }
-});
+// // 화면 표시에 있어 사용되는 변수
+// let isMirrored = false;
+// let isvideoOn = ref(true); 
+// let isMicroOn = ref(true);
 
-onUnmounted(() => {
-  // if (mediaStream) {
-  //   mediaStream.getTracks().forEach((track) => {
-  //     track.stop();
-  //   });
-  // }
-});
+// onMounted(async () => {
+//   console.log('shootView Mounted!')
+//   try {
+//     mediaStream = await navigator.mediaDevices.getUserMedia({ video: true,audio: true });
+
+//     videoElement.value.srcObject = mediaStream;
+//   } catch (error) {
+//     console.error('Error accessing webcam:', error);
+//   }
+// });
+
+// onUnmounted(() => {
+//   console.log('shootView unMounted!')
+//   if (mediaStream) {
+//     mediaStream.getTracks().forEach((track) => {
+//       track.stop();
+//     });
+//   }
+// });
 
 // // 거울모드 여부
 // const toggleMirror = () => {
@@ -88,24 +89,26 @@ onUnmounted(() => {
 //     });
 //   }
 // };
-// 사진 찍기
 
-const props = defineProps({
-    'bgImage': String
-})
 const takePhoto = () =>{
   console.log('사진 찍기')
 }
 
 // background 변경을 위한 변수
-const bgImage = ref('');
+const bgImage = ref('https://via.placeholder.com/400');
 
 const changeImage = (image) => {
   console.log('이미지 변경 클릭')
     bgImage.value = image;
 };
 
-const showChild = ref(false);
+// 컴포넌트 변경을 위한 변수 1- 배경선택, 2 - 사진 보기
+const showtype = ref(1);
+
+const changeComponent = () =>{
+  showtype.value = showtype.value === 1 ? 2 : 1; // showtype 토글
+  navigateTo(showtype.value === 1 ? 'background' : 'showphoto');
+}
 
 </script>
 
@@ -139,7 +142,23 @@ const showChild = ref(false);
         </BoothBack>
 
         <BoothBack class="booth-select-box">
-            <RouterView :bgImage="bgImage" @update="changeImage"></RouterView>
+          <div class="select-box-top">
+            <button class="prev-btn" @click="changeComponent">
+              &lt
+            </button>
+            <div class="box-name">
+              <p v-if="showtype === 1">배경선택</p>
+              <p v-if="showtype === 2">사진보기</p>
+            </div>
+            <button class="next-btn" @click="changeComponent">
+              &gt
+            </button>
+          </div>          
+          
+          <div class="select-text-box">
+            <RouterView v-if="showtype === 1" @update="changeImage"></RouterView>
+            <RouterView v-else> </RouterView>
+          </div>
         </BoothBack>
       </div>
     </div>
@@ -147,9 +166,33 @@ const showChild = ref(false);
 </template>
 
 <style scoped>
-.qwer{
-  height: 100%;
-  width: 100%;
+
+.select-text-box{
+  display: flex;
+  height: 85%;
+  width: 90%;
+  flex-direction: column;
+  align-items: center;
+}
+
+.select-box-top{
+  height: 15%;
+  width: 85%;
+  
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  button{
+    background: transparent;
+    border: none;
+    width: 20%;
+    height: 100%;
+    font-size: 40px;
+
+    &:hover{
+      color: rgb(137, 137, 137);
+    }
+  }
 }
 .booth-content{
     /* display */
