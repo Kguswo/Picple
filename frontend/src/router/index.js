@@ -60,6 +60,23 @@ const router = createRouter({
             name: "boothCode",
             component: () => import("@/views/booth/BoothCodeView.vue"),
         },
+        {
+            path: "/selectTemp",
+            name: "selectTemp",
+            component: () =>
+                import("@/views/booth/BoothSelectTemplateView.vue"),
+        },
+        {
+            path: "/insertImg/:templateKey",
+            name: "insertImg",
+            component: () => import("@/views/booth/BoothInsertImgView.vue"),
+            props: (route) => ({
+                templateKey: route.params.templateKey,
+                photos: route.params.photos
+                    ? JSON.parse(decodeURIComponent(route.params.photos))
+                    : [],
+            }),
+        },
     ],
 });
 
