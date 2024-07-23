@@ -35,14 +35,14 @@ const certify = () => {
 <template>
   <form class="form-content" @keyup.enter="certify">
     <FormInputComp :params="email" ref="emailField">
-      <FormButtonComp size="small" @click-button="sendCertNumber">인증</FormButtonComp>
+      <FormButtonComp size="small" @click="sendCertNumber">인증</FormButtonComp>
     </FormInputComp>
 
     <FormInputComp :params="certNumber" ref="certNumberField" class="mt-10" />
 
     <FormMessageComp :message="message" />
 
-    <FormButtonComp size="big" @click-button="certify">다음</FormButtonComp>
+    <FormButtonComp size="big" @click="certify">다음</FormButtonComp>
   </form>
 </template>
 

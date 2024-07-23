@@ -51,7 +51,7 @@ const modify = () => {
 
       <FormMessageComp :message="message" />
 
-      <FormButtonComp size="big" @click-button="modify">확인</FormButtonComp>
+      <FormButtonComp size="big" @click="modify">확인</FormButtonComp>
 
       <button type="button" class="form-button-big form-button-cancel mt-10" v-if="route.params.path === 'modify'"
         @click="cancel">
