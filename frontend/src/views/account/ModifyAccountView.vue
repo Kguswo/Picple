@@ -24,6 +24,13 @@ const modify = () => {
 const changeView = (viewName, params) => {
   router.push({ name: viewName, params: params });
 }
+
+const checkDuplicate = (e) => {
+  e.stopPropagation();
+  if (!checkNicknameDup(nickname.value.value)) {
+    return;
+  }
+}
 </script>
 
 <template>
@@ -35,7 +42,7 @@ const changeView = (viewName, params) => {
       </div>
 
       <FormInputComp :params="nickname" ref="nicknameField" class="mt-10">
-        <FormButtonComp size="small" @click-button="checkNicknameDup(nickname.value)">중복</FormButtonComp>
+        <FormButtonComp size="small" @keyup.enter="checkDuplicate" @click="checkDuplicate">중복</FormButtonComp>
       </FormInputComp>
 
       <div class="input-container background-color-disabled mt-10">
@@ -47,10 +54,10 @@ const changeView = (viewName, params) => {
 
       <FormMessageComp :message="message" />
 
-      <FormButtonComp size="big" @click-button="modify">저장</FormButtonComp>
+      <FormButtonComp size="big" @click="modify">저장</FormButtonComp>
 
       <div class="text-align-right mt-10">
-        <FormButtonComp size="none" @click-button="">회원탈퇴</FormButtonComp>
+        <FormButtonComp size="none" @click="">회원탈퇴</FormButtonComp>
       </div>
     </form>
   </FormComp>
