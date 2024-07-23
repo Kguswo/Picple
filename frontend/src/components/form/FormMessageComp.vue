@@ -5,11 +5,7 @@ const props = defineProps({
 </script>
 
 <template>
-  <div
-    class="form-message"
-    v-if="message.text"
-    :style="{ color: message.isError ? 'red' : 'blue' }"
-  >
+  <div class="form-message" v-if="message.text" :style="{ color: message.isError ? 'red' : 'blue' }">
     {{ message.text }}
   </div>
 </template>
