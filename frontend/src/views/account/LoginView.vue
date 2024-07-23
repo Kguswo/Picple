@@ -2,7 +2,7 @@
 import FormComp from "@/components/form/FormComp.vue";
 import FormInputComp from "@/components/form/FormInputComp.vue";
 import FormButtonComp from "@/components/form/FormButtonComp.vue";
-import validate from "@/stores/validation";
+import { validate, printMessageAndFocus } from "@/stores/validation";
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 
@@ -18,26 +18,7 @@ const login = () => {
   const emailMessage = validateEmail(email.value.value);
   const passwordMessage = validatePassword(password.value.value);
 
-  if (emailMessage.isError && passwordMessage.isError) {
-    emailField.value.message = { ...emailMessage };
-    passwordField.value.message = { ...passwordMessage };
-    emailField.value.focusInput();
-    return;
-  }
-  if (emailMessage.isError) {
-    emailField.value.message = { ...emailMessage };
-    passwordField.value.message = null;
-    emailField.value.focusInput();
-    return;
-  }
-  if (passwordMessage.isError) {
-    emailField.value.message = null;
-    passwordField.value.message = { ...passwordMessage };
-    passwordField.value.focusInput();
-    return;
-  }
-  emailField.value.message = null
-  passwordField.value.message = null
+  printMessageAndFocus([emailField.value, passwordField.value], [emailMessage, passwordMessage])
   // todo: 계정 일치 여부 검사
 }
 
