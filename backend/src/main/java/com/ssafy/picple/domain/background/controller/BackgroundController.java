@@ -1,7 +1,8 @@
 package com.ssafy.picple.domain.background.controller;
 
+import static com.ssafy.picple.config.baseResponse.BaseResponseStatus.*;
+
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,9 +16,11 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.ssafy.picple.config.baseResponse.BaseException;
 import com.ssafy.picple.config.baseResponse.BaseResponse;
-import com.ssafy.picple.domain.background.dto.BackgroundDto;
-import com.ssafy.picple.domain.background.entity.Background;
-import com.ssafy.picple.domain.background.repository.BackgroundRepository;
+import com.ssafy.picple.domain.background.dto.request.DeleteBackgroundRequest;
+import com.ssafy.picple.domain.background.dto.request.InsertAIBackgroundRequest;
+import com.ssafy.picple.domain.background.dto.response.BackgroundResponseDto;
+import com.ssafy.picple.domain.background.dto.response.InsertBackgroundResponse;
+import com.ssafy.picple.domain.background.dto.response.ModifyBackgroundTitleResponse;
 import com.ssafy.picple.domain.background.service.BackgroundService;
 
 import lombok.RequiredArgsConstructor;
@@ -28,61 +31,64 @@ import lombok.RequiredArgsConstructor;
 public class BackgroundController {
 
 	private final BackgroundService backgroundService;
-	private final BackgroundRepository backgroundRepository;
 
 	@GetMapping
-	public BaseResponse<List<BackgroundDto>> getDefaultBackgrounds() throws BaseException {
-
-		List<Background> backgrounds = backgroundService.getDefaultBackgrounds();
-
-		List<BackgroundDto> collect = backgrounds.stream()
-			.map(b -> new BackgroundDto(b.getId(), b.getBackgroundTitle(), b.getCreatedAt(), b.getIsDeleted()))
-			.collect(Collectors.toList());
-
-		System.out.println(collect);
-		return new BaseResponse<>(collect);
+	public BaseResponse<List<BackgroundResponseDto>> getDefaultBackgrounds() throws BaseException {
+		try {
+			List<BackgroundResponseDto> result = backgroundService.getDefaultBackgrounds();
+			return new BaseResponse<>(result);
+		} catch (Exception e) {
+			throw new BaseException(DATABASE_ERROR);
+		}
 	}
 
 	@GetMapping("/{userId}")
-	public BaseResponse<List<BackgroundDto>> getUserBackgrounds(@PathVariable Long userId) throws BaseException {
-
-		List<Background> backgrounds = backgroundService.getUserBackgrounds(userId);
-
-		List<BackgroundDto> collect = backgrounds.stream()
-			.map(b -> new BackgroundDto(b.getId(), b.getBackgroundTitle(), b.getCreatedAt(), b.getIsDeleted()))
-			.collect(Collectors.toList());
-
-		System.out.println(collect);
-		return new BaseResponse<>(collect);
+	public BaseResponse<List<BackgroundResponseDto>> getUserBackgrounds(@PathVariable Long userId) throws
+			BaseException {
+		List<BackgroundResponseDto> result = backgroundService.getUserBackgrounds(userId)
+				.orElseThrow(() -> new BaseException(GET_USER_EMPTY));
+		return new BaseResponse<>(result);
 	}
 
 	@PostMapping("/ai/{userId}")
-	public BaseResponse insertAiBackground(@PathVariable Long userId, @RequestBody String prompt) throws BaseException {
-
-		Background background = backgroundService.insertAIBackground(userId, prompt);
-
-		return new BaseResponse(
-			new BackgroundDto(background.getId(), background.getBackgroundTitle(), background.getCreatedAt()));
+	public BaseResponse<InsertBackgroundResponse> insertAiBackground(
+			@PathVariable Long userId,
+			@RequestBody InsertAIBackgroundRequest request) throws BaseException {
+		try {
+			backgroundService.insertAIBackground(userId, request.getPrompt());
+			return new BaseResponse<>(SUCCESS);
+		} catch (Exception e) {
+			throw new BaseException(AI_BACKGROUND_GENERATION_ERROR);
+		}
 	}
 
 	@PostMapping("/local/{userId}")
-	public BaseResponse insertLocalBackground(
-		@PathVariable Long userId, @RequestParam("file") MultipartFile file) throws BaseException {
-
-		Background background = backgroundService.insertLocalBackground(userId, file);
-
-		return new BaseResponse(
-			new BackgroundDto(background.getId(), background.getBackgroundTitle(), background.getCreatedAt()));
+	public BaseResponse<InsertBackgroundResponse> insertLocalBackground(
+			@PathVariable Long userId,
+			@RequestParam("file") MultipartFile file) throws BaseException {
+		try {
+			backgroundService.insertLocalBackground(userId, file);
+			return new BaseResponse<>(SUCCESS);
+		} catch (Exception e) {
+			throw new BaseException(LOCAL_BACKGROUND_UPLOAD_ERROR);
+		}
 	}
 
 	@DeleteMapping("/{backgroundId}")
-	public BaseResponse deleteBackground(@PathVariable Long backgroundId, Long userId) throws BaseException {
+	public BaseResponse<ModifyBackgroundTitleResponse> deleteBackground(
+			@PathVariable Long backgroundId,
+			@RequestBody DeleteBackgroundRequest request) throws BaseException {
 
-		Background background = backgroundService.deleteBackground(backgroundId, userId);
+		if (!request.isValidUserId()) {
+			throw new BaseException(INVALID_USER_JWT);
+		}
 
-		return new BaseResponse(
-			new BackgroundDto(background.getId(), background.getBackgroundTitle(), background.getCreatedAt(),
-				background.getIsDeleted()));
+		try {
+			backgroundService.deleteBackground(backgroundId, request.getUserId());
+			return new BaseResponse<>(SUCCESS);
+		} catch (Exception e) {
+			throw new BaseException(DELETE_BACKGROUND_ERROR);
+		}
+
 	}
-
 }
