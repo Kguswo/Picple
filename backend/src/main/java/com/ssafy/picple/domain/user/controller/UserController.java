@@ -12,6 +12,7 @@ import com.ssafy.picple.domain.user.entity.User;
 import com.ssafy.picple.domain.user.service.EmailService;
 import com.ssafy.picple.domain.user.service.UserService;
 import com.ssafy.picple.util.JWTUtil;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -85,13 +86,14 @@ public class UserController {
 
     /**
      * 회원 탈퇴
-     * @param user
+     * @param
      * @return
      * @throws BaseException
      */
     @DeleteMapping("")
-    public BaseResponse<String> deleteUser(@RequestBody User user) throws BaseException {
-        return new BaseResponse<>(userService.deleteUser(user.getId()));
+    public BaseResponse<String> deleteUser(HttpServletRequest request) throws BaseException {
+        Long userId = (Long) request.getAttribute("userId");
+        return new BaseResponse<>(userService.deleteUser(userId));
     }
 
 }

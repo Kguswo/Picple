@@ -35,7 +35,6 @@ public class EmailServiceImpl implements EmailService {
         MimeMessage emailForm = createEmailForm(toEmail);
         // 이메일 발송
         javaMailSender.send(emailForm);
-        System.out.println("send가 안 됨");
         return null;
     }
 
@@ -43,7 +42,6 @@ public class EmailServiceImpl implements EmailService {
     private MimeMessage createEmailForm(String email) throws BaseException {
         String authCode = createCode();
         try {
-            System.out.println("여기서 에러?");
             MimeMessage message = javaMailSender.createMimeMessage();
             message.addRecipients(MimeMessage.RecipientType.TO, email);
             message.setSubject("안녕하세요. 인증번호입니다.");
