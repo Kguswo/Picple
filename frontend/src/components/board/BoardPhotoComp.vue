@@ -75,7 +75,7 @@ const closeModal = () => {
             <span class="close" @click="closeModal">&times;</span>
         </div>
         <div class="modal-img">
-            <img src="@/assets/img/tempImg.jpg" alt="">
+            <img src="@/assets/img/tempImg.png" alt="">
             <div class="modal-text">
                 <span class="modal-like">Like. 22</span>
                 <span class="modal-date">Date. 2024.07.19</span>
