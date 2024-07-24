@@ -26,6 +26,8 @@ public class EmailServiceImpl implements EmailService {
 
     // 인증코드 이메일 발송 (수정 필요)
     public String sendEmail(String toEmail) throws BaseException {
+        // 레디스에 같은 키를 가진 값이 있는지 확인
+        // 있으면 삭제
         if (redisUtil.existData(toEmail)) {
             redisUtil.deleteData(toEmail);
         }
@@ -33,6 +35,7 @@ public class EmailServiceImpl implements EmailService {
         MimeMessage emailForm = createEmailForm(toEmail);
         // 이메일 발송
         javaMailSender.send(emailForm);
+        System.out.println("send가 안 됨");
         return null;
     }
 
@@ -40,6 +43,7 @@ public class EmailServiceImpl implements EmailService {
     private MimeMessage createEmailForm(String email) throws BaseException {
         String authCode = createCode();
         try {
+            System.out.println("여기서 에러?");
             MimeMessage message = javaMailSender.createMimeMessage();
             message.addRecipients(MimeMessage.RecipientType.TO, email);
             message.setSubject("안녕하세요. 인증번호입니다.");

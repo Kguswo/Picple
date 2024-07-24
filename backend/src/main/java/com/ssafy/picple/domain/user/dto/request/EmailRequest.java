@@ -8,6 +8,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class EmailRequest {
-    @Email
+    @Email(message = "올바른 형식의 이메일을 입력해주세요.")
     private String email;
 }
