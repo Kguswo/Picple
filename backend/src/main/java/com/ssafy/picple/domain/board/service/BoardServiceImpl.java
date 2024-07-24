@@ -3,6 +3,7 @@ package com.ssafy.picple.domain.board.service;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import com.ssafy.picple.domain.board.dto.BoardDto;
@@ -56,22 +57,34 @@ public class BoardServiceImpl implements BoardService {
 		return photoRepository.findById(board.getPhoto().getId()).get().getPhotoUrl();
 	}
 
-	// 좋아요 내림차순으로 정렬
-	@Override
-	public List<BoardDto> findAllBoardsOrderByHitDesc() {
-		Long userId = getUserId();
-		List<Board> boards = boardRepository.findAllByOrderByHitDesc();
-		return boards.stream()
-				.map(board -> new BoardDto(board, photoRepository, boardLikeRepository, userId))
-				.collect(Collectors.toList());
-	}
+	// // 좋아요 내림차순으로 정렬
+	// @Override
+	// public List<BoardDto> findAllBoardsOrderByHitDesc() {
+	// 	Long userId = getUserId();
+	// 	List<Board> boards = boardRepository.findAllByOrderByHitDesc();
+	// 	return boards.stream()
+	// 			.map(board -> new BoardDto(board, photoRepository, boardLikeRepository, userId))
+	// 			.collect(Collectors.toList());
+	// }
 
-	// 최신순으로 정렬
+	// // 최신순으로 정렬
+	// @Override
+	// public List<BoardDto> findAllBoardsOrderByCreatedAtDesc() {
+	// 	Long userId = getUserId();
+	// 	List<Board> boards = boardRepository.findAllByOrderByCreatedAtDesc();
+	// 	return boards.stream()
+	// 			.map(board -> new BoardDto(board, photoRepository, boardLikeRepository, userId))
+	// 			.collect(Collectors.toList());
+	// }
+
+	// 사용자 기준에 따라 정렬
 	@Override
-	public List<BoardDto> findAllBoardsOrderByCreatedAtDesc() {
+	public List<BoardDto> findAllBoardsOrderByMyCriteria(String criteria) {
 		Long userId = getUserId();
-		List<Board> boards = boardRepository.findAllByOrderByCreatedAtDesc();
+		Sort sort = Sort.by(Sort.Direction.DESC, criteria);
+		List<Board> boards = boardRepository.findAll(sort);
 		return boards.stream()
+				.filter(board -> !board.isDeleted())
 				.map(board -> new BoardDto(board, photoRepository, boardLikeRepository, userId))
 				.collect(Collectors.toList());
 	}

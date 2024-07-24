@@ -10,10 +10,13 @@ public interface BoardService {
 	List<BoardDto> findAllBoards();
 
 	// 좋아요 내림차순으로 정렬
-	List<BoardDto> findAllBoardsOrderByHitDesc();
+	// List<BoardDto> findAllBoardsOrderByHitDesc();
 
 	// 최신순으로 정렬
-	List<BoardDto> findAllBoardsOrderByCreatedAtDesc();
+	// List<BoardDto> findAllBoardsOrderByCreatedAtDesc();
+
+	// 사용자 기준에 따라 정렬
+	List<BoardDto> findAllBoardsOrderByMyCriteria(String criteria);
 
 	// // 사진 좋아요 여부 확인
 	// boolean isPhotoLikedByUser(Long boardId, Long userId);

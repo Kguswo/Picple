@@ -18,10 +18,10 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
 	List<Board> findAllByIsDeletedFalse();
 
 	// 좋아요 내림차순으로 정렬
-	List<Board> findAllByOrderByHitDesc();
+	// List<Board> findAllByOrderByHitDesc();
 
 	// 최신순으로 정렬
-	List<Board> findAllByOrderByCreatedAtDesc();
+	// List<Board> findAllByOrderByCreatedAtDesc();
 
 	// 사진 좋아요 1증가
 	@Transactional
