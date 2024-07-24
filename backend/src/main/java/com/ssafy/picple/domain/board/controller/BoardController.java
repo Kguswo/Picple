@@ -29,20 +29,6 @@ public class BoardController {
 		return new BaseResponse<>(boards);
 	}
 
-	// // 좋아요 내림차순으로 정렬된 Board 조회
-	// @GetMapping("/hit")
-	// public BaseResponse<List<BoardDto>> findAllBoardsOrderByHitDesc() {
-	// 	List<BoardDto> boards = boardService.findAllBoardsOrderByHitDesc();
-	// 	return new BaseResponse<>(boards);
-	// }
-
-	// // 최신순으로 정렬된 Board 조회
-	// @GetMapping("/createdat")
-	// public BaseResponse<List<BoardDto>> findAllBoardsOrderByCreatedAtDesc() {
-	// 	List<BoardDto> boards = boardService.findAllBoardsOrderByCreatedAtDesc();
-	// 	return new BaseResponse<>(boards);
-	// }
-
 	// 사용자 기준으로 정렬된 Board 조회
 	@GetMapping("/sorted/{criteria}")
 	public BaseResponse<List<BoardDto>> findAllByOrderByMyCriteria(@PathVariable String criteria) {
