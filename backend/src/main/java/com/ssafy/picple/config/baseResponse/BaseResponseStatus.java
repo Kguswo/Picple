@@ -26,6 +26,7 @@ public enum BaseResponseStatus {
     // Common
     RESPONSE_ERROR(false, 3000, "값을 불러오는데 실패하였습니다."),
 
+
     // 3001 ~~ 3099 : 박성훈
     // 3001 ~~ 3015 : about email
     DUPLICATED_USER_EMAIL(false, 3002, "해당 이메일이 이미 존재합니다."),
@@ -38,6 +39,8 @@ public enum BaseResponseStatus {
     // about user service
     GET_USER_EMPTY(false, 3016, "등록된 유저가 없습니다."),
     FAILED_USER_SIGNUP(false, 3017, "등록된 유저가 없습니다."),
+    NOT_FOUND_USER(false, 3018, "값을 불러오는데 실패하였습니다."),
+    INVALID_PASSWORD(false, 3019, "비밀번호가 일치하지 않습니다."),
 
     // 3100 ~~ 3199 : 김현재
 
