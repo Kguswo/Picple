@@ -24,11 +24,6 @@ const router = createRouter({
 			component: () => import('@/views/account/SignupView.vue'),
 		},
 		{
-			path: '/signup/email',
-			name: 'signupEmail',
-			component: () => import('@/views/account/SignupEmailView.vue'),
-		},
-		{
 			path: '/modifyAccount',
 			name: 'modifyAccount',
 			component: () => import('@/views/account/ModifyAccountView.vue'),
@@ -49,9 +44,47 @@ const router = createRouter({
 			component: () => import('@/views/BoardView.vue'),
 		},
 		{
+			path: '/create',
+			name: 'createbooth',
+			component: () => import('@/views/booth/BoothCreateView.vue'),
+		},
+		{
+			path: '/booth',
+			component: () => import('@/views/booth/BoothShootView.vue'),
+			children: [
+				{
+					path: 'bg',
+					name: 'background',
+					component: () => import('@/components/booth/BoothSelectBackComp.vue'),
+					props: true,
+				},
+				{
+					path: 'photo',
+					name: 'showphoto',
+					component: () => import('@/components/booth/BoothShowPhoto.vue'),
+					props: true,
+				},
+			],
+			props: true,
+		},
+		{
 			path: '/boothCode',
 			name: 'boothCode',
 			component: () => import('@/views/booth/BoothCodeView.vue'),
+		},
+		{
+			path: '/selectTemp',
+			name: 'selectTemp',
+			component: () => import('@/views/booth/BoothSelectTemplateView.vue'),
+		},
+		{
+			path: '/insertImg/:templateKey',
+			name: 'insertImg',
+			component: () => import('@/views/booth/BoothInsertImgView.vue'),
+			props: (route) => ({
+				templateKey: route.params.templateKey,
+				photos: route.params.photos ? JSON.parse(decodeURIComponent(route.params.photos)) : [],
+			}),
 		},
 	],
 });
