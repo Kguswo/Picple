@@ -43,12 +43,11 @@ public class BackgroundServiceImpl implements BackgroundService {
 
 	@Override
 	@Transactional
-	public BackgroundResponseDto insertAIBackground(Long userId, String prompt) throws BaseException {
+	public void insertAIBackground(Long userId, String prompt) throws BaseException {
 		try {
 			// TODO: AI API를 사용하여 prompt에 적힌 이미지 생성
-			Background background = new Background();
-			Background savedBackground = backgroundRepository.save(background);
-			return BackgroundResponseDto.backgroundResponseDto(savedBackground);
+			Background background = new Background("temp");
+			backgroundRepository.save(background);
 		} catch (Exception e) {
 			throw new BaseException(AI_BACKGROUND_GENERATION_ERROR);
 		}
@@ -56,12 +55,11 @@ public class BackgroundServiceImpl implements BackgroundService {
 
 	@Override
 	@Transactional
-	public BackgroundResponseDto insertLocalBackground(Long userId, MultipartFile file) throws BaseException {
+	public void insertLocalBackground(Long userId, MultipartFile file) throws BaseException {
 		try {
 			// TODO: 파일 업로드 로직 구현
-			Background background = new Background();
-			Background savedBackground = backgroundRepository.save(background);
-			return BackgroundResponseDto.backgroundResponseDto(savedBackground);
+			Background background = new Background("temp");
+			backgroundRepository.save(background);
 		} catch (Exception e) {
 			throw new BaseException(LOCAL_BACKGROUND_UPLOAD_ERROR);
 		}
@@ -69,7 +67,7 @@ public class BackgroundServiceImpl implements BackgroundService {
 
 	@Override
 	@Transactional
-	public BackgroundResponseDto deleteBackground(Long backgroundId, Long userId) throws BaseException {
+	public void deleteBackground(Long backgroundId, Long userId) throws BaseException {
 		try {
 			Background background = backgroundRepository.findById(backgroundId)
 					.orElseThrow(() -> new BaseException(INVALID_BACKGROUND_ID));
@@ -77,7 +75,6 @@ public class BackgroundServiceImpl implements BackgroundService {
 				throw new BaseException(INVALID_USER_JWT);
 			}
 			background.deleteBackground(background);
-			return BackgroundResponseDto.backgroundResponseDto(background);
 		} catch (Exception e) {
 			throw new BaseException(DELETE_BACKGROUND_ERROR);
 		}

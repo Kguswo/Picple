@@ -16,12 +16,12 @@ public interface BackgroundService {
 	List<BackgroundResponseDto> getUserBackgrounds(Long userId);
 
 	// AI API를 사용해 prompt에 적힌 이미지 생성
-	BackgroundResponseDto insertAIBackground(Long userId, String prompt) throws BaseException;
+	void insertAIBackground(Long userId, String prompt) throws BaseException;
 
 	// 로컬에 있는 사진을 배경 사진으로 추가
-	BackgroundResponseDto insertLocalBackground(Long userId, MultipartFile file) throws BaseException;
+	void insertLocalBackground(Long userId, MultipartFile file) throws BaseException;
 
 	// 해당 사용자가 추가한 배경 사진 삭제
-	BackgroundResponseDto deleteBackground(Long backgroundId, Long userId) throws BaseException;
+	void deleteBackground(Long backgroundId, Long userId) throws BaseException;
 
 }
