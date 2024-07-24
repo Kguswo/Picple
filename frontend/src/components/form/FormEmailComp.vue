@@ -1,38 +1,28 @@
 <script setup>
 import FormInputComp from "@/components/form/FormInputComp.vue";
 import FormButtonComp from "@/components/form/FormButtonComp.vue";
-import validate from "@/stores/validation";
+import { validateEmailBeforeSend } from "@/stores/validation";
 import { ref } from "vue";
 
-const { validateEmail, checkCertEmail, setFormMessage } = validate();
-
-const email = ref({ type: "text", label: "이메일", value: "" });
+const email = ref({ type: "email", label: "이메일", value: "" });
 const certNumber = ref({ type: "text", label: "인증번호", value: "" });
 const isSend = ref(false);
 const emailField = ref(null);
 const certNumberField = ref(null);
 
 const sendCertNumber = () => {
-  const emailMessage = validateEmail(email.value.value);
-  if (emailMessage.isError) {
-    emailField.value.message = { ...emailMessage };
-    emailField.value.focusInput();
+  const fields = [emailField.value];
+  const isSuccess = validateEmailBeforeSend(fields, email.value.value);
+  if (!isSuccess) {
     return;
   }
   // todo: 인증번호 전송
   // todo: 인증번호 제한시간 표시
   isSend.value = true;
-  emailField.value.message = setFormMessage("인증번호를 전송하였습니다.", false);
 };
 
 const certify = () => {
-  const emailMessage = checkCertEmail(isSend.value);
 
-  if (emailMessage.isError) {
-    emailField.value.message = { ...emailMessage };
-    emailField.value.focusInput();
-    return;
-  }
   // todo: 인증번호 제한시간 검사
   // todo: 인증번호 일치 여부 검사
   // todo: 이미 등록된 이메일 여부 검사 (중복된 이메일이면 이메일 필드 block 해제, 중복 아니면 다음으로 이동)
