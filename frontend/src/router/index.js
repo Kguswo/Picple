@@ -75,12 +75,12 @@ const router = createRouter({
 		{
 			path: '/selectTemp',
 			name: 'selectTemp',
-			component: () => import('@/views/booth/BoothSelectTemplateView.vue'),
+			component: () => import('@/views/booth/BoothTemplateView.vue'),
 		},
 		{
 			path: '/insertImg/:templateKey',
 			name: 'insertImg',
-			component: () => import('@/views/booth/BoothInsertImgView.vue'),
+			component: () => import('@/views/booth/BoothInsertView.vue'),
 			props: (route) => ({
 				templateKey: route.params.templateKey,
 				photos: route.params.photos ? JSON.parse(decodeURIComponent(route.params.photos)) : [],
