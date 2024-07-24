@@ -1,7 +1,6 @@
 package com.ssafy.picple.domain.background.service;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.web.multipart.MultipartFile;
 
@@ -14,7 +13,7 @@ public interface BackgroundService {
 	List<BackgroundResponseDto> getDefaultBackgrounds() throws BaseException;
 
 	// 해당 사용자가 추가한 배경 사진 불러오기
-	Optional<List<BackgroundResponseDto>> getUserBackgrounds(Long userId);
+	List<BackgroundResponseDto> getUserBackgrounds(Long userId);
 
 	// AI API를 사용해 prompt에 적힌 이미지 생성
 	BackgroundResponseDto insertAIBackground(Long userId, String prompt) throws BaseException;

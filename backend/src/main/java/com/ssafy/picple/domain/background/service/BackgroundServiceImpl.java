@@ -3,7 +3,6 @@ package com.ssafy.picple.domain.background.service;
 import static com.ssafy.picple.config.baseResponse.BaseResponseStatus.*;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
@@ -35,11 +34,11 @@ public class BackgroundServiceImpl implements BackgroundService {
 	}
 
 	@Override
-	public Optional<List<BackgroundResponseDto>> getUserBackgrounds(Long userId) {
+	public List<BackgroundResponseDto> getUserBackgrounds(Long userId) {
 		List<BackgroundResponseDto> backgrounds = backgroundRepository.findByUserId(userId).stream()
 				.map(BackgroundResponseDto::backgroundResponseDto)
 				.collect(Collectors.toList());
-		return Optional.of(backgrounds);
+		return backgrounds;
 	}
 
 	@Override

@@ -45,9 +45,12 @@ public class BackgroundController {
 	@GetMapping("/{userId}")
 	public BaseResponse<List<BackgroundResponseDto>> getUserBackgrounds(@PathVariable Long userId) throws
 			BaseException {
-		List<BackgroundResponseDto> result = backgroundService.getUserBackgrounds(userId)
-				.orElseThrow(() -> new BaseException(GET_USER_EMPTY));
-		return new BaseResponse<>(result);
+		try {
+			List<BackgroundResponseDto> result = backgroundService.getUserBackgrounds(userId);
+			return new BaseResponse<>(result);
+		} catch (Exception e) {
+			throw new BaseException(GET_USER_EMPTY);
+		}
 	}
 
 	@PostMapping("/ai/{userId}")
