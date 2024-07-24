@@ -1,17 +1,12 @@
 package com.ssafy.picple.domain.background.entity;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.ssafy.picple.config.BaseTimeEntity;
-import com.ssafy.picple.domain.backgrounduser.entity.BackgroundUser;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -28,10 +23,6 @@ public class Background extends BaseTimeEntity {
 	@Column(name = "background_id")
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
-
-	@Column(nullable = false)
-	@OneToMany(mappedBy = "background")
-	private List<BackgroundUser> users = new ArrayList<>();
 
 	@Column(nullable = false, length = 45)
 	private String backgroundTitle;
@@ -50,10 +41,6 @@ public class Background extends BaseTimeEntity {
 		this.backgroundTitle = backgroundTitle;
 	}
 
-	public void insertBackgroundUser(BackgroundUser backgroundUser) {
-		users.add(backgroundUser);
-	}
-
 	public void modifyTitle(String newTitle) {
 		this.backgroundTitle = newTitle;
 	}
@@ -62,7 +49,4 @@ public class Background extends BaseTimeEntity {
 		background.isDeleted = true;
 	}
 
-	public boolean hasUserId(Long userId) {
-		return users.stream().anyMatch(user -> user.getId().equals(userId));
-	}
 }

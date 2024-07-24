@@ -37,8 +37,6 @@ public class BackgroundUser {
 	public BackgroundUser(Background background, User user) {
 		this.background = background;
 		this.user = user;
-		background.insertBackgroundUser(this);
-		user.insertBackgroundUser(this);
 	}
 
 }
