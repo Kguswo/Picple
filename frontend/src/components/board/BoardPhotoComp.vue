@@ -71,18 +71,18 @@ const closeModal = () => {
 
     <div class="modal" v-if="showModal">
     <div class="modal-content">
-        <div class="close-box">
-            <span class="close" @click="closeModal">&times;</span>
-        </div>
-        <div class="modal-img">
-            <img src="@/assets/img/tempImg.png" alt="">
-            <div class="modal-text">
-                <span class="modal-like">Like. 22</span>
-                <span class="modal-date">Date. 2024.07.19</span>
+            <div class="close-box">
+                <span class="close" @click="closeModal">&times;</span>
+            </div>
+            <div class="modal-img">
+                <img src="@/assets/img/tempImg.png" alt="">
+                <div class="modal-text">
+                    <span class="modal-like">Like. 22</span>
+                    <span class="modal-date">Date. 2024.07.19</span>
+                </div>
             </div>
         </div>
     </div>
-  </div>
 </template>
 
 <style scoped>
