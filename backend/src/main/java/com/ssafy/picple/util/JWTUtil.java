@@ -52,7 +52,7 @@ public class JWTUtil {
         byte[] key = null;
         try {
             key = salt.getBytes("UTF-8");
-        } catch (Exception e) {
+        } catch (Exception ignored) {
 
         }
         return key;
@@ -78,8 +78,24 @@ public class JWTUtil {
                 .parseClaimsJws(accessToken)
                 .getBody()
                 .getExpiration();
-        Long now = new Date().getTime();
+        long now = new Date().getTime();
         return (expiration.getTime() - now) / 1000;
+    }
+
+    public void logout(String token, Long expireTime) throws BaseException {
+        try {
+            Jws<Claims> claims = Jwts.parserBuilder()
+                    .setSigningKey(this.generateKey())
+                    .build()
+                    .parseClaimsJws(token);
+
+            Date expiration = claims.getBody().getExpiration();
+            if (expiration.before(new Date())) {
+                throw new BaseException(INVALID_JWT); // 사용자 정의 예외
+            }
+        } catch (JwtException e) {
+            throw new BaseException(JWT_GET_USER_ERROR);
+        }
     }
 
     // user index 반환
