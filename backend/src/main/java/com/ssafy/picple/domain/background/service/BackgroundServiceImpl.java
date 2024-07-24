@@ -71,17 +71,11 @@ public class BackgroundServiceImpl implements BackgroundService {
 		}
 	}
 
-	// 수정 필요
 	@Override
 	@Transactional
 	public void deleteBackground(Long backgroundId, Long userId) throws BaseException {
 		try {
-			Background background = backgroundRepository.findById(backgroundId)
-					.orElseThrow(() -> new BaseException(INVALID_BACKGROUND_ID));
-			if (!background.hasUserId(userId)) {
-				throw new BaseException(INVALID_USER_JWT);
-			}
-			background.deleteBackground(background);
+			backgroundRepository.deleteBackground(userId, backgroundId);
 		} catch (Exception e) {
 			throw new BaseException(DELETE_BACKGROUND_ERROR);
 		}

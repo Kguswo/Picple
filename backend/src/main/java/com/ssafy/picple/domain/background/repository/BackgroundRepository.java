@@ -20,5 +20,11 @@ public interface BackgroundRepository extends JpaRepository<Background, Long> {
 	@Query("UPDATE Background b SET b.backgroundTitle = :newName WHERE b.id = :id")
 	int updateBackgroundName(@Param("id") Long id, @Param("newName") String newName);
 
+	// 배경 사진 삭제를 위한 메소드
+	// 쿼리: userId에 맞는 background 중 backgroundId의 isDeleted를 true로 업데이트
+	@Modifying
+	@Query("UPDATE Background b SET b.isDeleted = true WHERE b.id = :backgroundId AND b.id IN (SELECT bu.background.id FROM BackgroundUser bu WHERE bu.user.id = :userId)")
+	void deleteBackground(@Param("userId") Long userId, @Param("backgroundId") Long backgroundId);
+
 	List<Background> findByIsDefault(boolean b);
 }
