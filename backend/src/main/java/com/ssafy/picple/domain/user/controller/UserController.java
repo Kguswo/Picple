@@ -23,11 +23,6 @@ public class UserController {
     private final UserService userService;
     private final EmailService emailService;
 
-    /**
-     * 로그인
-     * @return
-     * @throws BaseException
-     */
     @GetMapping("/login")
     public BaseResponse<UserListResponse> login() throws BaseException {
         UserListResponse userDto = new UserListResponse();
@@ -35,11 +30,18 @@ public class UserController {
         return new BaseResponse<>(userDto);
     }
 
+    /**
+     * 회원가입
+     * @param user
+     * @return
+     * @throws BaseException
+     */
     @PostMapping("/sign-up")
     public BaseResponse<BaseResponseStatus> signUp(@RequestBody User user) throws BaseException {
-        if (userService.signUp(user)) {
+        if (userService.signUp(user) != null) {
             return new BaseResponse<>(SUCCESS);
         } else {
+            System.out.println("여기서 에러 발생");
             return new BaseResponse<>(FAILED_USER_SIGNUP);
         }
     }

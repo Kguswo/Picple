@@ -27,12 +27,12 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Boolean signUp(User user) throws BaseException {
+    public User signUp(User user) throws BaseException {
         // check nickname duplicated
         if (userRepository.existsByNickname(user.getNickname())) {
             throw new BaseException(DUPLICATED_USER_NICKNAME);
         }
-        return userRepository.save(user).isDeleted();
+        return userRepository.save(user);
     }
 
     /**

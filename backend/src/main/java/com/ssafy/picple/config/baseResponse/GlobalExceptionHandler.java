@@ -1,23 +1,18 @@
 package com.ssafy.picple.config.baseResponse;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-@ControllerAdvice
+@RestControllerAdvice
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(BaseException.class)
-    public ResponseEntity<BaseResponse<String>> handleBaseException(BaseException ex) {
-        BaseResponse<String> response = new BaseResponse<>(ex.getStatus());
-        return new ResponseEntity<>(response, HttpStatus.valueOf(ex.getStatus().getCode()));
+    public BaseResponse<String> handleBaseException(BaseException ex) {
+        return new BaseResponse<>(ex.getStatus());
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<BaseResponse<String>> handleGeneralException(Exception ex) {
-        BaseResponse<String> response = new BaseResponse<>(BaseResponseStatus.SERVER_ERROR);
-        return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+    public BaseResponse<String> handleGeneralException(Exception ex) {
+        return new BaseResponse<>(BaseResponseStatus.SERVER_ERROR);
     }
 }
-

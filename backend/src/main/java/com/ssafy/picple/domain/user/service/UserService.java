@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface UserService {
     List<User> getUser() throws BaseException;
-    Boolean signUp(User user) throws BaseException;
+    User signUp(User user) throws BaseException;
 
     String checkEmailDuplication(String email) throws BaseException;
     String checkNicknameDuplication(String nickname) throws BaseException;
