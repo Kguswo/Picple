@@ -7,6 +7,7 @@ import FormMessageComp from "@/components/form/FormMessageComp.vue";
 const props = defineProps({
   params: Object,
   isSend: Boolean,
+  name: String,
 });
 
 const message = ref(null)
@@ -39,7 +40,7 @@ defineExpose({
       @click="focusInput">
       <input :type="params.type" v-model="params.value" ref="inputField" class="form-input"
         :class="{ 'has-content': params.value, 'background-color-disabled': isSend === true }" :maxlength="maxLength"
-        :disabled="isSend === true" />
+        :disabled="isSend === true" :autocomplete="name" />
       <label class="form-label">{{ params.label }}</label>
 
       <div class="form-input-etc">

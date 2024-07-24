@@ -15,6 +15,13 @@ const nicknameField = ref(null);
 const passwordField = ref(null);
 const passwordConfirmField = ref(null);
 
+const validateNicknameDup = (nickname) => {
+  if (!checkedNickname.value || checkedNickname.value !== nickname) {
+    return setFormMessage("닉네임 중복 확인이 필요합니다.", true);
+  }
+  return setFormMessage("", false);
+};
+
 const signup = () => {
   if (!checkNickname(nickname.value.value)) {
     nicknameField.value.focusInput();
