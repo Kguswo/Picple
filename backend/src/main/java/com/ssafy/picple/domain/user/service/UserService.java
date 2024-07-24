@@ -9,10 +9,12 @@ import java.util.List;
 
 public interface UserService {
     List<User> getUser() throws BaseException;
+
     User signUp(User user) throws BaseException;
+
     Token login(LoginRequest loginRequest) throws BaseException;
 
-    String checkEmailDuplication(String email) throws BaseException;
+    void checkEmailDuplication(String email) throws BaseException;
 
     String deleteUser(Long userId) throws BaseException;
 }

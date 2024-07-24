@@ -27,6 +27,12 @@ public class UserController {
     private final EmailService emailService;
     private final JWTUtil jwtUtil;
 
+    /**
+     * 로그인
+     * @param loginRequest
+     * @return jwt tokens
+     * @throws BaseException
+     */
     @PostMapping("/login")
     public BaseResponse<Token> login(@RequestBody LoginRequest loginRequest) throws BaseException {
         return new BaseResponse<>(userService.login(loginRequest));
@@ -48,25 +54,33 @@ public class UserController {
         }
     }
 
+    /**
+     * email 전송 (수정 필요)
+     * @param emailDto
+     * @return
+     * @throws BaseException
+     */
     @PostMapping("/mail")
     public BaseResponse<String> mailSend(@RequestBody @Valid EmailRequest emailDto) throws BaseException {
         if (emailDto.getEmail() == null || emailDto.getEmail().trim().isEmpty()) {
             throw new BaseException(USER_EMAIL_EMPTY);
         }
+        userService.checkEmailDuplication(emailDto.getEmail());
         return new BaseResponse<>(emailService.sendEmail(emailDto.getEmail()));
     }
 
+    /**
+     * email 전송 체크
+     * @param emailCheckDto
+     * @return
+     * @throws BaseException
+     */
     @PostMapping("/mailcheck")
     public BaseResponse<String> mailCheck(@RequestBody @Valid EmailCheckRequest emailCheckDto) throws BaseException {
         if (emailCheckDto.getEmail() == null || emailCheckDto.getEmail().trim().isEmpty()) {
             throw new BaseException(USER_EMAIL_EMPTY);
         }
         return new BaseResponse<>(emailService.verifyEmailCode(emailCheckDto.getEmail(), emailCheckDto.getAuthNumber()));
-    }
-
-    @GetMapping("/sign-up/{email}")
-    public BaseResponse<String> checkEmailDuplication(@PathVariable String email) throws BaseException {
-        return new BaseResponse<>(userService.checkEmailDuplication(email));
     }
 
     /**

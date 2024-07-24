@@ -60,10 +60,8 @@ public class UserServiceImpl implements UserService {
      * @throws BaseException
      */
     @Override
-    public String checkEmailDuplication(String email) throws BaseException {
-        if (!userRepository.existsByEmail(email)) {
-            return "";
-        } else {
+    public void checkEmailDuplication(String email) throws BaseException {
+        if (userRepository.existsByEmail(email)) {
             throw new BaseException(DUPLICATED_USER_EMAIL);
         }
     }
