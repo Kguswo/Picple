@@ -45,14 +45,7 @@ public class BackgroundServiceImpl implements BackgroundService {
 		}
 	}
 
-	@Override
-	public List<BackgroundResponseDto> getUserBackgrounds(Long userId) {
-		List<BackgroundResponseDto> backgrounds = backgroundRepository.findByUserId(userId).stream()
-				.map(BackgroundResponseDto::backgroundResponseDto)
-				.collect(Collectors.toList());
-		return backgrounds;
-	}
-
+	// 수정 필요
 	@Override
 	@Transactional
 	public void insertAIBackground(Long userId, String prompt) throws BaseException {
@@ -65,6 +58,7 @@ public class BackgroundServiceImpl implements BackgroundService {
 		}
 	}
 
+	// 수정 필요
 	@Override
 	@Transactional
 	public void insertLocalBackground(Long userId, MultipartFile file) throws BaseException {
@@ -77,6 +71,7 @@ public class BackgroundServiceImpl implements BackgroundService {
 		}
 	}
 
+	// 수정 필요
 	@Override
 	@Transactional
 	public void deleteBackground(Long backgroundId, Long userId) throws BaseException {
