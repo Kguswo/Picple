@@ -5,10 +5,13 @@ import com.ssafy.picple.config.baseResponse.BaseResponse;
 import com.ssafy.picple.config.baseResponse.BaseResponseStatus;
 import com.ssafy.picple.domain.user.dto.request.EmailCheckRequest;
 import com.ssafy.picple.domain.user.dto.request.EmailRequest;
+import com.ssafy.picple.domain.user.dto.request.LoginRequest;
+import com.ssafy.picple.domain.user.dto.response.Token;
 import com.ssafy.picple.domain.user.dto.response.UserListResponse;
 import com.ssafy.picple.domain.user.entity.User;
 import com.ssafy.picple.domain.user.service.EmailService;
 import com.ssafy.picple.domain.user.service.UserService;
+import com.ssafy.picple.util.JWTUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -22,16 +25,15 @@ public class UserController {
 
     private final UserService userService;
     private final EmailService emailService;
+    private final JWTUtil jwtUtil;
 
-    @GetMapping("/login")
-    public BaseResponse<UserListResponse> login() throws BaseException {
-        UserListResponse userDto = new UserListResponse();
-        userDto.setUsers(userService.getUser());
-        return new BaseResponse<>(userDto);
+    @PostMapping("/login")
+    public BaseResponse<Token> login(@RequestBody LoginRequest loginRequest) throws BaseException {
+        return new BaseResponse<>(userService.login(loginRequest));
     }
 
     /**
-     * 회원가입
+     * 회원 가입
      * @param user
      * @return
      * @throws BaseException
@@ -67,9 +69,15 @@ public class UserController {
         return new BaseResponse<>(userService.checkEmailDuplication(email));
     }
 
-    @GetMapping("/sign-up/{nickname}")
-    public BaseResponse<String> checkNicknameDuplication(@PathVariable String nickname) throws BaseException {
-        return new BaseResponse<>(userService.checkNicknameDuplication(nickname));
+    /**
+     * 회원 탈퇴
+     * @param user
+     * @return
+     * @throws BaseException
+     */
+    @DeleteMapping("")
+    public BaseResponse<String> deleteUser(@RequestBody User user) throws BaseException {
+        return new BaseResponse<>(userService.deleteUser(user.getId()));
     }
 
 }

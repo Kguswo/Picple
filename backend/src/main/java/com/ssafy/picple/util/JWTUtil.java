@@ -22,15 +22,15 @@ public class JWTUtil {
     @Value("${jwt.refresh-token.expiretime}")
     private long refreshTokenExpireTime;
 
-    public String createAccessToken(int userId) {
+    public String createAccessToken(Long userId) {
         return generateToken(userId, "access-token", accessTokenExpireTime);
     }
 
-    public String createRefreshToken(int userId) {
+    public String createRefreshToken(Long userId) {
         return generateToken(userId, "refresh-token", refreshTokenExpireTime);
     }
 
-    private String generateToken(int userId, String subject, long expireTime) {
+    private String generateToken(Long userId, String subject, long expireTime) {
         Claims claims = Jwts.claims()
                 .setSubject(subject)
                 .setIssuedAt(new Date())

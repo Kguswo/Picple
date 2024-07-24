@@ -1,10 +1,14 @@
 package com.ssafy.picple.domain.user.service;
 
 import com.ssafy.picple.config.baseResponse.BaseException;
+import com.ssafy.picple.domain.user.dto.request.LoginRequest;
+import com.ssafy.picple.domain.user.dto.response.Token;
 import com.ssafy.picple.domain.user.entity.User;
 import com.ssafy.picple.domain.user.repository.UserRepository;
+import com.ssafy.picple.util.JWTUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -15,6 +19,7 @@ import static com.ssafy.picple.config.baseResponse.BaseResponseStatus.*;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final JWTUtil jwtUtil;
 
     @Override
     public List<User> getUser() throws BaseException {
@@ -27,12 +32,25 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public User signUp(User user) throws BaseException {
         // check nickname duplicated
         if (userRepository.existsByNickname(user.getNickname())) {
             throw new BaseException(DUPLICATED_USER_NICKNAME);
         }
         return userRepository.save(user);
+    }
+
+    @Override
+    public Token login(LoginRequest loginRequest) throws BaseException {
+        User user = userRepository.findByEmail(loginRequest.getEmail())
+                .orElseThrow(() -> new BaseException(NOT_FOUND_USER));
+        if (!user.getPassword().equals(loginRequest.getPassword())) {
+            throw new BaseException(INVALID_PASSWORD);
+        }
+        Token token = new Token();
+        token.setAccessToken(jwtUtil.createAccessToken(user.getId()));
+        return token;
     }
 
     /**
@@ -50,18 +68,13 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    /**
-     * 닉네임 중복 체크
-     * @param nickname
-     * @return
-     * @throws BaseException
-     */
     @Override
-    public String checkNicknameDuplication(String nickname) throws BaseException {
-        if (!userRepository.existsByNickname(nickname)) {
-            return "";
+    @Transactional
+    public String deleteUser(Long userId) throws BaseException {
+        if (userRepository.changeStatusOfDeleted(userId) == 1) {
+            return "성공";
         } else {
-            throw new BaseException(DUPLICATED_USER_NICKNAME);
+            throw new BaseException(NOT_FOUND_USER);
         }
     }
 }
