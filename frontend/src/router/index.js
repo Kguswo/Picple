@@ -24,6 +24,11 @@ const router = createRouter({
 			component: () => import('@/views/account/SignupView.vue'),
 		},
 		{
+			path: '/signup/email',
+			name: 'signupEmail',
+			component: () => import('@/views/account/SignupEmailView.vue'),
+		},
+		{
 			path: '/modifyAccount',
 			name: 'modifyAccount',
 			component: () => import('@/views/account/ModifyAccountView.vue'),
@@ -61,7 +66,7 @@ const router = createRouter({
 				{
 					path: 'photo',
 					name: 'showphoto',
-					component: () => import('@/components/booth/BoothShowPhotoComp.vue'),
+					component: () => import('@/components/booth/BoothShowPhoto.vue'),
 					props: true,
 				},
 			],
@@ -71,20 +76,6 @@ const router = createRouter({
 			path: '/boothCode',
 			name: 'boothCode',
 			component: () => import('@/views/booth/BoothCodeView.vue'),
-		},
-		{
-			path: '/selectTemp',
-			name: 'selectTemp',
-			component: () => import('@/views/booth/BoothTemplateView.vue'),
-		},
-		{
-			path: '/insertImg/:templateKey',
-			name: 'insertImg',
-			component: () => import('@/views/booth/BoothInsertView.vue'),
-			props: (route) => ({
-				templateKey: route.params.templateKey,
-				photos: route.params.photos ? JSON.parse(decodeURIComponent(route.params.photos)) : [],
-			}),
 		},
 	],
 });
