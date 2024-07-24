@@ -1,70 +1,72 @@
 <script setup>
-import { ref, computed } from "vue";
-import { useRouter, useRoute } from "vue-router";
+import { ref } from "vue";
+import { useRoute } from "vue-router";
 import WhiteBoardComp from "@/components/common/WhiteBoardComp.vue";
 import BoothBack from "@/components/booth/BoothBackComp.vue";
 
-// 사용자가 선택한 템플릿과 사진 리스트를 받아오기 위한 setup
+import Karina from "@/assets/img/template/카리나.jpg";
+
 const route = useRoute();
-const selectedTemplate = ref(route.params.templateKey);
-const takenPhotos = ref(route.params.photos); // 여기서 실제로 부모 뷰로부터 전달받은 사진들을 사용합니다
+const selectedImage = decodeURIComponent(route.query.selectedImage);
 
-// 기존 템플릿 이미지 데이터
-import template1x2 from "@/assets/img/template/80x120.png";
-import template1x3 from "@/assets/img/template/80x120_1x3.png";
-import template4x4 from "@/assets/img/template/80x120_4x4.png";
-import template1x1 from "@/assets/img/template/160x120.png";
-import template2x2 from "@/assets/img/template/160x120_2x2.png";
+const draggedImage = ref(null);
+const droppedImage = ref(null);
 
-const templateImages = {
-    "1x2": [
-        template1x2,
-        template1x2,
-        template1x2,
-        template1x2,
-        template1x2,
-        template1x2,
-    ],
-    "1x3": [template1x2, template1x2, template1x2],
-    "4x4": [template1x2, template1x2, template1x2, template1x2],
-    "1x1": [template1x2],
-    "2x2": [template1x2, template1x2],
+console.log(`BoothInsertView 로드됨: 이미지: ${selectedImage}`);
+
+const onDragStart = (event, image) => {
+    console.log(`이미지 드래그 시작: ${image}`);
+    draggedImage.value = image;
+    event.dataTransfer.effectAllowed = "move";
 };
 
-const imagesToShow = computed(() => {
-    return templateImages[selectedTemplate.value] || [];
-});
+const onDrop = (event) => {
+    event.preventDefault();
+    if (draggedImage.value) {
+        console.log(`이미지 드롭됨: ${draggedImage.value}`);
+        droppedImage.value = draggedImage.value;
+    }
+};
+
+const onDragOver = (event) => {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "move";
+};
 </script>
 
 <template>
     <WhiteBoardComp class="whiteboard-area-booth">
         <div class="booth-content">
             <div class="booth-content-main">
-                <BoothBack class="booth-camera-box">
-                    <div class="selected-template-area">
-                        <div class="selected-template">
-                            <div class="template-images">
-                                <div
-                                    v-for="image in imagesToShow"
-                                    :key="image"
-                                    class="image-wrapper"
-                                >
-                                    <img :src="image" alt="Template Image" />
-                                </div>
-                            </div>
+                <BoothBack
+                    class="booth-camera-box"
+                    @dragover="onDragOver"
+                    @drop="onDrop"
+                >
+                    <div class="selected-image-area">
+                        <img
+                            :src="selectedImage"
+                            alt="선택된 템플릿 이미지"
+                            class="template-image"
+                        />
+                        <div v-if="droppedImage" class="dropped-image-wrapper">
+                            <img
+                                :src="droppedImage"
+                                alt="드롭된 이미지"
+                                class="dropped-image"
+                            />
                         </div>
                     </div>
                 </BoothBack>
-
-                <BoothBack class="booth-camera-box">
-                    <div class="taken-photos-area">
-                        <div
-                            class="taken-photo"
-                            v-for="(photo, index) in takenPhotos"
-                            :key="index"
-                        >
-                            <img :src="photo" alt="Taken Photo" />
-                        </div>
+                <BoothBack class="booth-select-box">
+                    <div class="photo-list">
+                        <img
+                            src="@/assets/img/template/카리나.jpg"
+                            alt="카리나"
+                            draggable="true"
+                            @dragstart="(event) => onDragStart(event, Karina)"
+                            class="draggable-image"
+                        />
                     </div>
                 </BoothBack>
             </div>
@@ -73,26 +75,69 @@ const imagesToShow = computed(() => {
 </template>
 
 <style scoped>
-.image-wrapper {
-    margin: 10px;
+.booth-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    align-items: center;
+    width: 100%;
+    height: 100%;
 }
 
-.image-wrapper img {
-    max-width: 100%;
-    height: auto;
-}
-
-.taken-photos-area {
+.booth-content-main {
     display: flex;
     flex-wrap: wrap;
+    align-content: center;
+    justify-content: space-evenly;
+    width: 100%;
+    height: 95%;
 }
 
-.taken-photo {
-    margin: 10px;
+.selected-image-area {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
 }
 
-.taken-photo img {
+.selected-image-area img.template-image {
     max-width: 100%;
     height: auto;
+}
+
+.dropped-image-wrapper {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 50%; /* 고정된 비율을 유지하기 위해 */
+    height: auto;
+}
+
+.dropped-image-wrapper img.dropped-image {
+    width: 100%;
+    height: auto;
+}
+
+.booth-select-box {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.photo-list {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    width: 100%;
+}
+
+.draggable-image {
+    margin: 10px;
+    width: 100px;
+    height: auto;
+    cursor: grab;
 }
 </style>
