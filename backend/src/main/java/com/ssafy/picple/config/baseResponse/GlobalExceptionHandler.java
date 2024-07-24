@@ -1,10 +1,22 @@
 package com.ssafy.picple.config.baseResponse;
 
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public BaseResponse<String> handleValidationExceptions(MethodArgumentNotValidException ex) {
+        FieldError fieldError = ex.getBindingResult().getFieldError();
+        String errorMessage = fieldError != null ? fieldError.getDefaultMessage() : "유효성 검사 오류";
+
+        BaseResponse<String> response = new BaseResponse<>(BaseResponseStatus.REQUEST_ERROR);
+
+        return response;
+    }
 
     @ExceptionHandler(BaseException.class)
     public BaseResponse<String> handleBaseException(BaseException ex) {
