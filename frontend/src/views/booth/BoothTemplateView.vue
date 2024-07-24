@@ -1,58 +1,94 @@
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, watch } from "vue";
 import { useRouter } from "vue-router";
 import WhiteBoardComp from "@/components/common/WhiteBoardComp.vue";
 import BoothBack from "@/components/booth/BoothBackComp.vue";
 
 // 각 템플릿의 실제 이미지 import
-import image1x2_1 from "@/assets/img/template/240x360_1x2.png";
-import image1x2_2 from "@/assets/img/template/240x360_1x2_2.png";
-// import image1x3_1 from "@/assets/img/template/240x360_1x3.png";
-// import image4x4_1 from "@/assets/img/template/240x360_4x4.png";
-// import image1x1_1 from "@/assets/img/template/240x360_1x1.png";
-// import image2x2_1 from "@/assets/img/template/240x360_2x2.png";
+import temp_1x1_4x3 from "@/assets/img/template/temp_1x1_4x3.jpg";
+import temp_1x2_4x5 from "@/assets/img/template/temp_1x2_4x5.jpg";
+import temp_1x3_3x4 from "@/assets/img/template/temp_1x3_3x4.png";
+import temp_2x2_4x3 from "@/assets/img/template/temp_2x2_4x3.jpg";
 
 const router = useRouter();
 
-const selectedTemplate = ref(null);
+const selectedTemplate = ref("all");
 const selectedImage = ref(null);
 
 const templates = [
-    { text: "1X1", key: "1x1" },
-    { text: "1X2", key: "1x2" },
-    { text: "1X3", key: "1x3" },
-    { text: "4X4", key: "4x4" },
-    { text: "2X2", key: "2x2" },
+    { text: "전체", key: "all" },
+    { text: "1장", key: "1" },
+    { text: "2장", key: "2" },
+    { text: "3장", key: "3" },
+    { text: "4장", key: "4" },
 ];
 
 const templateImages = {
-    // "1x1": [image1x1_1],
-    "1x2": [image1x2_1, image1x2_2],
-    // "1x3": [image1x3_1],
-    // "4x4": [image4x4_1],
-    // "2x2": [image2x2_1],
+    1: [temp_1x1_4x3],
+    2: [temp_1x2_4x5],
+    3: [temp_1x3_3x4],
+    4: [temp_2x2_4x3],
 };
 
 const selectTemplate = (template) => {
+    console.log(`템플릿 선택됨: ${template.key}`);
     selectedTemplate.value = template.key;
     selectedImage.value = null; // 템플릿 변경 시 선택한 이미지 초기화
 };
 
 const selectImage = (image) => {
+    console.log(`이미지 선택됨: ${image}`);
     selectedImage.value = image;
 };
 
+// 랜덤으로 배열을 섞는 함수
+const shuffleArray = (array) => {
+    let shuffledArray = array.slice(); // 원본 배열을 복사
+    for (let i = shuffledArray.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffledArray[i], shuffledArray[j]] = [
+            shuffledArray[j],
+            shuffledArray[i],
+        ];
+    }
+    return shuffledArray;
+};
+
 const imagesToShow = computed(() => {
-    return templateImages[selectedTemplate.value] || [];
+    let images = [];
+    if (selectedTemplate.value === "all") {
+        images = Object.values(templateImages).flat();
+    } else {
+        images = templateImages[selectedTemplate.value] || [];
+    }
+    return shuffleArray(images);
 });
+
+// "전체"가 기본 선택되도록 설정
+watch(
+    selectedTemplate,
+    (newVal) => {
+        if (newVal === "all") {
+            imagesToShow.value = shuffleArray(
+                Object.values(templateImages).flat()
+            );
+        }
+    },
+    { immediate: true }
+);
 
 const goToNext = () => {
     if (selectedImage.value) {
+        console.log(
+            `다음 화면으로 이동: 템플릿: ${selectedTemplate.value}, 이미지: ${selectedImage.value}`
+        );
         router.push({
             name: "insertImg",
             params: {
                 templateKey: selectedTemplate.value,
-                selectedImage: selectedImage.value,
+            },
+            query: {
+                selectedImage: encodeURIComponent(selectedImage.value),
             },
         });
     }
@@ -132,11 +168,12 @@ const goToNext = () => {
 .image-wrapper {
     margin: 10px;
     cursor: pointer;
+    height: 180px;
 }
 
 .image-wrapper img {
+    max-height: 100%;
     max-width: 100%;
-    height: auto;
     border: 2px solid transparent;
 }
 
