@@ -30,11 +30,6 @@ const validateNicknamePattern = (nickname) => {
 	return setFormMessage("", false);
 };
 
-const validateCertNumber = (certNumber) => {
-	// todo: 전송한 인증번호와 입력한 인증번호가 일치하는지 검사
-	return setFormMessage("", false);
-};
-
 const validatePasswordConfirm = (password, passwordConfirm) => {
 	if (!passwordConfirm || password !== passwordConfirm) {
 		return setFormMessage("비밀번호가 일치하지 않습니다.", true);
@@ -42,57 +37,160 @@ const validatePasswordConfirm = (password, passwordConfirm) => {
 	return setFormMessage("", false);
 };
 
-const validateNicknameDup = (nickname) => {
-	// todo: 닉네임 중복 여부 검사
-	return setFormMessage("사용 가능한 닉네임입니다.", false);
-};
-
 const validateCurrentPassword = (currentPassword) => {
 	if (!currentPassword) {
-		return setFormMessage("비밀번호를 틀렸습니다.");
+		return setFormMessage("비밀번호를 틀렸습니다.", true);
 	}
 	// todo: 현재 비밀번호 일치 여부 검사
 	return setFormMessage("", false);
 };
 
-const validateBoothCode = (boothCode) => {
+const validateBoothCode = (boothCodeField, boothCode) => {
+	const fields = [boothCodeField];
 	if (!boothCode) {
-		return setFormMessage("부스 코드를 입력하세요.", true);
+		const boothCodeMessage = setFormMessage(
+			"부스 코드를 입력하세요.",
+			true
+		);
+		const messages = [boothCodeMessage];
+		printMessageAndFocus(fields, messages);
+		return false;
 	}
 	// todo: 부스 코드 일치 여부 검사
-	return setFormMessage("", false);
+	return true;
 };
 
-const validateLogin = (fields, email, password) => {
+const validateLogin = (emailField, passwordField, email, password) => {
+	const fields = [emailField, passwordField];
 	const emailMessage = validateEmailPattern(email);
 	const passwordMessage = validatePasswordPattern(password);
 	const messages = [emailMessage, passwordMessage];
 
-	const isFail = printMessageAndFocus(fields, messages);
-	if (isFail) {
+	const isSuccess = printMessageAndFocus(fields, messages);
+	if (!isSuccess) {
 		return false;
 	}
 	// todo: 계정 일치 검사
 	return true;
 };
 
-const validateEmailBeforeSend = (fields, email) => {
+const validateEmailBeforeSend = (emailField, email) => {
 	const emailMessage = validateEmailPattern(email);
+	const fields = [emailField];
 	const messages = [emailMessage];
 
-	const isFail = printMessageAndFocus(fields, messages);
-	if (isFail) {
+	printMessageAndFocus(fields, messages);
+	if (emailMessage.isError) {
 		return false;
 	}
 	fields[0].message = setFormMessage("인증번호를 전송하였습니다.", false);
 	return true;
 };
 
-const validateEmailCert = (fields, certNumber, isSend) => {
+const validateEmailCert = (emailField, certNumberField, certNumber, isSend) => {
+	const fields = [emailField, certNumberField];
 	if (!isSend) {
-		return setFormMessage("이메일 인증이 필요합니다.", true);
+		const emailMessage = setFormMessage("이메일 인증이 필요합니다.", true);
+		const certNumberMessage = setFormMessage("", false);
+		const messages = [emailMessage, certNumberMessage];
+		printMessageAndFocus(fields, messages);
+		return false;
 	}
-	return setFormMessage("", false);
+	if (!certNumber) {
+		const emailMessage = setFormMessage("", false);
+		const certNumberMessage = setFormMessage(
+			"인증번호가 일치하지 않습니다.",
+			true
+		);
+		const messages = [emailMessage, certNumberMessage];
+		printMessageAndFocus(fields, messages);
+		return false;
+	}
+	// todo: 인증번호 제한시간 검사
+	// todo: 인증번호 일치 여부 검사
+	// todo: 이미 등록된 이메일 여부 검사 (중복된 이메일이면 이메일 필드 block 해제, 중복 아니면 다음으로 이동)
+	return true;
+};
+
+const validateNicknameDup = (nicknameField, nickname) => {
+	const nicknameMessage = validateNicknamePattern(nickname);
+	const fields = [nicknameField];
+	const messages = [nicknameMessage];
+
+	const isSuccess = printMessageAndFocus(fields, messages);
+	if (!isSuccess) {
+		return false;
+	}
+	// todo: 닉네임 중복 여부 검사
+	nicknameField.message = setFormMessage("사용 가능한 닉네임입니다.", false);
+	return true;
+};
+
+const validateSignup = (
+	nicknameField,
+	passwordField,
+	passwordConfirmField,
+	nickname,
+	password,
+	passwordConfirm,
+	checkedNickname
+) => {
+	const fields = [nicknameField, passwordField, passwordConfirmField];
+	const nicknameMessage = setNicknameMessage(nickname, checkedNickname);
+	const passwordMessage = validatePasswordPattern(password);
+	const passwordConfirmMessage = validatePasswordConfirm(
+		password,
+		passwordConfirm
+	);
+	const messages = [nicknameMessage, passwordMessage, passwordConfirmMessage];
+
+	const isSuccess = printMessageAndFocus(fields, messages);
+	if (!isSuccess) {
+		return false;
+	}
+	return true;
+};
+
+const validateModifyAccount = (nicknameField, nickname, checkedNickname) => {
+	const fields = [nicknameField];
+	const nicknameMessage = setNicknameMessage(nickname, checkedNickname);
+	const messages = [nicknameMessage];
+
+	const isSuccess = printMessageAndFocus(fields, messages);
+	if (!isSuccess) {
+		return false;
+	}
+	return true;
+};
+
+const validateModifyPassword = (
+	fields,
+	currentPassword,
+	newPassword,
+	newPasswordConfirm
+) => {
+	const currentPasswordMessage = validateCurrentPassword(currentPassword);
+	const newPasswordMessage = validatePasswordPattern(newPassword);
+	const newPasswordConfirmMessage = validatePasswordConfirm(
+		newPassword,
+		newPasswordConfirm
+	);
+	const messages = [newPasswordMessage, newPasswordConfirmMessage];
+	if (currentPassword != null) {
+		messages.unshift(currentPasswordMessage);
+	}
+
+	const isSuccess = printMessageAndFocus(fields, messages);
+	if (!isSuccess) {
+		return false;
+	}
+	return true;
+};
+
+const setNicknameMessage = (nickname, checkedNickname) => {
+	return checkedNickname && nickname === checkedNickname
+		? setFormMessage("", false)
+		: setFormMessage("닉네임 중복 확인이 필요합니다.", true);
 };
 
 const printMessageAndFocus = (fields, messages) => {
@@ -108,11 +206,20 @@ const printMessageAndFocus = (fields, messages) => {
 		}
 		fields[i].message = null;
 	}
-	return focused;
+	return focused === false;
 };
 
 const setFormMessage = (text, isError) => {
 	return { text, isError };
 };
 
-export { validateLogin, validateEmailBeforeSend };
+export {
+	validateLogin,
+	validateEmailBeforeSend,
+	validateEmailCert,
+	validateNicknameDup,
+	validateSignup,
+	validateModifyAccount,
+	validateModifyPassword,
+	validateBoothCode,
+};
