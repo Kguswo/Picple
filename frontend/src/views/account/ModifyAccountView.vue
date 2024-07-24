@@ -1,21 +1,29 @@
 <script setup>
 import FormComp from "@/components/form/FormComp.vue";
-import FormMessageComp from "@/components/form/FormMessageComp.vue";
 import FormInputComp from "@/components/form/FormInputComp.vue";
 import FormButtonComp from "@/components/form/FormButtonComp.vue";
 import { useRouter } from "vue-router";
-import valdiate from "@/stores/validation";
+import { validateNicknameDup, validateModifyAccount } from "@/stores/validation";
 import { ref } from "vue";
 
 const router = useRouter();
 
-const { message, checkNickname, checkNicknameDup } = valdiate();
-
 const nickname = ref({ type: "text", label: "닉네임", value: "" });
 const nicknameField = ref(null);
+const checkedNickname = ref("");
+
+const checkNicknameDup = (e) => {
+  e.stopPropagation();
+  const isSuccess = validateNicknameDup(nicknameField.value, nickname.value.value);
+  if (!isSuccess) {
+    return;
+  }
+  checkedNickname.value = nickname.value.value;
+}
 
 const modify = () => {
-  if (!checkNickname(nickname.value.value)) {
+  const isSuccess = validateModifyAccount(nicknameField.value, nickname.value.value, checkedNickname.value);
+  if (!isSuccess) {
     return;
   }
   // todo: 정보 수정
@@ -23,13 +31,6 @@ const modify = () => {
 
 const changeView = (viewName, params) => {
   router.push({ name: viewName, params: params });
-}
-
-const checkDuplicate = (e) => {
-  e.stopPropagation();
-  if (!checkNicknameDup(nickname.value.value)) {
-    return;
-  }
 }
 </script>
 
@@ -41,8 +42,8 @@ const checkDuplicate = (e) => {
         <label class="form-label">이메일</label>
       </div>
 
-      <FormInputComp :params="nickname" ref="nicknameField" class="mt-10">
-        <FormButtonComp size="small" @keyup.enter="checkDuplicate" @click="checkDuplicate">중복</FormButtonComp>
+      <FormInputComp :params="nickname" ref="nicknameField" class="mt-10" name="nickname">
+        <FormButtonComp size="small" @keyup.enter="checkNicknameDup" @click="checkNicknameDup">중복</FormButtonComp>
       </FormInputComp>
 
       <div class="input-container background-color-disabled mt-10">
@@ -51,8 +52,6 @@ const checkDuplicate = (e) => {
         <button type="button" class="form-button-small"
           @click="changeView('modifyPassword', { path: 'modify' })">변경</button>
       </div>
-
-      <FormMessageComp :message="message" />
 
       <FormButtonComp size="big" @click="modify">저장</FormButtonComp>
 
