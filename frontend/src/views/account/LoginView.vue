@@ -14,8 +14,7 @@ const emailField = ref(null);
 const passwordField = ref(null);
 
 const login = () => {
-  const fields = [emailField.value, passwordField.value];
-  const isSuccess = validateLogin(fields, email.value.value, password.value.value);
+  const isSuccess = validateLogin(emailField.value, passwordField.value, email.value.value, password.value.value);
   if (!isSuccess) {
     return;
   }
