@@ -2,7 +2,7 @@
 import { ref, computed } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import WhiteBoardComp from "@/components/common/WhiteBoardComp.vue";
-import BoothBack from "@/components/booth/boothBackComp.vue";
+import BoothBack from "@/components/booth/BoothBackComp.vue";
 
 // 사용자가 선택한 템플릿과 사진 리스트를 받아오기 위한 setup
 const route = useRoute();
