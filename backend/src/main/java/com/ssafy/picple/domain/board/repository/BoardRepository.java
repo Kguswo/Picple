@@ -17,12 +17,6 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
 	// Board 전체 조회(생성일, 사진, 좋아요여부, 좋아요수)
 	List<Board> findAllByIsDeletedFalse();
 
-	// 좋아요 내림차순으로 정렬
-	List<Board> findAllByOrderByHitDesc();
-
-	// 최신순으로 정렬
-	List<Board> findAllByOrderByCreatedAtDesc();
-
 	// 사진 좋아요 1증가
 	@Transactional
 	@Modifying

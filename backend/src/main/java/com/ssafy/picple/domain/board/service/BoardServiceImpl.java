@@ -3,6 +3,7 @@ package com.ssafy.picple.domain.board.service;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import com.ssafy.picple.domain.board.dto.BoardDto;
@@ -23,23 +24,19 @@ public class BoardServiceImpl implements BoardService {
 	private final BoardLikeRepository boardLikeRepository;
 	private final UserRepository userRepository;
 
-	// private BoardDto getBoardDto(Board board) {
-	// 	return new BoardDto(
-	// 		board.getId(),
-	// 		board.getCreatedAt().toString(),
-	// 		getPhotoUrl(board),
-	// 		isLikedByUser(board),
-	// 		board.getHit()
-	// 	);
-	// }
-
 	// Board 전체 조회(생성일, 사진, 좋아요여부, 좋아요수)
 	@Override
 	public List<BoardDto> findAllBoards() {
 		Long userId = getUserId();
 		List<Board> boards = boardRepository.findAllByIsDeletedFalse();
 		return boards.stream()
-				.map(board -> new BoardDto(board, photoRepository, boardLikeRepository, userId))
+				.map(board -> new BoardDto(
+						board.getId(),
+						board.getCreatedAt().toString(),
+						getPhotoUrl(board),
+						isLikedByUser(board),
+						board.getHit()
+				))
 				.collect(Collectors.toList());
 	}
 
@@ -56,37 +53,23 @@ public class BoardServiceImpl implements BoardService {
 		return photoRepository.findById(board.getPhoto().getId()).get().getPhotoUrl();
 	}
 
-	// 좋아요 내림차순으로 정렬
+	// 사용자 기준에 따라 정렬
 	@Override
-	public List<BoardDto> findAllBoardsOrderByHitDesc() {
+	public List<BoardDto> findAllBoardsOrderByMyCriteria(String criteria) {
 		Long userId = getUserId();
-		List<Board> boards = boardRepository.findAllByOrderByHitDesc();
+		Sort sort = Sort.by(Sort.Direction.DESC, criteria);
+		List<Board> boards = boardRepository.findAll(sort);
 		return boards.stream()
-				.map(board -> new BoardDto(board, photoRepository, boardLikeRepository, userId))
+				.filter(board -> !board.isDeleted())
+				.map(board -> new BoardDto(
+						board.getId(),
+						board.getCreatedAt().toString(),
+						getPhotoUrl(board),
+						isLikedByUser(board),
+						board.getHit()
+				))
 				.collect(Collectors.toList());
 	}
-
-	// 최신순으로 정렬
-	@Override
-	public List<BoardDto> findAllBoardsOrderByCreatedAtDesc() {
-		Long userId = getUserId();
-		List<Board> boards = boardRepository.findAllByOrderByCreatedAtDesc();
-		return boards.stream()
-				.map(board -> new BoardDto(board, photoRepository, boardLikeRepository, userId))
-				.collect(Collectors.toList());
-	}
-
-	// // 사진 좋아요 1증가
-	// @Override
-	// public void increaseBoardHit(Long boardId) {
-	// 	boardRepository.increaseHit(boardId);
-	// }
-
-	// // 사진 좋아요 1감소
-	// @Override
-	// public void decreaseBoardHit(Long boardId) {
-	// 	boardRepository.decreaseHit(boardId);
-	// }
 
 	// 사용자 닉네임 검색으로 해당 유저(닉네임) 포함된 사진 조회
 	@Override
@@ -94,7 +77,13 @@ public class BoardServiceImpl implements BoardService {
 		Long userId = getUserId();
 		List<Board> boards = boardRepository.findAllByUserNickname(nickname);
 		return boards.stream()
-				.map(board -> new BoardDto(board, photoRepository, boardLikeRepository, userId))
+				.map(board -> new BoardDto(
+						board.getId(),
+						board.getCreatedAt().toString(),
+						getPhotoUrl(board),
+						isLikedByUser(board),
+						board.getHit()
+				))
 				.collect(Collectors.toList());
 	}
 
