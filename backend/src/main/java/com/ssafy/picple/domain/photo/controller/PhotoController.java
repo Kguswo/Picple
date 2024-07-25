@@ -19,13 +19,14 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/photo")
 @RequiredArgsConstructor
-@CrossOrigin("*")
+@CrossOrigin("*") // 뺴고 테스트
 public class PhotoController {
 
 	private final PhotoService photoService;
 	private final S3FileUploadService s3FileUploadService;
 
 	// 사진 저장
+	// 사람마다 각자 저장하는데 사진URL자체는 같기 때문에 이거 고민하고 수정해야함
 	@PostMapping(value = "", consumes = "multipart/form-data")
 	public BaseResponse<?> savePhoto(@RequestPart("photo") @Valid Photo photo,
 			@RequestPart("file") MultipartFile file) {
