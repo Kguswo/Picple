@@ -131,15 +131,12 @@ const validateNicknameDup = (nicknameField, nickname) => {
 };
 
 const validateSignup = (
-	nicknameField,
-	passwordField,
-	passwordConfirmField,
+	fields,
 	nickname,
 	password,
 	passwordConfirm,
 	checkedNickname
 ) => {
-	const fields = [nicknameField, passwordField, passwordConfirmField];
 	const nicknameMessage = setNicknameMessage(nickname, checkedNickname);
 	const passwordMessage = validatePasswordPattern(password);
 	const passwordConfirmMessage = validatePasswordConfirm(
@@ -167,6 +164,12 @@ const validateModifyAccount = (nicknameField, nickname, checkedNickname) => {
 	return true;
 };
 
+const validateCurrentAndNewPassword = (currentPassword, newPassword) => {
+	return currentPassword && currentPassword === newPassword
+		? setFormMessage("현재 비밀번호와 동일합니다.", true)
+		: setFormMessage("", false);
+};
+
 const validateModifyPassword = (
 	fields,
 	currentPassword,
@@ -174,11 +177,17 @@ const validateModifyPassword = (
 	newPasswordConfirm
 ) => {
 	const currentPasswordMessage = validateCurrentPassword(currentPassword);
-	const newPasswordMessage = validatePasswordPattern(newPassword);
+	let newPasswordMessage = validatePasswordPattern(newPassword);
 	const newPasswordConfirmMessage = validatePasswordConfirm(
 		newPassword,
 		newPasswordConfirm
 	);
+	if (currentPassword && !newPasswordMessage.isError) {
+		newPasswordMessage = validateCurrentAndNewPassword(
+			currentPassword,
+			newPassword
+		);
+	}
 	const messages = [newPasswordMessage, newPasswordConfirmMessage];
 	if (currentPassword != null) {
 		messages.unshift(currentPasswordMessage);
@@ -198,6 +207,7 @@ const setNicknameMessage = (nickname, checkedNickname) => {
 };
 
 const printMessageAndFocus = (fields, messages) => {
+	// 메시지가 출력될 필드에 메시지 할당 & 메시지가 출력되는 필드 중 최상단 필드에 포커스
 	let focused = false;
 	for (let i = 0; i < fields.length; i++) {
 		if (messages[i].isError) {
