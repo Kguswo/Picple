@@ -10,7 +10,7 @@ import microOff from '@/assets/icon/micro_off.png';
 import Swal from 'sweetalert2';
 
 import { RouterView, useRouter } from "vue-router";
-import { ref, onMounted, onUnmounted, defineProps, onUpdated } from 'vue';
+import { ref, onMounted, onUnmounted, nextTick } from 'vue';
 import html2canvas from "html2canvas";
 
 const router = useRouter();
@@ -105,31 +105,36 @@ const changeImage = (image) => {
 const captureArea = ref(null); 
 const images = ref([]);
 
-const takePhoto = () =>{
-  console.log('사진 찍기')
+const takePhoto = async () => {
+  console.log('사진 찍기');
+  
+  // 이미지가 로드되었는지 확인
   const img = new Image();
-  img.crossOrigin = 'Anonymous'; // CORS 설정
+  img.crossOrigin = 'Anonymous';
   img.src = bgImage.value;
+  
+  img.onload = async () => {
+    // DOM 업데이트가 완료된 후에 실행
+    await nextTick();
+  
+    html2canvas(captureArea.value, { useCORS: true, allowTaint: false })
+      .then((canvas) => {
+        const imageData = canvas.toDataURL('image/png');
+        images.value.push(imageData);
 
-  img.onload = () => {
-    html2canvas(captureArea.value,{useCORS: true})
-    .then((canvas) =>{
-      const imageData = canvas.toDataURL('image/png');
-      images.value.push(imageData);
-
-      if(images.value.length === 10){
-        alert('이미지 리스트의 길이가 10이 되었습니다.')
-      }
-    })
-    .catch((error) => {
-      console.error('이미지 캡쳐 에러 발생: ',error);
-    })
+        if (images.value.length === 10) {
+          alert('이미지 리스트의 길이가 10이 되었습니다.');
+        }
+      })
+      .catch((error) => {
+        console.error('이미지 캡쳐 에러 발생: ', error);
+      });
   };
 
-  img.onerror = () => {
-    console.error('배경 로딩 에러 발생');
+  img.onerror = (error) => {
+    console.error('배경 로딩 에러 발생: ', error);
   };
-}
+};
 
 //촬영 종료
 const exitphoto = async () =>{
@@ -221,7 +226,6 @@ const changeComponent = () =>{
 </template>
 
 <style scoped>
-
 .select-text-box{
   display: flex;
   height: 85%;
@@ -276,6 +280,7 @@ const changeComponent = () =>{
     border-radius: 20px;
     background-size: cover; 
     background-position: center; 
+    background-size: cover;
     transition: background-image 0.5s; 
   }
 
