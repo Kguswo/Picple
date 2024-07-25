@@ -167,6 +167,12 @@ const validateModifyAccount = (nicknameField, nickname, checkedNickname) => {
 	return true;
 };
 
+const validateCurrentAndNewPassword = (currentPassword, newPassword) => {
+	return currentPassword && currentPassword === newPassword
+		? setFormMessage("현재 비밀번호와 동일합니다.", true)
+		: setFormMessage("", false);
+};
+
 const validateModifyPassword = (
 	fields,
 	currentPassword,
@@ -174,11 +180,17 @@ const validateModifyPassword = (
 	newPasswordConfirm
 ) => {
 	const currentPasswordMessage = validateCurrentPassword(currentPassword);
-	const newPasswordMessage = validatePasswordPattern(newPassword);
+	let newPasswordMessage = validatePasswordPattern(newPassword);
 	const newPasswordConfirmMessage = validatePasswordConfirm(
 		newPassword,
 		newPasswordConfirm
 	);
+	if (currentPassword && !newPasswordMessage.isError) {
+		newPasswordMessage = validateCurrentAndNewPassword(
+			currentPassword,
+			newPassword
+		);
+	}
 	const messages = [newPasswordMessage, newPasswordConfirmMessage];
 	if (currentPassword != null) {
 		messages.unshift(currentPasswordMessage);
