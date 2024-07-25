@@ -5,6 +5,7 @@ import FormButtonComp from "@/components/form/FormButtonComp.vue";
 import { useRouter } from "vue-router";
 import { validateNicknameDup, validateModifyAccount } from "@/stores/validation";
 import { ref } from "vue";
+import Swal from "sweetalert2";
 
 const router = useRouter();
 
@@ -21,17 +22,15 @@ const checkNicknameDup = (e) => {
   checkedNickname.value = nickname.value.value;
 }
 
-const modify = () => {
+const modify = async () => {
   const isSuccess = validateModifyAccount(nicknameField.value, nickname.value.value, checkedNickname.value);
   if (!isSuccess) {
     return;
   }
   // todo: 정보 수정
+  await Swal.fire({ title: "닉네임이 변경되었습니다.", width: 600 });
+  router.push({ name: "main" });
 };
-
-const changeView = (viewName, params) => {
-  router.push({ name: viewName, params: params });
-}
 </script>
 
 <template>
@@ -49,8 +48,7 @@ const changeView = (viewName, params) => {
       <div class="input-container background-color-disabled mt-10">
         <input type="password" class="form-input has-content background-color-disabled" autocomplete="off" disabled />
         <label class="form-label">비밀번호</label>
-        <button type="button" class="form-button-small"
-          @click="changeView('modifyPassword', { path: 'modify' })">변경</button>
+        <button type="button" class="form-button-small" @click="router.push('modifyPassword/modify')">변경</button>
       </div>
 
       <FormButtonComp size="big" @click="modify">저장</FormButtonComp>
