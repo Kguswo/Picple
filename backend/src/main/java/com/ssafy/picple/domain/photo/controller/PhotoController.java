@@ -30,9 +30,7 @@ public class PhotoController {
 	public BaseResponse<?> savePhoto(@RequestPart("photo") @Valid Photo photo,
 			@RequestPart("file") MultipartFile file) {
 		try {
-			System.out.println("사진저장 전");
 			String photoUrl = s3FileUploadService.uploadFile(file);
-			System.out.println("사진저장 후");
 
 			Photo newPhoto = Photo.builder()
 					.photoUrl(photoUrl)
