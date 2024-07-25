@@ -6,8 +6,10 @@ import { validateLogin } from "@/stores/validation";
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import VueCookie from "vue-cookies";
+import { useUserStore } from "@/stores/userStore";
 
 const router = useRouter();
+const userStore = useUserStore();
 
 const email = ref({ type: "email", label: "이메일", value: VueCookie.get("savedId") });
 const password = ref({ type: "password", label: "비밀번호", value: "" });
@@ -21,7 +23,9 @@ const login = () => {
     return;
   }
   // todo: 로그인 성공
+  const nickname = "ssafy";
   setCookie("savedId", email.value.value, "1d", isChecked.value);
+  userStore.login(email.value.value, nickname);
   navigateTo("main");
 }
 
