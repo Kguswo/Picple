@@ -1,6 +1,6 @@
-package com.ssafy.picple.domain.calendar.entity;
+package com.ssafy.picple.domain.backgrounduser.entity;
 
-import com.ssafy.picple.domain.photo.entity.Photo;
+import com.ssafy.picple.domain.background.entity.Background;
 import com.ssafy.picple.domain.user.entity.User;
 
 import jakarta.persistence.Column;
@@ -12,33 +12,31 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
-@Table(name = "calendar")
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Calendar {
+@NoArgsConstructor
+@Table(name = "background_user")
+public class BackgroundUser {
 
 	@Id
-	@Column(name = "calendar_id")
+	@Column(name = "background_user")
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "photo_id", nullable = false)
-	private Photo photo;
+	@JoinColumn(name = "background_id", nullable = false)
+	private Background background;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "user_id", nullable = false)
 	private User user;
 
-	@Builder
-	public Calendar(Photo photo, User user) {
-		this.photo = photo;
+	public BackgroundUser(Background background, User user) {
+		this.background = background;
 		this.user = user;
 	}
+
 }

@@ -16,9 +16,10 @@ import lombok.NoArgsConstructor;
 @Table(name = "user")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class User {
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name="user_id")
+	@Column(name = "user_id")
 	private Long id;
 
 	@Column(nullable = false, length = 45)
@@ -39,4 +40,5 @@ public class User {
 		this.nickname = nickname;
 		this.isDeleted = isDeleted;
 	}
+
 }

@@ -26,7 +26,6 @@ public enum BaseResponseStatus {
 	// Common
 	RESPONSE_ERROR(false, 3000, "값을 불러오는데 실패하였습니다."),
 
-
     // 3001 ~~ 3099 : 박성훈
     // 3001 ~~ 3015 : about email
     DUPLICATED_USER_EMAIL(false, 3002, "해당 이메일이 이미 존재합니다."),
@@ -48,11 +47,16 @@ public enum BaseResponseStatus {
 	ALREADY_UNLIKED(false, 3102, "이미 좋아요 한 상태입니다."),
 
     // 3200 ~~ 3299 : 염규영
+	GET_USER_EMPTY(false, 3201, "등록된 유저가 없습니다."),
+	INVALID_BACKGROUND_ID(false, 3202, "올바르지 않은 배경화면 ID입니다."),
+	DELETE_BACKGROUND_ERROR(false, 3203, "배경 사진 삭제에 실패하였습니다."),
+	AI_BACKGROUND_GENERATION_ERROR(false, 3204, "AI 배경 사진 생성에 실패하였습니다."),
+	LOCAL_BACKGROUND_UPLOAD_ERROR(false, 3205, "로컬 배경 사진 추가에 실패하였습니다."),
 
-    /**
-     * 4000 : Database, Server
-     */
-    DATABASE_ERROR(false, 4000, "데이터베이스 연결에 실패하였습니다."),
+	/**
+	 * 4000 : Database, Server
+	 */
+	DATABASE_ERROR(false, 4000, "데이터베이스 연결에 실패하였습니다."),
 
 	/**
 	 * 5000 : Server 오류
