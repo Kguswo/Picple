@@ -1,6 +1,6 @@
 <script setup>
 import WhiteBoardComp from "@/components/common/WhiteBoardComp.vue";
-import Page from "@/components/common/Page.vue";
+import Page from "@/components/common/PageComp.vue";
 
 defineProps({
     title: String,

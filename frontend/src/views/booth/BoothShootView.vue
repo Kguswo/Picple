@@ -7,8 +7,11 @@ import videoOff from '@/assets/icon/video_off.png';
 import microOn from '@/assets/icon/micro_on.png';
 import microOff from '@/assets/icon/micro_off.png';
 
+import Swal from 'sweetalert2';
+
 import { RouterView, useRouter } from "vue-router";
-import { ref, onMounted, onUnmounted,defineProps, onUpdated } from 'vue';
+import { ref, onMounted, onUnmounted, defineProps, onUpdated } from 'vue';
+import html2canvas from "html2canvas";
 
 const router = useRouter();
 
@@ -16,91 +19,140 @@ const navigateTo = (path) => {
     router.push({ name: path });
 };
 
-// // 비디오 표현을 위한 변수
-// const videoElement = ref(null); 
-// let mediaStream = null;
+// 비디오 표현을 위한 변수
+const videoElement = ref(null); 
+let mediaStream = null;
 
-// // 화면 표시에 있어 사용되는 변수
-// let isMirrored = false;
-// let isvideoOn = ref(true); 
-// let isMicroOn = ref(true);
+// 화면 표시에 있어 사용되는 변수
+let isMirrored = false;
+let isvideoOn = ref(true); 
+let isMicroOn = ref(true);
 
-// onMounted(async () => {
-//   console.log('shootView Mounted!')
-//   try {
-//     mediaStream = await navigator.mediaDevices.getUserMedia({ video: true,audio: true });
+onMounted(async () => {
+  console.log('shootView Mounted!')
+  try {
+    mediaStream = await navigator.mediaDevices.getUserMedia({ video: true,audio: true });
 
-//     videoElement.value.srcObject = mediaStream;
-//   } catch (error) {
-//     console.error('Error accessing webcam:', error);
-//   }
-// });
+    videoElement.value.srcObject = mediaStream;
+  } catch (error) {
+    console.error('Error accessing webcam:', error);
+  }
+});
 
-// onUnmounted(() => {
-//   console.log('shootView unMounted!')
-//   if (mediaStream) {
-//     mediaStream.getTracks().forEach((track) => {
-//       track.stop();
-//     });
-//   }
-// });
+onUnmounted(() => {
+  console.log('shootView unMounted!')
+  if (mediaStream) {
+    mediaStream.getTracks().forEach((track) => {
+      track.stop();
+    });
+  }
+});
 
-// // 거울모드 여부
-// const toggleMirror = () => {
-//   isMirrored = !isMirrored;
-//   videoElement.value.style.transform = isMirrored ? 'scaleX(-1)' : 'scaleX(1)';
-// };
+// 거울모드 여부
+const toggleMirror = () => {
+  isMirrored = !isMirrored;
+  videoElement.value.style.transform = isMirrored ? 'scaleX(-1)' : 'scaleX(1)';
+};
 
-// //카메라의 온오프 
-// const toggleCamera = () => {
-//   isvideoOn.value = !isvideoOn.value;
-//   console.log('비디오 온')
+//카메라의 온오프 
+const toggleCamera = () => {
+  isvideoOn.value = !isvideoOn.value;
+  console.log('비디오 온')
 
-//   if (isvideoOn.value) {
-//     mediaStream.getVideoTracks().forEach((track) => {
-//       track.enabled = true; // 비디오 트랙 활성화
-//     });
-//     videoElement.value.srcObject = mediaStream;
-//   } else {
-//     console.log('비디오 오프')
+  if (isvideoOn.value) {
+    mediaStream.getVideoTracks().forEach((track) => {
+      track.enabled = true; // 비디오 트랙 활성화
+    });
+    videoElement.value.srcObject = mediaStream;
+  } else {
+    console.log('비디오 오프')
 
-//     mediaStream.getVideoTracks().forEach((track) => {
-//       track.enabled = false;  // 비디오 트랙 비활성화
-//     });
-//     videoElement.value.srcObject = mediaStream; 
-//   }
-// };
+    mediaStream.getVideoTracks().forEach((track) => {
+      track.enabled = false;  // 비디오 트랙 비활성화
+    });
+    videoElement.value.srcObject = mediaStream; 
+  }
+};
 
-// //마이크의 온오프
 
-// const toggleMicro = () => {
-//   isMicroOn.value = !isMicroOn.value;
-//   if (isMicroOn.value) {
-//     console.log('마이크 온')
+//마이크의 온오프
+const toggleMicro = () => {
+  isMicroOn.value = !isMicroOn.value;
+  if (isMicroOn.value) {
+    console.log('마이크 온')
 
-//     mediaStream.getAudioTracks().forEach((track) => {
-//       track.enabled = true; // 오디오 트랙을 활성화
-//     });
-//   } else {
-//     console.log('마이크 오프')
+    mediaStream.getAudioTracks().forEach((track) => {
+      track.enabled = true; // 오디오 트랙을 활성화
+    });
+  } else {
+    console.log('마이크 오프')
 
-//     mediaStream.getAudioTracks().forEach((track) => {
-//       track.enabled = false; // 오디오  트랙을 비활성화
-//     });
-//   }
-// };
-
-const takePhoto = () =>{
-  console.log('사진 찍기')
-}
+    mediaStream.getAudioTracks().forEach((track) => {
+      track.enabled = false; // 오디오  트랙을 비활성화
+    });
+  }
+};
 
 // background 변경을 위한 변수
 const bgImage = ref('https://via.placeholder.com/400');
 
 const changeImage = (image) => {
-  console.log('이미지 변경 클릭')
+  console.log('이미지 변경 클릭', image)
     bgImage.value = image;
 };
+
+//촬영 버튼
+const captureArea = ref(null); 
+const images = ref([]);
+
+const takePhoto = () =>{
+  console.log('사진 찍기')
+  const img = new Image();
+  img.crossOrigin = 'Anonymous'; // CORS 설정
+  img.src = bgImage.value;
+
+  img.onload = () => {
+    html2canvas(captureArea.value,{useCORS: true})
+    .then((canvas) =>{
+      const imageData = canvas.toDataURL('image/png');
+      images.value.push(imageData);
+
+      if(images.value.length === 10){
+        alert('이미지 리스트의 길이가 10이 되었습니다.')
+      }
+    })
+    .catch((error) => {
+      console.error('이미지 캡쳐 에러 발생: ',error);
+    })
+  };
+
+  img.onerror = () => {
+    console.error('배경 로딩 에러 발생');
+  };
+}
+
+//촬영 종료
+const exitphoto = async () =>{
+  console.log('촬영종료');
+
+  const { value: result } = await Swal.fire({
+        title: '촬영 끝내기',
+        text: '촬영을 동료하고 저장을 위해 나가시겠습니까?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: '확인',
+        cancelButtonText: '취소'
+      });
+
+      if (result) {
+        // 확인 버튼 클릭 시 실행되는 코드
+        Swal.fire('저장', '사진 선택 화면으로 이동합니다!', 'success');
+        router.push('/')
+      } else {
+        // 취소 버튼 클릭 시 실행되는 코드
+        Swal.fire('취소', '촬영을 계속합니다!', 'error');
+      }
+}
 
 // 컴포넌트 변경을 위한 변수 1- 배경선택, 2 - 사진 보기
 const showtype = ref(1);
@@ -121,7 +173,7 @@ const changeComponent = () =>{
 
       <div class="booth-content-main">
         <BoothBack class="booth-camera-box">
-          <div :style="{ backgroundImage: `url(${bgImage})` }" class="photo-zone"></div>
+          <div ref="captureArea" :style="{ backgroundImage: `url(${bgImage})` }" class="photo-zone" ></div>
 
           <div class="create-btn">
             <div class="left-btn">
@@ -131,13 +183,16 @@ const changeComponent = () =>{
               <button class="circle-btn" @click="toggleCamera">
                 <img :src="isvideoOn ? videoOn : videoOff" alt="C" />
               </button>
+              <button class="ract-btn" @click="toggleMirror">반전</button>
             </div>
 
             <button @click="takePhoto" class="take-photo">
               <img src="@/assets/icon/camera.png" alt="" />
             </button>
-
-            <button class="ract-btn" @click="toggleMirror">반전</button>
+            <div class="right-btn">
+            
+              <button class="ract-btn" @click="exitphoto">촬영 종료</button>
+            </div>
           </div>
         </BoothBack>
 
@@ -157,7 +212,7 @@ const changeComponent = () =>{
           
           <div class="select-text-box">
             <RouterView v-if="showtype === 1" @update="changeImage"></RouterView>
-            <RouterView v-else> </RouterView>
+            <RouterView v-else :images="images"> </RouterView>
           </div>
         </BoothBack>
       </div>
@@ -228,12 +283,22 @@ const changeComponent = () =>{
     height: 10%;
     width: 90%;
     display: flex;
-    justify-content: space-between;
     flex-wrap: wrap;
+    justify-content: space-between;
+    align-content: flex-end;
     align-items: center;
-    .left-btn{
+    .left-btn {
       display: flex;
       margin: 5px;
+      align-items: center;
+      width: 40%;
+    }
+    .right-btn{
+      display: flex;
+      margin: 5px;
+      flex-direction: row-reverse;
+      align-items: center;
+      width: 40%;
     }
 
     .circle-btn{

@@ -1,5 +1,5 @@
 <script setup>
-import mainHeader from "@/components/common/MainHeader.vue";
+import mainHeader from "@/components/common/MainHeaderComp.vue";
 import { useRouter } from "vue-router";
 
 const router = useRouter();
