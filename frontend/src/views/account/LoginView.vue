@@ -19,10 +19,11 @@ const login = () => {
     return;
   }
   // todo: 로그인 성공
+  navigateTo("main");
 }
 
-const changeView = (viewName) => {
-  router.push({ name: viewName });
+const navigateTo = (path) => {
+  router.push({ name: path });
 }
 </script>
 
@@ -35,8 +36,8 @@ const changeView = (viewName) => {
       <FormButtonComp size="big" @click="login">로그인</FormButtonComp>
 
       <div class="flex-justify-content-between mt-10">
-        <FormButtonComp size="none" @click="changeView('signupEmail')">회원가입</FormButtonComp>
-        <FormButtonComp size="none" @click="changeView('findPassword')">비밀번호 찾기</FormButtonComp>
+        <FormButtonComp size="none" @click="navigateTo('signupEmail')">회원가입</FormButtonComp>
+        <FormButtonComp size="none" @click="navigateTo('findPassword')">비밀번호 찾기</FormButtonComp>
       </div>
     </form>
   </FormComp>
