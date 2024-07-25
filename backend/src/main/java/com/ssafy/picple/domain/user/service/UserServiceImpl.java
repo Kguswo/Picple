@@ -7,13 +7,12 @@ import com.ssafy.picple.domain.user.entity.User;
 import com.ssafy.picple.domain.user.repository.UserRepository;
 import com.ssafy.picple.util.JWTUtil;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 import static com.ssafy.picple.config.baseResponse.BaseResponseStatus.*;
-import static org.apache.tomcat.util.net.openssl.ciphers.Encryption.AES256;
 
 @Service
 @RequiredArgsConstructor
@@ -21,10 +20,16 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final JWTUtil jwtUtil;
-    private final BCryptPasswordEncoder passwordEncoder;
 
-    @Value("${password.encoding.key}")
-    private String passwordKey;
+    @Override
+    public List<User> getUser() throws BaseException {
+        List<User> users = userRepository.findAll();
+        if (!users.isEmpty()) {
+            return users;
+        } else {
+            throw new BaseException(GET_USER_EMPTY);
+        }
+    }
 
     @Override
     @Transactional
@@ -33,22 +38,14 @@ public class UserServiceImpl implements UserService {
         if (userRepository.existsByNickname(user.getNickname())) {
             throw new BaseException(DUPLICATED_USER_NICKNAME);
         }
-        try {
-            user.setPasswordEncoding(encodePassword(user.getPassword()));
-        } catch (Exception e) {
-            throw new BaseException(PASSWORD_ENCRYPTION_ERROR);
-        }
         return userRepository.save(user);
     }
 
     @Override
-    @Transactional
     public Token login(LoginRequest loginRequest) throws BaseException {
         User user = userRepository.findByEmail(loginRequest.getEmail())
                 .orElseThrow(() -> new BaseException(NOT_FOUND_USER));
-        System.out.println(user.getPassword());
-        System.out.println(encodePassword(loginRequest.getPassword()));
-        if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
+        if (!user.getPassword().equals(loginRequest.getPassword())) {
             throw new BaseException(INVALID_PASSWORD);
         }
         Token token = new Token();
@@ -69,12 +66,6 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    /**
-     * User 회원 탈퇴
-     * @param userId
-     * @return
-     * @throws BaseException
-     */
     @Override
     @Transactional
     public String deleteUser(Long userId) throws BaseException {
@@ -84,9 +75,4 @@ public class UserServiceImpl implements UserService {
             throw new BaseException(NOT_FOUND_USER);
         }
     }
-
-    private String encodePassword(String password) {
-        return passwordEncoder.encode(password);
-    }
-
 }
