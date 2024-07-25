@@ -45,18 +45,22 @@ const validateCurrentPassword = (currentPassword) => {
 	return setFormMessage("", false);
 };
 
-const validateBoothCode = (boothCodeField, boothCode) => {
-	const fields = [boothCodeField];
+const validateBoothCode = (boothCode) => {
 	if (!boothCode) {
-		const boothCodeMessage = setFormMessage(
-			"부스 코드를 입력하세요.",
-			true
-		);
-		const messages = [boothCodeMessage];
-		printMessageAndFocus(fields, messages);
-		return false;
+		return setFormMessage("부스 코드를 입력하세요.", true);
 	}
 	// todo: 부스 코드 일치 여부 검사
+	return setFormMessage("", false);
+};
+
+const validateJoinBooth = (boothCodeField, boothCode) => {
+	const fields = [boothCodeField];
+	const boothCodeMessage = validateBoothCode(boothCode);
+	const messages = [boothCodeMessage];
+	const isSuccess = printMessageAndFocus(fields, messages);
+	if (!isSuccess) {
+		return false;
+	}
 	return true;
 };
 
@@ -221,5 +225,5 @@ export {
 	validateSignup,
 	validateModifyAccount,
 	validateModifyPassword,
-	validateBoothCode,
+	validateJoinBooth,
 };
