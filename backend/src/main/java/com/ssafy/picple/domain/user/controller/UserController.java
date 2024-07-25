@@ -96,4 +96,13 @@ public class UserController {
         return new BaseResponse<>(userService.deleteUser(userId));
     }
 
+    @PostMapping("/testEmail")
+    public BaseResponse<?> checkEmailTemp(@RequestBody @Valid EmailRequest emailRequest) throws BaseException {
+        if (emailRequest.getEmail() == null || emailRequest.getEmail().trim().isEmpty()) {
+            throw new BaseException(USER_EMAIL_EMPTY);
+        }
+        userService.checkEmailDuplication(emailRequest.getEmail());
+        return new BaseResponse<>(SUCCESS);
+    }
+
 }
