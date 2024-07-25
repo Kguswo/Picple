@@ -61,7 +61,7 @@ const router = createRouter({
 				{
 					path: 'photo',
 					name: 'showphoto',
-					component: () => import('@/components/booth/BoothShowPhoto.vue'),
+					component: () => import('@/components/booth/BoothShowPhotoComp.vue'),
 					props: true,
 				},
 			],

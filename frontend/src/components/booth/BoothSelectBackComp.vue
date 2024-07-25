@@ -26,6 +26,7 @@ const images = ref([
     'https://via.placeholder.com/400/ff7f7f/333333?text=Image+1',
     'https://via.placeholder.com/400/7f7fff/333333?text=Image+2',
     'https://via.placeholder.com/400/7fff7f/333333?text=Image+3',
+    '@/assets/img/tempImg.png'
   ]);
 
 
