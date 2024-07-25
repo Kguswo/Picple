@@ -3,8 +3,8 @@ import { ref, computed, watch } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import WhiteBoardComp from "@/components/common/WhiteBoardComp.vue";
 import BoothBack from "@/components/booth/BoothBackComp.vue";
+import { usePhotoStore } from "@/stores/photoStore";
 
-// 각 템플릿의 실제 이미지 import
 import temp_1x1_4x3_479x360 from "@/assets/img/template/temp_1x1_4x3_479x360.jpg";
 import temp_1x2_4x5_288x360 from "@/assets/img/template/temp_1x2_4x5_288x360.jpg";
 import temp_1x3_3x4_270x360 from "@/assets/img/template/temp_1x3_3x4_270x360.png";
@@ -12,6 +12,7 @@ import temp_2x2_4x3_481x360 from "@/assets/img/template/temp_2x2_4x3_481x360.jpg
 
 const router = useRouter();
 const route = useRoute();
+const photoStore = usePhotoStore();
 
 const selectedTemplate = ref("all");
 const selectedImage = ref(null);
@@ -30,6 +31,9 @@ const templateImages = {
     3: [temp_1x3_3x4_270x360],
     4: [temp_2x2_4x3_481x360],
 };
+
+const photos = photoStore.photoList;
+console.log("BoothTemplateView에서 불러온 이미지 리스트:", photos);
 
 const selectTemplate = (template) => {
     console.log(`템플릿 선택됨: ${template.key}`);
@@ -93,6 +97,7 @@ const goToNext = () => {
         console.log(
             `다음 화면으로 이동: 템플릿: ${selectedTemplate.value}, 이미지: ${selectedImage.value}`
         );
+        console.log("다음 화면으로 이동할 때 이미지 리스트:", photos);
         router.push({
             name: "insertImg",
             params: {
@@ -106,6 +111,11 @@ const goToNext = () => {
     }
 };
 
+const goToPrevious = () => {
+    photoStore.clearPhotoList();
+    router.push("/booth");
+};
+
 watch(
     () => route.query.selectedImage,
     (newImage) => {
@@ -115,10 +125,6 @@ watch(
     },
     { immediate: true }
 );
-
-const goToPrevious = () => {
-    router.go(-1);
-};
 </script>
 
 <template>
