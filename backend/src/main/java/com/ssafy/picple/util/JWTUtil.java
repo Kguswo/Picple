@@ -110,7 +110,16 @@ public class JWTUtil {
             throw new BaseException(JWT_GET_USER_ERROR);
         }
         Map<String, Object> value = claims.getBody();
-        return (Long) value.get("userId");
+
+        Object userIdObject = value.get("userId");
+
+        if (userIdObject instanceof Integer) {
+            return ((Integer) userIdObject).longValue();
+        } else if (userIdObject instanceof Long) {
+            return (Long) userIdObject;
+        } else {
+            throw new BaseException(JWT_GET_USER_ERROR);
+        }
     }
 
 }

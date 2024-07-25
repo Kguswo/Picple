@@ -7,11 +7,9 @@ import com.ssafy.picple.domain.user.dto.request.EmailCheckRequest;
 import com.ssafy.picple.domain.user.dto.request.EmailRequest;
 import com.ssafy.picple.domain.user.dto.request.LoginRequest;
 import com.ssafy.picple.domain.user.dto.response.Token;
-import com.ssafy.picple.domain.user.dto.response.UserListResponse;
 import com.ssafy.picple.domain.user.entity.User;
 import com.ssafy.picple.domain.user.service.EmailService;
 import com.ssafy.picple.domain.user.service.UserService;
-import com.ssafy.picple.util.JWTUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +24,6 @@ public class UserController {
 
     private final UserService userService;
     private final EmailService emailService;
-    private final JWTUtil jwtUtil;
 
     /**
      * 로그인
@@ -96,6 +93,12 @@ public class UserController {
         return new BaseResponse<>(userService.deleteUser(userId));
     }
 
+    /**
+     * 테스트용 이메일 인증
+     * @param emailRequest
+     * @return
+     * @throws BaseException
+     */
     @PostMapping("/testEmail")
     public BaseResponse<?> checkEmailTemp(@RequestBody @Valid EmailRequest emailRequest) throws BaseException {
         if (emailRequest.getEmail() == null || emailRequest.getEmail().trim().isEmpty()) {
