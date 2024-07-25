@@ -1,7 +1,7 @@
 <script setup>
 import WhiteBoardComp from "@/components/common/WhiteBoardComp.vue";
 import BoardPhotoComp from "@/components/board/BoardPhotoComp.vue";
-import Page from "@/components/common/Page.vue";
+import Page from "@/components/common/PageComp.vue";
 import { ref } from "vue";
 // import axios from 'axios';
 

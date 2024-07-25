@@ -1,61 +1,54 @@
 <script setup>
-
 import { ref, defineProps, onMounted } from 'vue';
 
-onMounted(()=>{
-  console.log('BoothShowPhoto 호출됨')
-})
+onMounted(() => {
+  console.log('BoothShowPhoto 호출됨');
+});
 
-//임시 이미지
-const images = ref([
-    'https://cdn2.ppomppu.co.kr/zboard/data3/2019/0622/20190622005503_hllzmuzp.jpg',
-    'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRzeNu11zHrflkIcuUzJ1-Wuqr3kaF-FXrX6w&s',
-    'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQhKpCqBHJvDxfdZ3xXTaKyFXYK3jgxI1YU2Q&s',
-    'https://www.busan.com/nas/data/content/image/2019/07/03/20190703000131_0.jpg',
-    'https://d2u3dcdbebyaiu.cloudfront.net/uploads/atch_img/333/cd6ce1533124ff8d88b1cd3e08b83be1_res.jpeg',
-    'https://image.fmkorea.com/files/attach/new2/20210313/33854530/1496186875/3450446564/71c39a7240b56d5e27a7428e9912b7ed.jpg',
-    'https://cdn.spochoo.com/news/photo/201705/15587_22559.jpg',
-    'https://i.ytimg.com/vi/u9S37ZaM-ew/maxresdefault.jpg'
-  ]);
+const props = defineProps({
+  images: Array
+});
 
-const imgUrl = ref('')
+const images = ref([]);
+images.value = props.images;
+
+const imgUrl = ref('');
 const showModal = ref(false);
 
-const showImage = (img) =>{
+const showImage = (img) => {
   showModal.value = true;
   imgUrl.value = img;
-}
+};
 
 const closeModal = () => {
   showModal.value = false;
   imgUrl.value = null;
 };
-
 </script>
 
 <template>
-    <div class="select-text-box">
+  <div class="select-text-box">
+  </div>
+  <div class="background-box">
+    <div class="background-box-scroll">
+      <img class="thumbnail" v-for="(img, idx) in images" 
+           :key="idx"
+           :src="img"
+           @click="showImage(img)" 
+           alt="myPhoto"/>
     </div>
-    <div class="background-box">
-        <div class="background-box-scroll">
-            <img class="thumbnail" v-for=" (img,idx) in images" 
-                :key="idx" 
-                :src="img"
-                @click="showImage(img)" 
-                alt="myPhoto"/>
-        </div>
-    </div>
+  </div>
 
-    <div class="modal" v-if="showModal">
-        <div class="modal-content">
-            <div class="close-box">
-                <span class="close" @click="closeModal">&times;</span>
-            </div>
-            <div class="modal-img">
-                <img :src='imgUrl' alt="">
-            </div>
-        </div>
+  <div class="modal" v-if="showModal">
+    <div class="modal-content">
+      <div class="close-box">
+        <span class="close" @click="closeModal">&times;</span>
+      </div>
+      <div class="modal-img">
+        <img :src='imgUrl' alt="">
+      </div>
     </div>
+  </div>
 </template>
 
 <style scoped>

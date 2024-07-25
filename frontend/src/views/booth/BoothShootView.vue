@@ -10,7 +10,8 @@ import microOff from '@/assets/icon/micro_off.png';
 import Swal from 'sweetalert2';
 
 import { RouterView, useRouter } from "vue-router";
-import { ref, onMounted, onUnmounted,defineProps, onUpdated } from 'vue';
+import { ref, onMounted, onUnmounted, defineProps, onUpdated } from 'vue';
+import html2canvas from "html2canvas";
 
 const router = useRouter();
 
@@ -73,8 +74,8 @@ const toggleCamera = () => {
   }
 };
 
-//마이크의 온오프
 
+//마이크의 온오프
 const toggleMicro = () => {
   isMicroOn.value = !isMicroOn.value;
   if (isMicroOn.value) {
@@ -92,8 +93,42 @@ const toggleMicro = () => {
   }
 };
 
+// background 변경을 위한 변수
+const bgImage = ref('https://via.placeholder.com/400');
+
+const changeImage = (image) => {
+  console.log('이미지 변경 클릭', image)
+    bgImage.value = image;
+};
+
+//촬영 버튼
+const captureArea = ref(null); 
+const images = ref([]);
+
 const takePhoto = () =>{
   console.log('사진 찍기')
+  const img = new Image();
+  img.crossOrigin = 'Anonymous'; // CORS 설정
+  img.src = bgImage.value;
+
+  img.onload = () => {
+    html2canvas(captureArea.value,{useCORS: true})
+    .then((canvas) =>{
+      const imageData = canvas.toDataURL('image/png');
+      images.value.push(imageData);
+
+      if(images.value.length === 10){
+        alert('이미지 리스트의 길이가 10이 되었습니다.')
+      }
+    })
+    .catch((error) => {
+      console.error('이미지 캡쳐 에러 발생: ',error);
+    })
+  };
+
+  img.onerror = () => {
+    console.error('배경 로딩 에러 발생');
+  };
 }
 
 //촬영 종료
@@ -119,14 +154,6 @@ const exitphoto = async () =>{
       }
 }
 
-// background 변경을 위한 변수
-const bgImage = ref('https://via.placeholder.com/400');
-
-const changeImage = (image) => {
-  console.log('이미지 변경 클릭')
-    bgImage.value = image;
-};
-
 // 컴포넌트 변경을 위한 변수 1- 배경선택, 2 - 사진 보기
 const showtype = ref(1);
 
@@ -146,7 +173,7 @@ const changeComponent = () =>{
 
       <div class="booth-content-main">
         <BoothBack class="booth-camera-box">
-          <div :style="{ backgroundImage: `url(${bgImage})` }" class="photo-zone"></div>
+          <div ref="captureArea" :style="{ backgroundImage: `url(${bgImage})` }" class="photo-zone" ></div>
 
           <div class="create-btn">
             <div class="left-btn">
@@ -185,7 +212,7 @@ const changeComponent = () =>{
           
           <div class="select-text-box">
             <RouterView v-if="showtype === 1" @update="changeImage"></RouterView>
-            <RouterView v-else> </RouterView>
+            <RouterView v-else :images="images"> </RouterView>
           </div>
         </BoothBack>
       </div>
