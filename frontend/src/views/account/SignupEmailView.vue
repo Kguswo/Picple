@@ -5,7 +5,7 @@ import FormEmailComp from "@/components/form/FormEmailComp.vue"
 
 <template>
     <FormComp title="회원가입">
-        <FormEmailComp />
+        <FormEmailComp path="/signup" />
     </FormComp>
 </template>
 
