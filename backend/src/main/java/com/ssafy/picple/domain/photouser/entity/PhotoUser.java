@@ -46,4 +46,8 @@ public class PhotoUser {
 		this.content = content;
 	}
 
+	public void updateContent(String content) {
+		this.content = content;
+	}
+
 }
