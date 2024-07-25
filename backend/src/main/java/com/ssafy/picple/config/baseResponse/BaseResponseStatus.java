@@ -40,7 +40,6 @@ public enum BaseResponseStatus {
     FAILED_USER_SIGNUP(false, 3017, "등록된 유저가 없습니다."),
     NOT_FOUND_USER(false, 3018, "값을 불러오는데 실패하였습니다."),
     INVALID_PASSWORD(false, 3019, "비밀번호가 일치하지 않습니다."),
-	PASSWORD_ENCRYPTION_ERROR(false, 3020, "비밀번호가 일치하지 않습니다."),
 
 	// 3100 ~~ 3199 : 김현재
 	GET_LIKE_EMPTY(false, 3101, "좋아요 기록이 없습니다."),

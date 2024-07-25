@@ -8,6 +8,8 @@ import com.ssafy.picple.domain.user.entity.User;
 import java.util.List;
 
 public interface UserService {
+    List<User> getUser() throws BaseException;
+
     User signUp(User user) throws BaseException;
 
     Token login(LoginRequest loginRequest) throws BaseException;
