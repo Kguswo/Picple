@@ -31,6 +31,24 @@ const modify = async () => {
   await Swal.fire({ title: "닉네임이 변경되었습니다.", width: 600 });
   router.push({ name: "main" });
 };
+
+const deleteAccount = async () => {
+  const { value: accept } = await Swal.fire({
+    title: "정말 회원을 탈퇴하시겠습니까?",
+    input: "checkbox",
+    inputValue: 0,
+    inputPlaceholder: `회원탈퇴 동의`,
+    confirmButtonText: `Continue&nbsp;<i class="fa fa-arrow-right"></i>`,
+    showCancelButton: true,
+    inputValidator: (result) => {
+      return !result && "회원탈퇴는 동의가 필요합니다.";
+    }
+  });
+  if (accept) {
+    Swal.fire("회원탈퇴가 완료되었습니다.");
+    router.push({ name: "main" });
+  }
+}
 </script>
 
 <template>
@@ -54,7 +72,7 @@ const modify = async () => {
       <FormButtonComp size="big" @click="modify">저장</FormButtonComp>
 
       <div class="text-align-right mt-10">
-        <FormButtonComp size="none" @click="">회원탈퇴</FormButtonComp>
+        <FormButtonComp size="none" @click="deleteAccount">회원탈퇴</FormButtonComp>
       </div>
     </form>
   </FormComp>
