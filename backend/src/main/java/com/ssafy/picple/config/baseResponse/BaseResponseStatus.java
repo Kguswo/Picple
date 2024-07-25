@@ -23,14 +23,14 @@ public enum BaseResponseStatus {
 	// Common
 	RESPONSE_ERROR(false, 3000, "값을 불러오는데 실패하였습니다."),
 
-	// 3001 ~~ 3099 : 염규영
-	GET_USER_EMPTY(false, 3001, "등록된 유저가 없습니다."),
-	INVALID_BACKGROUND_ID(false, 3002, "올바르지 않은 배경화면 ID입니다."),
-	DELETE_BACKGROUND_ERROR(false, 3003, "배경 사진 삭제에 실패하였습니다."),
-	AI_BACKGROUND_GENERATION_ERROR(false, 3004, "AI 배경 사진 생성에 실패하였습니다."),
-	LOCAL_BACKGROUND_UPLOAD_ERROR(false, 3005, "로컬 배경 사진 추가에 실패하였습니다."),
-
 	// 3100 ~~ 3199 : 김현재
+
+	// 3201 ~~ 3299 : 염규영
+	GET_USER_EMPTY(false, 3201, "등록된 유저가 없습니다."),
+	INVALID_BACKGROUND_ID(false, 3202, "올바르지 않은 배경화면 ID입니다."),
+	DELETE_BACKGROUND_ERROR(false, 3203, "배경 사진 삭제에 실패하였습니다."),
+	AI_BACKGROUND_GENERATION_ERROR(false, 3204, "AI 배경 사진 생성에 실패하였습니다."),
+	LOCAL_BACKGROUND_UPLOAD_ERROR(false, 3205, "로컬 배경 사진 추가에 실패하였습니다."),
 
 	/**
 	 * 4000 : Database, Server
