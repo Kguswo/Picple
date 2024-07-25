@@ -40,8 +40,8 @@ const signup = () => {
         </FormButtonComp>
       </FormInputComp>
 
-      <FormInputComp :params="password" ref="passwordField" class="mt-10" name="new-password" />
-      <FormInputComp :params="passwordConfirm" ref="passwordConfirmField" class="mt-10" name="new-password-confirm" />
+      <FormInputComp :params="password" ref="passwordField" class="mt-10" />
+      <FormInputComp :params="passwordConfirm" ref="passwordConfirmField" class="mt-10" />
 
       <FormButtonComp size="big" @click="signup">가입</FormButtonComp>
     </form>

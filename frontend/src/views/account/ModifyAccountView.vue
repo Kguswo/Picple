@@ -42,12 +42,12 @@ const changeView = (viewName, params) => {
         <label class="form-label">이메일</label>
       </div>
 
-      <FormInputComp :params="nickname" ref="nicknameField" class="mt-10" name="nickname">
+      <FormInputComp :params="nickname" ref="nicknameField" class="mt-10">
         <FormButtonComp size="small" @keyup.enter="checkNicknameDup" @click="checkNicknameDup">중복</FormButtonComp>
       </FormInputComp>
 
       <div class="input-container background-color-disabled mt-10">
-        <input type="password" class="form-input has-content background-color-disabled" disabled />
+        <input type="password" class="form-input has-content background-color-disabled" autocomplete="off" disabled />
         <label class="form-label">비밀번호</label>
         <button type="button" class="form-button-small"
           @click="changeView('modifyPassword', { path: 'modify' })">변경</button>
