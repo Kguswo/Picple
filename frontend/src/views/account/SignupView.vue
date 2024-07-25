@@ -4,6 +4,10 @@ import FormInputComp from "@/components/form/FormInputComp.vue";
 import FormButtonComp from "@/components/form/FormButtonComp.vue";
 import { ref } from "vue";
 import { validateNicknameDup, validateSignup } from "@/stores/validation";
+import { useRouter } from "vue-router";
+import Swal from 'sweetalert2';
+
+const router = useRouter();
 
 const nickname = ref({ type: "text", label: "닉네임", value: "" });
 const password = ref({ type: "password", label: "비밀번호", value: "" });
@@ -22,14 +26,17 @@ const checkNicknameDup = (e) => {
   checkedNickname.value = nickname.value.value;
 }
 
-const signup = () => {
+const signup = async () => {
   const isSuccess = validateSignup(nicknameField.value, passwordField.value, passwordConfirmField.value, nickname.value.value, password.value.value, passwordConfirm.value.value, checkedNickname.value
   );
   if (!isSuccess) {
     return;
   }
   // todo: 회원가입
+  await Swal.fire({ title: "회원가입이 완료되었습니다.", width: 600 });
+  router.push({ name: "main" });
 }
+
 </script>
 
 <template>
