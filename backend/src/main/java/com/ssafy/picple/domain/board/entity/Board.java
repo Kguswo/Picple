@@ -1,7 +1,7 @@
 package com.ssafy.picple.domain.board.entity;
 
-import java.time.LocalDateTime;
-
+import com.ssafy.picple.config.BaseTimeEntity;
+import com.ssafy.picple.domain.photo.entity.Photo;
 import com.ssafy.picple.domain.user.entity.User;
 
 import jakarta.persistence.Column;
@@ -22,15 +22,20 @@ import lombok.NoArgsConstructor;
 @Getter
 @Table(name = "board")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Board {
+public class Board extends BaseTimeEntity {
 
 	@Id
+	@Column(name = "board_id")
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "user_id", nullable = false)
 	private User user;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "photo_id")
+	private Photo photo;
 
 	@Column(nullable = false)
 	private int hit;
