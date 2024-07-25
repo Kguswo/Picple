@@ -131,15 +131,12 @@ const validateNicknameDup = (nicknameField, nickname) => {
 };
 
 const validateSignup = (
-	nicknameField,
-	passwordField,
-	passwordConfirmField,
+	fields,
 	nickname,
 	password,
 	passwordConfirm,
 	checkedNickname
 ) => {
-	const fields = [nicknameField, passwordField, passwordConfirmField];
 	const nicknameMessage = setNicknameMessage(nickname, checkedNickname);
 	const passwordMessage = validatePasswordPattern(password);
 	const passwordConfirmMessage = validatePasswordConfirm(
@@ -210,6 +207,7 @@ const setNicknameMessage = (nickname, checkedNickname) => {
 };
 
 const printMessageAndFocus = (fields, messages) => {
+	// 메시지가 출력될 필드에 메시지 할당 & 메시지가 출력되는 필드 중 최상단 필드에 포커스
 	let focused = false;
 	for (let i = 0; i < fields.length; i++) {
 		if (messages[i].isError) {

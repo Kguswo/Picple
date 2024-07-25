@@ -27,7 +27,8 @@ const checkNicknameDup = (e) => {
 }
 
 const signup = async () => {
-  const isSuccess = validateSignup(nicknameField.value, passwordField.value, passwordConfirmField.value, nickname.value.value, password.value.value, passwordConfirm.value.value, checkedNickname.value
+  const fields = [nicknameField.value, passwordField.value, passwordConfirmField.value];
+  const isSuccess = validateSignup(fields, nickname.value.value, password.value.value, passwordConfirm.value.value, checkedNickname.value
   );
   if (!isSuccess) {
     return;
