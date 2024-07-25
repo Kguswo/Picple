@@ -4,6 +4,7 @@ import FormButtonComp from "@/components/form/FormButtonComp.vue";
 import { validateEmailBeforeSend, validateEmailCert } from "@/stores/validation";
 import { ref } from "vue";
 import { useRouter } from "vue-router";
+import Swal from 'sweetalert2';
 
 const props = defineProps({
   path: String
@@ -28,12 +29,12 @@ const sendCertNumber = (e) => {
   isSend.value = true;
 };
 
-const certify = () => {
+const certify = async () => {
   const isSuccess = validateEmailCert(emailField.value, certNumberField.value, certNumber.value.value, isSend.value);
   if (!isSuccess) {
     return;
   }
-  // todo: 다음 페이지로 이동
+  await Swal.fire({ title: "이메일 인증에 성공했습니다.", width: 600 });
   router.push(props.path);
 };
 </script>
