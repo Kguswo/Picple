@@ -40,7 +40,7 @@
 </template>
 
 <script setup>
-import Page from "@/components/common/Page.vue";
+import Page from "@/components/common/PageComp.vue";
 import WhiteBoardComp from "@/components/common/WhiteBoardComp.vue";
 import ListModal from "@/components/calendar/ListModalComp.vue";
 import { ref } from "vue";
