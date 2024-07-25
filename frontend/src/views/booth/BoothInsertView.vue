@@ -3,23 +3,12 @@ import { ref, onMounted, nextTick, watch, computed } from "vue";
 import { useRoute } from "vue-router";
 import WhiteBoardComp from "@/components/common/WhiteBoardComp.vue";
 import BoothBack from "@/components/booth/BoothBackComp.vue";
+import { usePhotoStore } from "@/stores/photoStore";
 import html2canvas from "html2canvas";
 
-import Avengers1 from "@/assets/img/template/어벤져스1.jpg";
-import Avengers2 from "@/assets/img/template/어벤져스2.jpg";
-import Avengers3 from "@/assets/img/template/어벤져스3.jpg";
-import Avengers4 from "@/assets/img/template/어벤져스4.jpg";
-import Avengers5 from "@/assets/img/template/어벤져스5.jpg";
-import Avengers6 from "@/assets/img/template/어벤져스6.jpg";
-
-const images = ref([
-    { src: Avengers1, visible: true },
-    { src: Avengers2, visible: true },
-    { src: Avengers3, visible: true },
-    { src: Avengers4, visible: true },
-    { src: Avengers5, visible: true },
-    { src: Avengers6, visible: true },
-]);
+const photoStore = usePhotoStore();
+const images = ref(photoStore.photoList);
+console.log("BoothInsertView에서 불러온 이미지 리스트:", images.value);
 
 const route = useRoute();
 const selectedImage = ref(decodeURIComponent(route.query.selectedImage));
@@ -230,12 +219,14 @@ const onTemplateImageLoad = (event) => {
 };
 
 onMounted(() => {
+    console.log("BoothInsertView 마운트 시 이미지 리스트:", images.value);
     nextTick(() => {
         updateTemplateDimensions();
     });
 });
 </script>
 
+죄송합니다. BoothInsertView.vue의 나머지 부분을 이어서 제공하겠습니다: vueCopy
 <template>
     <WhiteBoardComp class="whiteboard-area-booth">
         <div class="booth-content">

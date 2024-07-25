@@ -1,34 +1,33 @@
 <script setup>
 import WhiteBoardComp from "@/components/common/WhiteBoardComp.vue";
 import BoothBack from "@/components/booth/BoothBackComp.vue";
+import { usePhotoStore } from "@/stores/photoStore";
+import { RouterView, useRouter } from "vue-router";
+import { ref, onMounted, onUnmounted, nextTick } from "vue";
+import html2canvas from "html2canvas";
+import Swal from "sweetalert2";
 
 import videoOn from "@/assets/icon/video_on.png";
 import videoOff from "@/assets/icon/video_off.png";
 import microOn from "@/assets/icon/micro_on.png";
 import microOff from "@/assets/icon/micro_off.png";
 
-import Swal from "sweetalert2";
-
-import { RouterView, useRouter } from "vue-router";
-import { ref, onMounted, onUnmounted, nextTick } from "vue";
-import html2canvas from "html2canvas";
-
-//화면 전환을 위한 router
 const router = useRouter();
+const photoStore = usePhotoStore();
 
 const navigateTo = (path) => {
     router.push({ name: path });
 };
 
-// 비디오 표현을 위한 변수
 const videoElement = ref(null);
 let mediaStream = null;
 
-// 화면 표시에 있어 사용되는 변수
-let isMirrored = false; // 거울모드 여부
-let isvideoOn = ref(true); // 비디오 ON/OFF 여부
-let isMicroOn = ref(true); // 마이크 ON/OFF 여부
+let isMirrored = false;
+let isvideoOn = ref(true);
+let isMicroOn = ref(true);
 const remainPicCnt = ref(10);
+
+const images = ref([]);
 
 onMounted(async () => {
     console.log("shootView Mounted!");
@@ -36,7 +35,7 @@ onMounted(async () => {
         mediaStream = await navigator.mediaDevices.getUserMedia({
             video: true,
             audio: true,
-        }); // mediaStream을 열어 영상과 목소리 넣기
+        });
 
         videoElement.value.srcObject = mediaStream;
     } catch (error) {
@@ -53,7 +52,6 @@ onUnmounted(() => {
     }
 });
 
-// 거울모드 여부
 const toggleMirror = () => {
     isMirrored = !isMirrored;
     videoElement.value.style.transform = isMirrored
@@ -61,45 +59,25 @@ const toggleMirror = () => {
         : "scaleX(1)";
 };
 
-//카메라의 온오프
 const toggleCamera = () => {
     isvideoOn.value = !isvideoOn.value;
-    console.log("비디오 온");
+    console.log("비디오 온/오프:", isvideoOn.value);
 
-    if (isvideoOn.value) {
-        mediaStream.getVideoTracks().forEach((track) => {
-            track.enabled = true; // 비디오 트랙 활성화
-        });
-        videoElement.value.srcObject = mediaStream;
-    } else {
-        console.log("비디오 오프");
-
-        mediaStream.getVideoTracks().forEach((track) => {
-            track.enabled = false; // 비디오 트랙 비활성화
-        });
-        videoElement.value.srcObject = mediaStream;
-    }
+    mediaStream.getVideoTracks().forEach((track) => {
+        track.enabled = isvideoOn.value;
+    });
+    videoElement.value.srcObject = mediaStream;
 };
 
-//마이크의 온오프
 const toggleMicro = () => {
     isMicroOn.value = !isMicroOn.value;
-    if (isMicroOn.value) {
-        console.log("마이크 온");
+    console.log("마이크 온/오프:", isMicroOn.value);
 
-        mediaStream.getAudioTracks().forEach((track) => {
-            track.enabled = true; // 오디오 트랙을 활성화
-        });
-    } else {
-        console.log("마이크 오프");
-
-        mediaStream.getAudioTracks().forEach((track) => {
-            track.enabled = false; // 오디오  트랙을 비활성화
-        });
-    }
+    mediaStream.getAudioTracks().forEach((track) => {
+        track.enabled = isMicroOn.value;
+    });
 };
 
-// background 변경을 위한 변수
 const bgImage = ref("https://via.placeholder.com/400");
 
 const changeImage = (image) => {
@@ -107,32 +85,27 @@ const changeImage = (image) => {
     bgImage.value = image;
 };
 
-//촬영 버튼
-const captureArea = ref(null); // 사진 저장 범위 ref를 통해 되어있음
-const images = ref([]); // 찍힌 사진 저장 배열
+const captureArea = ref(null);
 const countdown = ref(0);
-var cameraaudio = new Audio("/src/assets/audio/shutter.mp3"); // 카메라 찰칵 오디오 파일 js는 직접경로 필요로 @불가
+var cameraaudio = new Audio("/src/assets/audio/shutter.mp3");
 
-// 카운트다운 진행 함수
 const startCountdown = () => {
     const countdownInterval = setInterval(() => {
         countdown.value--;
         if (countdown.value <= 0) {
             clearInterval(countdownInterval);
-            Swal.close(); // 모달 닫기
-            capturePhoto(); // 카운트다운이 끝나면 사진 촬영
+            Swal.close();
+            capturePhoto();
         } else {
             Swal.update({
-                html: `<p style='color:white; font-size:50px;'>${countdown.value}</h3>`, // 시간이 2초 이하일 때 나타내는 것
+                html: `<p style='color:white; font-size:50px;'>${countdown.value}</h3>`,
             });
         }
     }, 1000);
 };
 
-// 사진 촬영 함수
 const takePhoto = async () => {
     console.log("사진 찍기");
-    // 이미지가 로드되었는지 확인
     const img = new Image();
     img.crossOrigin = "Anonymous";
     img.src = bgImage.value;
@@ -140,15 +113,14 @@ const takePhoto = async () => {
     countdown.value = 3;
 
     img.onload = async () => {
-        // DOM 업데이트가 완료된 후에 실행
         await nextTick();
 
         Swal.fire({
             title: `<h1 style='color:white;'>포즈!</h1>`,
-            html: `<p style='color:white; font-size:50px;'>${countdown.value}</p>`, //text 부분
-            showConfirmButton: false, // 기본 버튼을 없애는 것
-            background: "rgba(0, 0, 0, 0.3)", // 모달 배경을 투명하게 설정
-            backdrop: false, // 모달 배경 투명도 조정
+            html: `<p style='color:white; font-size:50px;'>${countdown.value}</p>`,
+            showConfirmButton: false,
+            background: "rgba(0, 0, 0, 0.3)",
+            backdrop: false,
             didOpen: () => {
                 startCountdown();
             },
@@ -158,14 +130,13 @@ const takePhoto = async () => {
     img.onerror = async (error) => {
         console.error("배경 로딩 에러 발생: ", error);
         await Swal.fire({
-            title: "@배경 오류 발생@", // Alert 제목
+            title: "@배경 오류 발생@",
             text: "해당 사진은 배경으로 사용할 수 없습니다!",
             icon: "warning",
         });
     };
 };
 
-// 사진 캡처 함수
 const capturePhoto = async () => {
     console.log("사진 캡처 시작");
     await nextTick();
@@ -173,16 +144,16 @@ const capturePhoto = async () => {
     html2canvas(captureArea.value, { useCORS: true, allowTaint: false })
         .then(async (canvas) => {
             const imageData = canvas.toDataURL("image/png");
-            images.value.push(imageData);
+            images.value.push({ src: imageData, visible: true });
             remainPicCnt.value = 10 - images.value.length;
             if (images.value.length === 10) {
                 const { value: result } = await Swal.fire({
-                    title: "사진 촬영 종료", // Alert 제목
+                    title: "사진 촬영 종료",
                     text: "10장을 모두 촬영하여 프레임 선택창으로 이동합니다!",
                     icon: "success",
                 });
                 if (result) {
-                    router.push("/");
+                    exitphoto();
                 }
             }
         })
@@ -191,9 +162,9 @@ const capturePhoto = async () => {
         });
 };
 
-// 촬영 종료
 const exitphoto = async () => {
     console.log("촬영종료");
+    console.log("저장할 이미지 리스트:", images.value);
 
     const { value: result } = await Swal.fire({
         title: "촬영 끝내기",
@@ -205,20 +176,21 @@ const exitphoto = async () => {
     });
 
     if (result) {
-        // 확인 버튼 클릭 시 실행되는 코드
-        Swal.fire("저장", "사진 선택 화면으로 이동합니다!", "success");
-        router.push("/"); // 사진 선택 화면으로 이동하도록 변경 필요
+        photoStore.setPhotoList(images.value);
+        console.log(
+            "Pinia store에 저장된 이미지 리스트:",
+            photoStore.photoList
+        );
+        router.push("/selectTemp");
     } else {
-        // 취소 버튼 클릭 시 실행되는 코드
         Swal.fire("취소", "촬영을 계속합니다!", "error");
     }
 };
 
-// 컴포넌트 변경을 위한 변수 1- 배경선택, 2 - 사진 보기
 const showtype = ref(1);
 
 const changeComponent = () => {
-    showtype.value = showtype.value === 1 ? 2 : 1; // showtype 토글
+    showtype.value = showtype.value === 1 ? 2 : 1;
     navigateTo(showtype.value === 1 ? "background" : "showphoto");
 };
 </script>
@@ -284,14 +256,14 @@ const changeComponent = () => {
                 <BoothBack class="booth-select-box">
                     <div class="select-box-top">
                         <button class="prev-btn" @click="changeComponent">
-                            &lt
+                            &lt;
                         </button>
                         <div class="box-name">
                             <p v-if="showtype === 1">배경선택</p>
                             <p v-if="showtype === 2">사진보기</p>
                         </div>
                         <button class="next-btn" @click="changeComponent">
-                            &gt
+                            &gt;
                         </button>
                     </div>
 
