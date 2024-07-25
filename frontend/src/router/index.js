@@ -10,7 +10,7 @@ const router = createRouter({
 		},
 		{
 			path: '/calendar',
-			name: 'calendarView',
+			name: 'CalendarView',
 			component: () => import('@/views/CalendarView.vue'),
 		},
 		{
@@ -22,6 +22,11 @@ const router = createRouter({
 			path: '/signup',
 			name: 'signup',
 			component: () => import('@/views/account/SignupView.vue'),
+		},
+		{
+			path: '/signup/email',
+			name: 'signupEmail',
+			component: () => import('@/views/account/SignupEmailView.vue'),
 		},
 		{
 			path: '/modifyAccount',
