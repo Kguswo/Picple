@@ -3,6 +3,13 @@ import FormInputComp from "@/components/form/FormInputComp.vue";
 import FormButtonComp from "@/components/form/FormButtonComp.vue";
 import { validateEmailBeforeSend, validateEmailCert } from "@/stores/validation";
 import { ref } from "vue";
+import { useRouter } from "vue-router";
+
+const props = defineProps({
+  path: String
+})
+
+const router = useRouter();
 
 const email = ref({ type: "email", label: "이메일", value: "" });
 const certNumber = ref({ type: "text", label: "인증번호", value: "" });
@@ -27,6 +34,7 @@ const certify = () => {
     return;
   }
   // todo: 다음 페이지로 이동
+  router.push(props.path);
 };
 </script>
 
