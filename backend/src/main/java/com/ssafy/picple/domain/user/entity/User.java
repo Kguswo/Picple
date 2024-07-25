@@ -30,7 +30,6 @@ public class User {
 	@Column(nullable = false, length = 21)
 	private String nickname;
 
-	@Column(nullable = false)
 	private boolean isDeleted;
 
 	@Builder

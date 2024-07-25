@@ -26,8 +26,13 @@ public class JWTInterceptor implements HandlerInterceptor {
             System.out.println("test token is null");
             throw new BaseException(EMPTY_JWT);
         } else if (!jwtUtil.verifyToken(token)) {
+            System.out.println("ERROR IN HERE");
             throw new BaseException(INVALID_JWT);
         }
+
+        Long userId = jwtUtil.getUserId(token);
+        request.setAttribute("userId", userId);
+
         return true;
     }
 }

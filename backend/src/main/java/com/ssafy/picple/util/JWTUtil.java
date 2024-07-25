@@ -22,15 +22,15 @@ public class JWTUtil {
     @Value("${jwt.refresh-token.expiretime}")
     private long refreshTokenExpireTime;
 
-    public String createAccessToken(int userId) {
+    public String createAccessToken(long userId) {
         return generateToken(userId, "access-token", accessTokenExpireTime);
     }
 
-    public String createRefreshToken(int userId) {
+    public String createRefreshToken(long userId) {
         return generateToken(userId, "refresh-token", refreshTokenExpireTime);
     }
 
-    private String generateToken(int userId, String subject, long expireTime) {
+    private String generateToken(long userId, String subject, long expireTime) {
         Claims claims = Jwts.claims()
                 .setSubject(subject)
                 .setIssuedAt(new Date())
@@ -52,7 +52,7 @@ public class JWTUtil {
         byte[] key = null;
         try {
             key = salt.getBytes("UTF-8");
-        } catch (Exception e) {
+        } catch (Exception ignored) {
 
         }
         return key;
@@ -78,23 +78,39 @@ public class JWTUtil {
                 .parseClaimsJws(accessToken)
                 .getBody()
                 .getExpiration();
-        Long now = new Date().getTime();
+        long now = new Date().getTime();
         return (expiration.getTime() - now) / 1000;
     }
 
+    public void logout(String token, Long expireTime) throws BaseException {
+        try {
+            Jws<Claims> claims = Jwts.parserBuilder()
+                    .setSigningKey(this.generateKey())
+                    .build()
+                    .parseClaimsJws(token);
+
+            Date expiration = claims.getBody().getExpiration();
+            if (expiration.before(new Date())) {
+                throw new BaseException(INVALID_JWT); // 사용자 정의 예외
+            }
+        } catch (JwtException e) {
+            throw new BaseException(JWT_GET_USER_ERROR);
+        }
+    }
+
     // user index 반환
-    public int getUserId(String authorization) throws BaseException {
+    public Long getUserId(String token) throws BaseException {
         Jws<Claims> claims = null;
         try {
             claims = Jwts.parserBuilder()
                     .setSigningKey(this.generateKey())
                     .build()
-                    .parseClaimsJws(authorization);
+                    .parseClaimsJws(token);
         } catch (Exception e) {
             throw new BaseException(JWT_GET_USER_ERROR);
         }
         Map<String, Object> value = claims.getBody();
-        return (int) value.get("userId");
+        return (Long) value.get("userId");
     }
 
 }
