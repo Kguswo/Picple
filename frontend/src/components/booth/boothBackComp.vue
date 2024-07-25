@@ -9,8 +9,7 @@
 </template>
 
 <style scoped>
-
-.booth-create{
+.booth-create {
     background-color: rgba(124, 124, 124, 0.232);
     width: 90%;
     height: 90%;
@@ -18,14 +17,14 @@
     border-radius: 20px;
 }
 
-.booth-select-box{
+.booth-select-box {
     background-color: rgba(124, 124, 124, 0.232);
     width: 20%;
     height: 90%;
 
     border-radius: 20px;
 }
-.booth-camera-box{
+.booth-camera-box {
     background-color: rgba(124, 124, 124, 0.232);
     width: 75%;
     height: 90%;
@@ -33,8 +32,21 @@
     border-radius: 20px;
 }
 
-.booth-background {
+.booth-temp-box {
+    background-color: rgba(124, 124, 124, 0.232);
+    width: 62%;
+    height: 90%;
+    border-radius: 20px;
+}
 
+.booth-img-box {
+    background-color: rgba(124, 124, 124, 0.232);
+    width: 28%;
+    height: 90%;
+    border-radius: 20px;
+}
+
+.booth-background {
     /* display */
     display: flex;
     flex-direction: column;
@@ -46,6 +58,5 @@
 
     height: 100%;
     width: 100%;
-
 }
 </style>
