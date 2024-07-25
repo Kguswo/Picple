@@ -30,8 +30,8 @@ const navigateTo = (path) => {
 <template>
   <FormComp title="로그인">
     <form class="form-content" @keyup.enter="login">
-      <FormInputComp :params="email" ref="emailField" name="username" />
-      <FormInputComp :params="password" ref="passwordField" class="mt-10" name="current-password" />
+      <FormInputComp :params="email" ref="emailField" />
+      <FormInputComp :params="password" ref="passwordField" class="mt-10" />
 
       <FormButtonComp size="big" @click="login">로그인</FormButtonComp>
 
