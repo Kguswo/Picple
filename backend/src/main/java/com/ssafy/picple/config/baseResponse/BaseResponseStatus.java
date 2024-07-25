@@ -51,6 +51,7 @@ public enum BaseResponseStatus {
 	DELETE_BACKGROUND_ERROR(false, 3203, "배경 사진 삭제에 실패하였습니다."),
 	AI_BACKGROUND_GENERATION_ERROR(false, 3204, "AI 배경 사진 생성에 실패하였습니다."),
 	LOCAL_BACKGROUND_UPLOAD_ERROR(false, 3205, "로컬 배경 사진 추가에 실패하였습니다."),
+	NOT_FOUND_PHOTO(false, 3206, "사진을 찾을 수 없습니다."),
 
 	/**
 	 * 4000 : Database, Server
