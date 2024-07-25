@@ -14,19 +14,13 @@ const emitImage = (image) => {
 
 //임시 이미지
 const images = ref([
-    'https://via.placeholder.com/400',
-    'https://via.placeholder.com/400/ff7f7f/333333?text=Image+1',
-    'https://via.placeholder.com/400/7f7fff/333333?text=Image+2',
-    'https://via.placeholder.com/400/7fff7f/333333?text=Image+3',
-    'https://via.placeholder.com/400',
-    'https://via.placeholder.com/400/ff7f7f/333333?text=Image+1',
-    'https://via.placeholder.com/400/7f7fff/333333?text=Image+2',
-    'https://via.placeholder.com/400/7fff7f/333333?text=Image+3',
-    'https://via.placeholder.com/400',
-    'https://via.placeholder.com/400/ff7f7f/333333?text=Image+1',
-    'https://via.placeholder.com/400/7f7fff/333333?text=Image+2',
-    'https://via.placeholder.com/400/7fff7f/333333?text=Image+3',
-    '@/assets/img/tempImg.png'
+    'https://i.crepe.land/https://crepe.land/portfolio/q/qe/qenpmy8g9uzxsmqi0q4u5qw7ijk0y954_%EC%97%85%EB%A1%9C%EB%93%9C%EC%9A%A93.jpg?q=100&t=i&v=3a&w=800',
+    'https://gongu.copyright.or.kr/gongu/wrt/cmmn/wrtFileImageView.do?wrtSn=11288733&filePath=L2Rpc2sxL25ld2RhdGEvMjAxNS8wMi9DTFM2OS9OVVJJXzAwMV8wMjE5X251cmltZWRpYV8yMDE1MTIwMw==&thumbAt=Y&thumbSe=b_tbumb&wrtTy=10006',
+    'https://github.com/user-attachments/assets/4e03d0e8-e626-4ab7-b6a2-10cce836d059',
+    'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQcdHa-pocMXaC3uCdCP89WIAfHyeqCMfRF6Q&s',
+    'https://d2v80xjmx68n4w.cloudfront.net/gigs/g6pZU1704354867.jpg',
+    'https://gongu.copyright.or.kr/gongu/wrt/cmmn/wrtFileImageView.do?wrtSn=11288960&filePath=L2Rpc2sxL25ld2RhdGEvMjAxNS8wMi9DTFM2OS9OVVJJXzAwMV8wNDQ2X251cmltZWRpYV8yMDE1MTIwMw==&thumbAt=Y&thumbSe=b_tbumb&wrtTy=10006',
+    'https://marketplace.canva.com/EAD2xI0GoM0/1/0/1600w/canva-%ED%95%98%EB%8A%98-%EC%95%BC%EC%99%B8-%EC%9E%90%EC%97%B0-%EC%98%81%EA%B0%90-%EC%9D%B8%EC%9A%A9%EB%AC%B8-%EB%8D%B0%EC%8A%A4%ED%81%AC%ED%86%B1-%EB%B0%B0%EA%B2%BD%ED%99%94%EB%A9%B4-rssvAb9JL4I.jpg',
   ]);
 
 
