@@ -22,6 +22,7 @@ public class PhotoServiceImpl implements PhotoService {
 	private final CalendarRepository calendarRepository;
 	private final UserRepository userRepository;
 
+	// 사진 저장
 	@Override
 	public Photo insertPhoto(Photo photo) {
 		Long userId = getUserId();

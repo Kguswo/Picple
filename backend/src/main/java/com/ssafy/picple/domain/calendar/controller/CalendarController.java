@@ -21,6 +21,7 @@ public class CalendarController {
 
 	private final CalendarService calendarService;
 
+	// 캘린더에서 보드로 공유
 	@PostMapping("/{calendarId}")
 	public BaseResponse<?> shareCalendar(@PathVariable("calendarId") Long calendarId) {
 		try {
@@ -35,6 +36,7 @@ public class CalendarController {
 		}
 	}
 
+	// 캘린더에서 사진 삭제
 	@DeleteMapping("/{calendarId}")
 	public BaseResponse<?> deleteCalendar(@PathVariable("calendarId") Long calendarId) {
 		try {

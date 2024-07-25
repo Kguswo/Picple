@@ -23,6 +23,7 @@ public class CalendarServiceImpl implements CalendarService {
 	private final BoardRepository boardRepository;
 	private final PhotoRepository photoRepository;
 
+	// 캘린더에서 보드로 공유하기
 	public void sharePhoto(Long calendarId) {
 		Calendar calendar = calendarRepository.findById(calendarId)
 				.orElseThrow(() -> new IllegalArgumentException(BaseResponseStatus.GET_CALENDAR_EMPTY.getMessage()));
@@ -51,6 +52,7 @@ public class CalendarServiceImpl implements CalendarService {
 		boardRepository.save(board);
 	}
 
+	// 캘린더에서 사진 삭제
 	public void deleteCalendar(Long calendarId) {
 		Calendar calendar = calendarRepository.findById(calendarId)
 				.orElseThrow(() -> new IllegalArgumentException(BaseResponseStatus.GET_CALENDAR_EMPTY.getMessage()));

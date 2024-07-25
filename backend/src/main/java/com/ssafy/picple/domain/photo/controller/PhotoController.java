@@ -25,6 +25,7 @@ public class PhotoController {
 	private final PhotoService photoService;
 	private final S3FileUploadService s3FileUploadService;
 
+	// 사진 저장
 	@PostMapping(value = "", consumes = "multipart/form-data")
 	public BaseResponse<?> savePhoto(@RequestPart("photo") @Valid Photo photo,
 			@RequestPart("file") MultipartFile file) {
