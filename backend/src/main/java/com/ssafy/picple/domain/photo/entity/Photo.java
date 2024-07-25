@@ -31,11 +31,11 @@ public class Photo {
 	@Column(nullable = false)
 	private boolean isDeleted;
 
-    @Builder
-    public Photo(String photoUrl, boolean isShared, boolean isDeleted) {
-        this.photoUrl = photoUrl;
-        this.isShared = isShared;
-        this.isDeleted = isDeleted;
-    }
+	@Builder
+	public Photo(String photoUrl, boolean isShared, boolean isDeleted) {
+		this.photoUrl = photoUrl;
+		this.isShared = isShared;
+		this.isDeleted = isDeleted;
+	}
 
 }

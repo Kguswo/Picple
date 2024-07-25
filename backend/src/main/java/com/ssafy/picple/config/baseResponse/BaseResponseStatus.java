@@ -9,6 +9,9 @@ public enum BaseResponseStatus {
 	 */
 	SUCCESS(true, 1000, "요청에 성공하였습니다."),
 
+	/**
+	 * 2000 : Request 오류
+	 */
 	// Common
 	REQUEST_ERROR(false, 2000, "입력값을 확인해주세요."),
 	EMPTY_JWT(false, 2001, "JWT를 입력해주세요."),
@@ -23,9 +26,27 @@ public enum BaseResponseStatus {
 	// Common
 	RESPONSE_ERROR(false, 3000, "값을 불러오는데 실패하였습니다."),
 
-	// 3100 ~~ 3199 : 김현재
+    // 3001 ~~ 3099 : 박성훈
+    // 3001 ~~ 3015 : about email
+    DUPLICATED_USER_EMAIL(false, 3002, "해당 이메일이 이미 존재합니다."),
+    DUPLICATED_USER_NICKNAME(false, 3003, "해당 닉네임이 이미 존재합니다."),
+    EMAIL_SEND_ERROR(false, 3003, "이메일 발송 중 문제가 생겼습니다."),
+    USER_EMAIL_EMPTY(false, 3004, "이메일을 입력해주세요."),
+    NOT_EQUAL_EMAIL_CODE(false, 3005, "인증 코드를 확인하세요."),
+    NOT_EXISTS_CODE(false, 3006, "인증을 다시 시도하여 주십시오."),
 
-	// 3201 ~~ 3299 : 염규영
+    // about user service
+    GET_USER_EMPTY(false, 3016, "등록된 유저가 없습니다."),
+    FAILED_USER_SIGNUP(false, 3017, "등록된 유저가 없습니다."),
+    NOT_FOUND_USER(false, 3018, "값을 불러오는데 실패하였습니다."),
+    INVALID_PASSWORD(false, 3019, "비밀번호가 일치하지 않습니다."),
+
+	// 3100 ~~ 3199 : 김현재
+	GET_LIKE_EMPTY(false, 3101, "좋아요 기록이 없습니다."),
+	ALREADY_LIKED(false, 3102, "이미 좋아요 한 상태입니다."),
+	ALREADY_UNLIKED(false, 3102, "이미 좋아요 한 상태입니다."),
+
+    // 3200 ~~ 3299 : 염규영
 	GET_USER_EMPTY(false, 3201, "등록된 유저가 없습니다."),
 	INVALID_BACKGROUND_ID(false, 3202, "올바르지 않은 배경화면 ID입니다."),
 	DELETE_BACKGROUND_ERROR(false, 3203, "배경 사진 삭제에 실패하였습니다."),

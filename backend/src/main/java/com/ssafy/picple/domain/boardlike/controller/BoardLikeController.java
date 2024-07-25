@@ -1,0 +1,48 @@
+package com.ssafy.picple.domain.boardlike.controller;
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.ssafy.picple.config.baseResponse.BaseResponse;
+import com.ssafy.picple.config.baseResponse.BaseResponseStatus;
+import com.ssafy.picple.domain.boardlike.service.BoardLikeService;
+
+import lombok.RequiredArgsConstructor;
+
+@RestController
+@RequiredArgsConstructor
+@RequestMapping("/like")
+public class BoardLikeController {
+
+	private final BoardLikeService likeService;
+
+	@GetMapping("/{boardId}")
+	public BaseResponse<Boolean> isPhotoLikedByUser(@PathVariable Long boardId, @RequestParam Long userId) {
+		boolean isLiked = likeService.isPhotoLikedByUser(boardId, userId);
+		return new BaseResponse<>(isLiked);
+	}
+
+	@PatchMapping("/{boardId}")
+	public BaseResponse<?> changeIsLiked(@PathVariable Long boardId, @RequestParam(required = false) Long userId) {
+		if (userId == null) {
+			return new BaseResponse<>(BaseResponseStatus.GET_USER_EMPTY);
+		}
+		try {
+			boolean isLiked = likeService.isPhotoLikedByUser(boardId, userId);
+			if (isLiked) {
+				likeService.unlikePhoto(boardId, userId);
+			} else {
+				likeService.likePhoto(boardId, userId);
+			}
+			return new BaseResponse<>(BaseResponseStatus.SUCCESS);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new BaseResponse<>(BaseResponseStatus.RESPONSE_ERROR);
+		}
+	}
+
+}

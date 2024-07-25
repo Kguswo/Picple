@@ -1,23 +1,30 @@
 package com.ssafy.picple.config.baseResponse;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-@ControllerAdvice
+@RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public BaseResponse<String> handleValidationExceptions(MethodArgumentNotValidException ex) {
+        FieldError fieldError = ex.getBindingResult().getFieldError();
+        String errorMessage = fieldError != null ? fieldError.getDefaultMessage() : "유효성 검사 오류";
+
+        BaseResponse<String> response = new BaseResponse<>(BaseResponseStatus.REQUEST_ERROR);
+
+        return response;
+    }
+
     @ExceptionHandler(BaseException.class)
-    public ResponseEntity<BaseResponse<String>> handleBaseException(BaseException ex) {
-        BaseResponse<String> response = new BaseResponse<>(ex.getStatus());
-        return new ResponseEntity<>(response, HttpStatus.valueOf(ex.getStatus().getCode()));
+    public BaseResponse<String> handleBaseException(BaseException ex) {
+        return new BaseResponse<>(ex.getStatus());
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<BaseResponse<String>> handleGeneralException(Exception ex) {
-        BaseResponse<String> response = new BaseResponse<>(BaseResponseStatus.SERVER_ERROR);
-        return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+    public BaseResponse<String> handleGeneralException(Exception ex) {
+        return new BaseResponse<>(BaseResponseStatus.SERVER_ERROR);
     }
 }
-
