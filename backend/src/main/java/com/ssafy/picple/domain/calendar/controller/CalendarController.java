@@ -1,7 +1,11 @@
 package com.ssafy.picple.domain.calendar.controller;
 
+import java.time.LocalDate;
+import java.util.List;
+
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -9,35 +13,71 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.ssafy.picple.config.baseResponse.BaseResponse;
 import com.ssafy.picple.config.baseResponse.BaseResponseStatus;
+import com.ssafy.picple.domain.calendar.entity.Calendar;
+import com.ssafy.picple.domain.calendar.repository.CalendarRepository;
 import com.ssafy.picple.domain.calendar.service.CalendarService;
 
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@Transactional
 @RequiredArgsConstructor
 @RequestMapping("/calendar")
 public class CalendarController {
 
 	private final CalendarService calendarService;
+	private final CalendarRepository calendarRepository;
 
-	// 캘린더에서 보드로 공유
-	@PostMapping("/{calendarId}")
-	public BaseResponse<?> shareCalendar(@PathVariable("calendarId") Long calendarId) {
+	// 캘린더 전체 조회
+	@GetMapping
+	@Transactional(readOnly = true)
+	public BaseResponse<List<Calendar>> getAllCalendars() {
 		try {
-			calendarService.sharePhoto(calendarId);
+			List<Calendar> calendars = calendarService.getAllCalendars();
+			return new BaseResponse<>(calendars);
+		} catch (Exception e) {
+			return new BaseResponse<>(BaseResponseStatus.DATABASE_ERROR);
+		}
+	}
+
+	// 캘린더 일별 정보 조회
+	@GetMapping("/daily/{userId}/{year}/{month}/{day}")
+	public BaseResponse<List<Calendar>> getDailyCalendars(Long userId, LocalDate createdAt) {
+		List<Calendar> calendars = calendarRepository.findByUserIdAndCreatedAt(userId, createdAt);
+
+	}
+
+	// 캘린더 선택 사진별 설명 작성
+	@PostMapping("/{calendarId}/content")
+	public BaseResponse<BaseResponseStatus> addContent(
+			@PathVariable Long calendarId,
+			@RequestBody String description) {
+		try {
+			calendarService.addContent(calendarId, description);
 			return new BaseResponse<>(BaseResponseStatus.SUCCESS);
-		} catch (IllegalStateException e) {
-			return new BaseResponse<>(BaseResponseStatus.ALREADY_SHARED);
 		} catch (IllegalArgumentException e) {
 			return new BaseResponse<>(BaseResponseStatus.GET_CALENDAR_EMPTY);
 		} catch (Exception e) {
+			return new BaseResponse<>(BaseResponseStatus.DATABASE_ERROR);
+		}
+	}
+
+	// 캘린더에서 보드로 공유
+	@PostMapping("/{calendarId}")
+	@Transactional
+	public BaseResponse<BaseResponseStatus> shareCalendar(@PathVariable("calendarId") Long calendarId) {
+
+		try {
+			calendarService.sharePhoto(calendarId);
+			return new BaseResponse<>(BaseResponseStatus.SUCCESS);
+		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
+
 	}
 
 	// 캘린더에서 사진 삭제
 	@DeleteMapping("/{calendarId}")
+	@Transactional
 	public BaseResponse<?> deleteCalendar(@PathVariable("calendarId") Long calendarId) {
 		try {
 			calendarService.deleteCalendar(calendarId);
