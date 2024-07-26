@@ -41,4 +41,8 @@ public class User {
 		this.isDeleted = isDeleted;
 	}
 
+	public void setPasswordEncoding(String password) {
+		this.password = password;
+	}
+
 }
