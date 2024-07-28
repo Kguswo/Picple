@@ -49,10 +49,8 @@ public class CalendarController {
 
 	// 캘린더 일별 정보 조회
 	@GetMapping("/daily")
-	public BaseResponse<List<CalendarDto>> getDailyCalendars(@PathVariable Long userId, @PathVariable int year,
-															 @PathVariable int month, @PathVariable int day) {
+	public BaseResponse<List<CalendarDto>> getDailyCalendars(@PathVariable Long userId, @PathVariable LocalDate date) {
 		try {
-			LocalDate date = LocalDate.of(year, month, day);
 			List<CalendarDto> calendars = calendarService.getDailyCalendars(userId, date);
 			return new BaseResponse<>(calendars);
 		} catch (Exception e) {
