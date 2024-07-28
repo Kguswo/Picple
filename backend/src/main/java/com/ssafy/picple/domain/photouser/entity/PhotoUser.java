@@ -4,19 +4,17 @@ import com.ssafy.picple.domain.photo.entity.Photo;
 import com.ssafy.picple.domain.user.entity.User;
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
 @Getter
+@Setter
 @Table(name = "photo_user")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class PhotoUser {
 
 	@Id
-	@Column(name = "photo_user")
+	@Column(name = "photo_user_id")
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
