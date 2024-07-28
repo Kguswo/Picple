@@ -1,6 +1,7 @@
 package com.ssafy.picple.domain.calendar.repository;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -18,7 +19,9 @@ public interface CalendarRepository extends JpaRepository<Calendar, Long> {
 	List<Calendar> findByUserIdAndCreatedAt(@Param("userId") Long userId, @Param("createdAt") LocalDate createdAt);
 
 	// 특정 사용자의 특정 년월에 해당하는 각 날짜별 캘린더 항목 개수 조회 - LocalDateTime -> LocalDate
-	@Query("SELECT COUNT(c) FROM Calendar c WHERE c.user.id = :userId AND c.photo.isDeleted = false AND DATE(c.createdAt) = :createdAt")
-	Long countByUserIdAndDate(@Param("userId") Long userId, @Param("createdAt") LocalDate date);
+	@Query(value = "SELECT COUNT(*) FROM Calendar c " +
+			"JOIN Photo p ON c.photo_id = p.photo_id " +
+			"WHERE c.user_id = :userId AND p.is_deleted = false AND DATE(c.created_at) = :createdAt", nativeQuery = true)
+	Long countByUserIdAndDate(@Param("userId") Long userId, @Param("createdAt") LocalDate createdAt);
 
 }

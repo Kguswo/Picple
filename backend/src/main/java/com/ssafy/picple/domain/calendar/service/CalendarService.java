@@ -1,15 +1,13 @@
 package com.ssafy.picple.domain.calendar.service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import com.ssafy.picple.domain.calendar.dto.CalendarDto;
 import com.ssafy.picple.domain.calendar.entity.Calendar;
 
 public interface CalendarService {
-
-	// 캘린더 전체 조회
-	List<Calendar> getAllCalendars();
 
 	// 캘린더 날짜(년월일)별 사진 개수 조회
 	Long getPhotoCounts(Long userId, LocalDate createdAt);

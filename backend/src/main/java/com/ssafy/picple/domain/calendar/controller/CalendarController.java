@@ -1,8 +1,11 @@
 package com.ssafy.picple.domain.calendar.controller;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,23 +24,15 @@ public class CalendarController {
 
 	private final CalendarService calendarService;
 
-	// 캘린더 전체 조회
-	@GetMapping
-	@Transactional(readOnly = true)
-	public BaseResponse<List<Calendar>> getAllCalendars() {
-		try {
-			List<Calendar> calendars = calendarService.getAllCalendars();
-			return new BaseResponse<>(calendars);
-		} catch (Exception e) {
-			return new BaseResponse<>(BaseResponseStatus.DATABASE_ERROR);
-		}
-	}
-
 	// 캘린더 날짜(년월일)별 사진 개수 조회
 	@GetMapping("/counts")
 	@Transactional(readOnly = true)
-	public BaseResponse<Long> getPhotoCounts(@RequestParam("userId") Long userId, @RequestParam("date") LocalDate date) {
+	public BaseResponse<Long> getPhotoCounts(@RequestParam("userId") Long userId, @RequestParam("createdAt") String createdAt) {
 		try {
+			// 문자열 파싱 후, LocalDateTime -> LocalDate
+			LocalDateTime dateTime = LocalDateTime.parse(createdAt, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+			LocalDate date = dateTime.toLocalDate();
+
 			Long count = calendarService.getPhotoCounts(userId, date);
 			return new BaseResponse<>(count);
 		} catch (Exception e) {
@@ -47,8 +42,10 @@ public class CalendarController {
 
 	// 캘린더 일별 정보 조회
 	@GetMapping("/daily")
-	public BaseResponse<List<CalendarDto>> getDailyCalendars(@RequestParam Long userId, @RequestParam LocalDate date) {
+	public BaseResponse<List<CalendarDto>> getDailyCalendars(@RequestParam Long userId, @RequestParam("createdAt") String createdAt) {
 		try {
+			// 문자열 파싱
+			LocalDate date = LocalDate.parse(createdAt, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 			List<CalendarDto> calendars = calendarService.getDailyCalendars(userId, date);
 			return new BaseResponse<>(calendars);
 		} catch (Exception e) {
@@ -56,23 +53,19 @@ public class CalendarController {
 		}
 	}
 
-	// 캘린더 선택 사진별 설명
-	@PostMapping("/content/{calendarId}")
-	public BaseResponse<BaseResponseStatus> updateContent(
-			@PathVariable Long calendarId,
-			@RequestBody String content) {
+	// 캘린더 선택 사진별 설명 작성
+	@PostMapping("/{calendarId}")
+	public BaseResponse<BaseResponseStatus> updateContent(@PathVariable Long calendarId, @RequestParam String content) {
 		try {
 			calendarService.updateContent(calendarId, content);
 			return new BaseResponse<>(BaseResponseStatus.SUCCESS);
-		} catch (IllegalArgumentException e) {
-			return new BaseResponse<>(BaseResponseStatus.GET_PHOTO_USER_EMPTY);
 		} catch (Exception e) {
 			return new BaseResponse<>(BaseResponseStatus.DATABASE_ERROR);
 		}
 	}
 
 	// 캘린더에서 보드로 공유
-	@PostMapping("/{calendarId}")
+	@PostMapping("/share/{calendarId}")
 	@Transactional
 	public BaseResponse<BaseResponseStatus> shareCalendar(@PathVariable("calendarId") Long calendarId) {
 
@@ -92,8 +85,6 @@ public class CalendarController {
 		try {
 			calendarService.deleteCalendar(calendarId);
 			return new BaseResponse<>(BaseResponseStatus.SUCCESS);
-		} catch (IllegalArgumentException e) {
-			return new BaseResponse<>(BaseResponseStatus.GET_CALENDAR_EMPTY);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
