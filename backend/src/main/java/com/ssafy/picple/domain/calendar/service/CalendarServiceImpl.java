@@ -1,6 +1,7 @@
 package com.ssafy.picple.domain.calendar.service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -30,13 +31,6 @@ public class CalendarServiceImpl implements CalendarService {
 	private final PhotoRepository photoRepository;
 	private final PhotoUserRepository photoUserRepository;
 
-	// 캘린더 전체 조회
-	@Override
-	@Transactional(readOnly = true)
-	public List<Calendar> getAllCalendars() {
-		return calendarRepository.findAll();
-	}
-
 	// 캘린더 날짜(년월일)별 사진 개수 조회
 	@Override
 	@Transactional(readOnly = true)
@@ -65,7 +59,8 @@ public class CalendarServiceImpl implements CalendarService {
 				}).collect(Collectors.toList());
 	}
 
-	// 캘린더 선택 사진별 설명 작성, 기본 null
+	// 캘린더 선택 사진별 설명 작성
+	// 로그인 유저와 선택캘린더 userId 비교후 하려했지만 이미 캘린더 페이지는 로그인 체크를 마쳤기에 패스
 	@Override
 	@Transactional
 	public void updateContent(Long calendarId, String content) {
@@ -75,14 +70,10 @@ public class CalendarServiceImpl implements CalendarService {
 		User user = calendar.getUser();
 		PhotoUser photoUser = photoUserRepository.findByPhotoIdAndUserId(photo.getId(), user.getId()); // 특정 사용자의 특정 사진 content찾기
 
-		if (photoUser == null) {
-			throw new IllegalArgumentException(BaseResponseStatus.GET_PHOTO_USER_EMPTY.getMessage());
+		if (photoUser != null) {
+			photoUser.setContent(content);
 		} else {
-			photoUser = PhotoUser.builder()
-					.photo(photoUser.getPhoto())
-					.user(photoUser.getUser())
-					.content(content)
-					.build();
+			throw new IllegalArgumentException(BaseResponseStatus.GET_PHOTO_USER_EMPTY.getMessage());
 		}
 
 		photoUserRepository.save(photoUser);
