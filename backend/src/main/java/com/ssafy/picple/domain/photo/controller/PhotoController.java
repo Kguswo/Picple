@@ -4,9 +4,7 @@ import com.ssafy.picple.domain.photouser.entity.PhotoUser;
 import com.ssafy.picple.domain.photouser.repository.PhotoUserRepository;
 import com.ssafy.picple.domain.user.entity.User;
 import com.ssafy.picple.domain.user.repository.UserRepository;
-import com.ssafy.picple.domain.user.service.UserService;
 import com.ssafy.picple.util.JWTUtil;
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
