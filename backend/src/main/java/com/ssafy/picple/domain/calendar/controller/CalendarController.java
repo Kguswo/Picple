@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.*;
 import com.ssafy.picple.config.baseResponse.BaseResponse;
 import com.ssafy.picple.config.baseResponse.BaseResponseStatus;
 import com.ssafy.picple.domain.calendar.entity.Calendar;
-import com.ssafy.picple.domain.calendar.repository.CalendarRepository;
 import com.ssafy.picple.domain.calendar.service.CalendarService;
 import com.ssafy.picple.domain.calendar.dto.CalendarDto;
 
@@ -48,7 +47,7 @@ public class CalendarController {
 
 	// 캘린더 일별 정보 조회
 	@GetMapping("/daily")
-	public BaseResponse<List<CalendarDto>> getDailyCalendars(@PathVariable Long userId, @PathVariable LocalDate date) {
+	public BaseResponse<List<CalendarDto>> getDailyCalendars(@PathVariable("userId") Long userId, @PathVariable("date") LocalDate date) {
 		try {
 			List<CalendarDto> calendars = calendarService.getDailyCalendars(userId, date);
 			return new BaseResponse<>(calendars);
