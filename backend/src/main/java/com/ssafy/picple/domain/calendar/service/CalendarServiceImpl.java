@@ -65,34 +65,27 @@ public class CalendarServiceImpl implements CalendarService {
 				}).collect(Collectors.toList());
 	}
 
-	// 캘린더 선택 사진별 설명 작성
+	// 캘린더 선택 사진별 설명 작성, 기본 null
 	@Override
 	@Transactional
-	public void addContent(Long calendarId, String description) {
+	public void updateContent(Long calendarId, String content) {
 		Calendar calendar = calendarRepository.findById(calendarId)
 				.orElseThrow(() -> new IllegalArgumentException(BaseResponseStatus.GET_CALENDAR_EMPTY.getMessage()));
-		calendar.setDescription(description);
-		calendarRepository.save(calendar);
-	}
+		Photo photo = calendar.getPhoto();
+		User user = calendar.getUser();
+		PhotoUser photoUser = photoUserRepository.findByPhotoIdAndUserId(photo.getId(), user.getId()); // 특정 사용자의 특정 사진 content찾기
 
-	// 캘린더 선택 사진별 설명 수정
-	@Override
-	@Transactional
-	public void modifyContent(Long calendarId, String description) {
-		Calendar calendar = calendarRepository.findById(calendarId)
-				.orElseThrow(() -> new IllegalArgumentException(BaseResponseStatus.GET_CALENDAR_EMPTY.getMessage()));
-		calendar.setDescription(description);
-		calendarRepository.save(calendar);
-	}
+		if (photoUser == null) {
+			throw new IllegalArgumentException(BaseResponseStatus.GET_PHOTO_USER_EMPTY.getMessage());
+		} else {
+			photoUser = PhotoUser.builder()
+					.photo(photoUser.getPhoto())
+					.user(photoUser.getUser())
+					.content(content)
+					.build();
+		}
 
-	// 캘린더 선택 사진별 설명 삭제
-	@Override
-	@Transactional
-	public void deleteContent(Long calendarId) {
-		Calendar calendar = calendarRepository.findById(calendarId)
-				.orElseThrow(() -> new IllegalArgumentException(BaseResponseStatus.GET_CALENDAR_EMPTY.getMessage()));
-		calendar.setDescription(null);
-		calendarRepository.save(calendar);
+		photoUserRepository.save(photoUser);
 	}
 
 	// 캘린더에서 보드로 공유하기

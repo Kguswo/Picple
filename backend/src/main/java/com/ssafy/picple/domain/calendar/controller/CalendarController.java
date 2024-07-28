@@ -4,18 +4,14 @@ import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.ssafy.picple.config.baseResponse.BaseResponse;
 import com.ssafy.picple.config.baseResponse.BaseResponseStatus;
 import com.ssafy.picple.domain.calendar.entity.Calendar;
 import com.ssafy.picple.domain.calendar.repository.CalendarRepository;
 import com.ssafy.picple.domain.calendar.service.CalendarService;
+import com.ssafy.picple.domain.calendar.dto.CalendarDto;
 
 import lombok.RequiredArgsConstructor;
 
@@ -39,23 +35,41 @@ public class CalendarController {
 		}
 	}
 
-	// 캘린더 일별 정보 조회
-	@GetMapping("/daily/{userId}/{year}/{month}/{day}")
-	public BaseResponse<List<Calendar>> getDailyCalendars(Long userId, LocalDate createdAt) {
-		List<Calendar> calendars = calendarRepository.findByUserIdAndCreatedAt(userId, createdAt);
-
+	// 캘린더 날짜(년월일)별 사진 개수 조회
+	@GetMapping("/counts")
+	@Transactional(readOnly = true)
+	public BaseResponse<Long> getPhotoCounts(@RequestParam("userId") Long userId, @RequestParam("date") LocalDate date) {
+		try {
+			Long count = calendarService.getPhotoCounts(userId, date);
+			return new BaseResponse<>(count);
+		} catch (Exception e) {
+			return new BaseResponse<>(BaseResponseStatus.DATABASE_ERROR);
+		}
 	}
 
-	// 캘린더 선택 사진별 설명 작성
-	@PostMapping("/{calendarId}/content")
-	public BaseResponse<BaseResponseStatus> addContent(
-			@PathVariable Long calendarId,
-			@RequestBody String description) {
+	// 캘린더 일별 정보 조회
+	@GetMapping("/daily")
+	public BaseResponse<List<CalendarDto>> getDailyCalendars(@PathVariable Long userId, @PathVariable int year,
+															 @PathVariable int month, @PathVariable int day) {
 		try {
-			calendarService.addContent(calendarId, description);
+			LocalDate date = LocalDate.of(year, month, day);
+			List<CalendarDto> calendars = calendarService.getDailyCalendars(userId, date);
+			return new BaseResponse<>(calendars);
+		} catch (Exception e) {
+			return new BaseResponse<>(BaseResponseStatus.DATABASE_ERROR);
+		}
+	}
+
+	// 캘린더 선택 사진별 설명
+	@PostMapping("/content/{calendarId}")
+	public BaseResponse<BaseResponseStatus> updateContent(
+			@PathVariable Long calendarId,
+			@RequestBody String content) {
+		try {
+			calendarService.updateContent(calendarId, content);
 			return new BaseResponse<>(BaseResponseStatus.SUCCESS);
 		} catch (IllegalArgumentException e) {
-			return new BaseResponse<>(BaseResponseStatus.GET_CALENDAR_EMPTY);
+			return new BaseResponse<>(BaseResponseStatus.GET_PHOTO_USER_EMPTY);
 		} catch (Exception e) {
 			return new BaseResponse<>(BaseResponseStatus.DATABASE_ERROR);
 		}

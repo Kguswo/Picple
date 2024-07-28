@@ -18,13 +18,7 @@ public interface CalendarService {
 	List<CalendarDto> getDailyCalendars(Long userId, LocalDate createdAt);
 
 	// 캘린더 선택 사진별 설명 작성
-	void addContent(Long calendarId, String content);
-
-	// 캘린더 선택 사진별 설명 수정
-	void modifyContent(Long calendarId, String description);
-
-	// 캘린더 선택 사진별 설명 삭제
-	void deleteContent(Long calendarId);
+	void updateContent(Long calendarId, String content);
 
 	// 캘린더에서 보드로 공유하기
 	void sharePhoto(Long calendarId);
