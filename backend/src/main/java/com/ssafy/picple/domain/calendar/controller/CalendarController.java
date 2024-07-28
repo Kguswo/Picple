@@ -21,7 +21,6 @@ import lombok.RequiredArgsConstructor;
 public class CalendarController {
 
 	private final CalendarService calendarService;
-	private final CalendarRepository calendarRepository;
 
 	// 캘린더 전체 조회
 	@GetMapping
