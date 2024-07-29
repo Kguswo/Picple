@@ -97,7 +97,6 @@ public class CalendarServiceImpl implements CalendarService {
 		}
 
 		Photo sharedPhoto = Photo.builder()
-				.id(photo.getId())
 				.photoUrl(photo.getPhotoUrl())
 				.isShared(true)
 				.isDeleted(photo.isDeleted())

@@ -32,8 +32,7 @@ public class Photo {
 	private boolean isDeleted;
 
 	@Builder
-	public Photo(Long id, String photoUrl, boolean isShared, boolean isDeleted) {
-		this.id = id;
+	public Photo(String photoUrl, boolean isShared, boolean isDeleted) {
 		this.photoUrl = photoUrl;
 		this.isShared = isShared;
 		this.isDeleted = isDeleted;
