@@ -3,31 +3,42 @@ import FormComp from "@/components/form/FormComp.vue";
 import FormInputComp from "@/components/form/FormInputComp.vue";
 import FormButtonComp from "@/components/form/FormButtonComp.vue";
 import { useRouter } from "vue-router";
-import { validateNicknameDup, validateModifyAccount } from "@/stores/validation";
+import { validateNicknamePattern, setFormMessage } from "@/common/validation";
 import { ref } from "vue";
 import Swal from "sweetalert2";
+import { useUserStore } from "@/stores/userStore";
+import { storeToRefs } from "pinia";
 
 const router = useRouter();
+const userStore = useUserStore();
+const { userInfo } = storeToRefs(userStore);
 
 const nickname = ref({ type: "text", label: "닉네임", value: "" });
 const nicknameField = ref(null);
 const checkedNickname = ref("");
 
-const checkNicknameDup = (e) => {
+const validateNicknameDup = (e) => {
   e.stopPropagation();
-  const isSuccess = validateNicknameDup(nicknameField.value, nickname.value.value);
-  if (!isSuccess) {
+  nicknameField.value.message = validateNicknamePattern(nickname.value.value);
+  if (nicknameField.value.message.text) {
+    nicknameField.value.focusInput();
     return;
   }
+  // todo: 닉네임 중복 api 연결
+  nicknameField.value.message = setFormMessage("사용 가능한 닉네임입니다.", false);
   checkedNickname.value = nickname.value.value;
-}
+};
 
-const modify = async () => {
-  const isSuccess = validateModifyAccount(nicknameField.value, nickname.value.value, checkedNickname.value);
-  if (!isSuccess) {
+const modifyAccount = async () => {
+  nicknameField.value.message = !checkedNickname.value
+    ? setFormMessage("닉네임 중복 확인이 필요합니다.", true)
+    : setFormMessage("", false);
+  if (nicknameField.value.message.text) {
+    nicknameField.value.focusInput();
     return;
   }
-  // todo: 정보 수정
+  // todo: 정보 수정 api 연결
+  userInfo.value.nickname = nickname.value.value;
   await Swal.fire({ title: "닉네임이 변경되었습니다.", width: 600 });
   router.push({ name: "main" });
 };
@@ -42,34 +53,37 @@ const deleteAccount = async () => {
     showCancelButton: true,
     inputValidator: (result) => {
       return !result && "회원탈퇴는 동의가 필요합니다.";
-    }
+    },
   });
   if (accept) {
-    Swal.fire("회원탈퇴가 완료되었습니다.");
+    // todo: 회원탈퇴 api 연결
+    await Swal.fire("회원탈퇴가 완료되었습니다.");
     router.push({ name: "main" });
   }
-}
+};
 </script>
 
 <template>
   <FormComp title="정보 수정">
-    <form class="form-content" @keyup.enter="modify">
+    <form class="form-content" @keyup.enter="modifyAccount">
       <div class="input-container background-color-disabled">
         <input type="text" class="form-input has-content background-color-disabled" disabled />
         <label class="form-label">이메일</label>
       </div>
 
-      <FormInputComp :params="nickname" ref="nicknameField" class="mt-10">
-        <FormButtonComp size="small" @keyup.enter="checkNicknameDup" @click="checkNicknameDup">중복</FormButtonComp>
+      <FormInputComp :inputParams="nickname" ref="nicknameField" class="mt-10">
+        <FormButtonComp size="small" @keyup.enter="validateNicknameDup" @click="validateNicknameDup">중복</FormButtonComp>
       </FormInputComp>
 
       <div class="input-container background-color-disabled mt-10">
         <input type="password" class="form-input has-content background-color-disabled" autocomplete="off" disabled />
         <label class="form-label">비밀번호</label>
-        <button type="button" class="form-button-small" @click="router.push('modifyPassword/modify')">변경</button>
+        <button type="button" class="form-button-small" @click="router.push('modifyPassword/modify')">
+          변경
+        </button>
       </div>
 
-      <FormButtonComp size="big" @click="modify">저장</FormButtonComp>
+      <FormButtonComp size="big" @click="modifyAccount">저장</FormButtonComp>
 
       <div class="text-align-right mt-10">
         <FormButtonComp size="none" @click="deleteAccount">회원탈퇴</FormButtonComp>

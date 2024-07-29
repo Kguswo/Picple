@@ -2,23 +2,16 @@ import { defineStore } from "pinia";
 import { ref } from "vue";
 
 export const useUserStore = defineStore("userStore", () => {
-	const user = ref({
-		userId: "",
-		nickname: "",
-	});
+	const userInfo = ref({
+		userId: null,
+		email: null,
+		nickname: null,
+	}); // 로그인한 유저의 정보
 
-	const isLogin = () => {
-		return user.value.userId;
-	};
-
-	const login = (userId, nickname) => {
-		user.value.userId = userId;
-		user.value.nickname = nickname;
-	};
+	const userEmail = ref(null); // 이메일 인증 페이지에서 인증한 이메일
 
 	return {
-		user,
-		isLogin,
-		login,
+		userInfo,
+		userEmail,
 	};
 });

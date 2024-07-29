@@ -3,11 +3,21 @@ import FormComp from "@/components/form/FormComp.vue";
 import FormInputComp from "@/components/form/FormInputComp.vue";
 import FormButtonComp from "@/components/form/FormButtonComp.vue";
 import { ref } from "vue";
-import { validateNicknameDup, validateSignup } from "@/stores/validation";
+import {
+  validatePasswordPattern,
+  validateNicknamePattern,
+  validatePasswordConfirm,
+  setFormMessage,
+} from "@/common/validation";
+import { useUserStore } from "@/stores/userStore";
 import { useRouter } from "vue-router";
-import Swal from 'sweetalert2';
+import Swal from "sweetalert2";
+import { storeToRefs } from "pinia";
 
 const router = useRouter();
+const userStore = useUserStore();
+
+const { userEmail } = storeToRefs(userStore);
 
 const nickname = ref({ type: "text", label: "닉네임", value: "" });
 const password = ref({ type: "password", label: "비밀번호", value: "" });
@@ -17,39 +27,55 @@ const passwordField = ref(null);
 const passwordConfirmField = ref(null);
 const checkedNickname = ref("");
 
-const checkNicknameDup = (e) => {
+const validateNicknameDup = (e) => {
   e.stopPropagation();
-  const isSuccess = validateNicknameDup(nicknameField.value, nickname.value.value);
-  if (!isSuccess) {
+  nicknameField.value.message = validateNicknamePattern(nickname.value.value);
+  if (nicknameField.value.message.text) {
+    nicknameField.value.focusInput();
     return;
   }
+  // todo: 닉네임 중복 api 연결
+  nicknameField.value.message = setFormMessage("사용 가능한 닉네임입니다.", false);
   checkedNickname.value = nickname.value.value;
-}
+};
 
 const signup = async () => {
-  const fields = [nicknameField.value, passwordField.value, passwordConfirmField.value];
-  const isSuccess = validateSignup(fields, nickname.value.value, password.value.value, passwordConfirm.value.value, checkedNickname.value
+  nicknameField.value.message = !checkedNickname.value
+    ? setFormMessage("닉네임 중복 확인이 필요합니다.", true)
+    : setFormMessage("", false);
+  passwordField.value.message = validatePasswordPattern(password.value.value);
+  passwordConfirmField.value.message = validatePasswordConfirm(
+    password.value.value,
+    passwordConfirm.value.value
   );
-  if (!isSuccess) {
+  if (nicknameField.value.message.text) {
+    nicknameField.value.focusInput();
     return;
   }
-  // todo: 회원가입
+  if (passwordField.value.message.text) {
+    passwordField.value.focusInput();
+    return;
+  }
+  if (passwordConfirmField.value.message.text) {
+    passwordConfirmField.value.focusInput();
+    return;
+  }
+  // todo: 회원가입 api 연결
   await Swal.fire({ title: "회원가입이 완료되었습니다.", width: 600 });
   router.push({ name: "main" });
-}
-
+};
 </script>
 
 <template>
   <FormComp title="회원가입">
     <form class="form-content" @keyup.enter="signup">
-      <FormInputComp :params="nickname" ref="nicknameField" name="nickname">
-        <FormButtonComp size="small" @keyup.enter="checkNicknameDup" @click="checkNicknameDup">중복
+      <FormInputComp :inputParams="nickname" ref="nicknameField" name="nickname">
+        <FormButtonComp size="small" @keyup.enter="validateNicknameDup" @click="validateNicknameDup">중복
         </FormButtonComp>
       </FormInputComp>
 
-      <FormInputComp :params="password" ref="passwordField" class="mt-10" />
-      <FormInputComp :params="passwordConfirm" ref="passwordConfirmField" class="mt-10" />
+      <FormInputComp :inputParams="password" ref="passwordField" class="mt-10" />
+      <FormInputComp :inputParams="passwordConfirm" ref="passwordConfirmField" class="mt-10" />
 
       <FormButtonComp size="big" @click="signup">가입</FormButtonComp>
     </form>
