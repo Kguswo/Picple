@@ -3,6 +3,7 @@ package com.ssafy.picple.domain.calendar.service;
 import java.time.LocalDate;
 import java.util.List;
 
+import com.ssafy.picple.config.baseResponse.BaseException;
 import com.ssafy.picple.domain.calendar.dto.CalendarDto;
 
 public interface CalendarService {
@@ -14,7 +15,7 @@ public interface CalendarService {
 	List<CalendarDto> getDailyCalendars(Long userId, LocalDate createdAt);
 
 	// 캘린더 선택 사진별 설명 작성
-	void updateContent(Long calendarId, String content);
+	void updateContent(Long calendarId, String content) throws BaseException;
 
 	// 캘린더에서 보드로 공유하기
 	void sharePhoto(Long calendarId);

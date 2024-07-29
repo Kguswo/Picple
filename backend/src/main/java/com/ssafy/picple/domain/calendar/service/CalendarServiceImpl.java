@@ -1,5 +1,7 @@
 package com.ssafy.picple.domain.calendar.service;
 
+import static com.ssafy.picple.config.baseResponse.BaseResponseStatus.*;
+
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -7,6 +9,7 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.ssafy.picple.config.baseResponse.BaseException;
 import com.ssafy.picple.config.baseResponse.BaseResponseStatus;
 import com.ssafy.picple.domain.board.entity.Board;
 import com.ssafy.picple.domain.board.repository.BoardRepository;
@@ -46,8 +49,8 @@ public class CalendarServiceImpl implements CalendarService {
 				.map(calendar -> {
 					Long photoId = calendar.getPhoto().getId();
 					// content를 PhotoUser에서 가져와야함 Calendar - Photo - PhotoUser로 연결되어있음
-					PhotoUser photoUser = photoUserRepository.findByPhotoIdAndUserId(photoId,
-							userId); // 여기서 content가져와야함
+					// 여기서 content가져와야함
+					PhotoUser photoUser = photoUserRepository.findByPhotoIdAndUserId(photoId, userId);
 					String content = photoUser != null ? photoUser.getContent() : "";
 
 					return new CalendarDto(
@@ -62,17 +65,18 @@ public class CalendarServiceImpl implements CalendarService {
 	// 로그인 유저와 선택캘린더 userId 비교후 하려했지만 이미 캘린더 페이지는 로그인 체크를 마쳤기에 패스
 	@Override
 	@Transactional
-	public void updateContent(Long calendarId, String content) {
+	public void updateContent(Long calendarId, String content) throws BaseException {
 		Calendar calendar = calendarRepository.findById(calendarId)
 				.orElseThrow(() -> new IllegalArgumentException(BaseResponseStatus.GET_CALENDAR_EMPTY.getMessage()));
 		Photo photo = calendar.getPhoto();
 		User user = calendar.getUser();
-		PhotoUser photoUser = photoUserRepository.findByPhotoIdAndUserId(photo.getId(), user.getId()); // 특정 사용자의 특정 사진 content찾기
+		PhotoUser photoUser = photoUserRepository.findByPhotoIdAndUserId(photo.getId(),
+				user.getId()); // 특정 사용자의 특정 사진 content찾기
 
 		if (photoUser != null) {
 			photoUser.setContent(content);
 		} else {
-			throw new IllegalArgumentException(BaseResponseStatus.GET_PHOTO_USER_EMPTY.getMessage());
+			throw new BaseException(GET_PHOTO_USER_EMPTY);
 		}
 
 		photoUserRepository.save(photoUser);

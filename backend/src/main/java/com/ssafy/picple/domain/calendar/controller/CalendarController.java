@@ -6,18 +6,25 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.ssafy.picple.config.baseResponse.BaseResponse;
 import com.ssafy.picple.config.baseResponse.BaseResponseStatus;
-import com.ssafy.picple.domain.calendar.service.CalendarService;
 import com.ssafy.picple.domain.calendar.dto.CalendarDto;
+import com.ssafy.picple.domain.calendar.service.CalendarService;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/calendar")
+@RequestMapping("/calendars")
 public class CalendarController {
 
 	private final CalendarService calendarService;
@@ -25,8 +32,9 @@ public class CalendarController {
 	// 캘린더 날짜(년월일)별 사진 개수 조회
 	@GetMapping("/counts")
 	@Transactional(readOnly = true)
-	public BaseResponse<Long> getPhotoCounts(@RequestParam("userId") Long userId, @RequestParam("createdAt") String createdAt) {
+	public BaseResponse<Long> getPhotoCounts(HttpServletRequest request, @RequestParam("createdAt") String createdAt) {
 		try {
+			Long userId = (Long)request.getAttribute("userId");
 			// 문자열 파싱 후, LocalDateTime -> LocalDate
 			LocalDateTime dateTime = LocalDateTime.parse(createdAt, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 			LocalDate date = dateTime.toLocalDate();
@@ -40,7 +48,8 @@ public class CalendarController {
 
 	// 캘린더 일별 정보 조회
 	@GetMapping("/daily")
-	public BaseResponse<List<CalendarDto>> getDailyCalendars(@RequestParam Long userId, @RequestParam("createdAt") String createdAt) {
+	public BaseResponse<List<CalendarDto>> getDailyCalendars(@RequestParam Long userId,
+			@RequestParam("createdAt") String createdAt) {
 		try {
 			// 문자열 파싱
 			LocalDate date = LocalDate.parse(createdAt, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
