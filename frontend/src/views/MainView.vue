@@ -22,7 +22,11 @@ const navigateTo = (path) => {
                     <div class="card" @click="navigateTo('createbooth')">
                         <div class="front">
                             <div class="imageincard">
-                                <img src="@/assets/img/mainView/camera.jpg" class="card-img-top" alt="..." />
+                                <img
+                                    src="@/assets/img/mainView/camera.jpg"
+                                    class="card-img-top"
+                                    alt="..."
+                                />
                             </div>
                             <div class="card-body">
                                 <h3 class="card-title">부스 생성</h3>
@@ -36,7 +40,11 @@ const navigateTo = (path) => {
                     <div class="card" @click="navigateTo('boothCode')">
                         <div class="front">
                             <div class="imageincard">
-                                <img src="@/assets/img/mainView/noimage.png" class="card-img-top" alt="..." />
+                                <img
+                                    src="@/assets/img/mainView/noimage.png"
+                                    class="card-img-top"
+                                    alt="..."
+                                />
                             </div>
                             <div class="card-body">
                                 <h3 class="card-title">부스 참여</h3>
@@ -50,7 +58,11 @@ const navigateTo = (path) => {
                     <div class="card" @click="navigateTo('board')">
                         <div class="front">
                             <div class="imageincard">
-                                <img src="@/assets/img/mainView/board.jpg" class="card-img-top" alt="..." />
+                                <img
+                                    src="@/assets/img/mainView/board.jpg"
+                                    class="card-img-top"
+                                    alt="..."
+                                />
                             </div>
                             <div class="card-body">
                                 <h3 class="card-title">게시판</h3>
@@ -60,11 +72,15 @@ const navigateTo = (path) => {
                     </div>
                 </div>
 
-                <div class="card-area" @click="navigateTo('CalendarView')">
+                <div class="card-area" @click="navigateTo('calendarView')">
                     <div class="card">
                         <div class="front">
                             <div class="imageincard">
-                                <img src="@/assets/img/mainView/calender.jpg" class="card-img-top" alt="..." />
+                                <img
+                                    src="@/assets/img/mainView/calender.jpg"
+                                    class="card-img-top"
+                                    alt="..."
+                                />
                             </div>
                             <div class="card-body">
                                 <h3 class="card-title">캘린더</h3>
