@@ -3,7 +3,7 @@ import FormComp from "@/components/form/FormComp.vue";
 import FormInputComp from "@/components/form/FormInputComp.vue";
 import FormButtonComp from "@/components/form/FormButtonComp.vue";
 import { useRouter } from "vue-router";
-import { validateJoinBooth } from "@/stores/validation";
+import { validateJoinBooth } from "@/common/validation";
 import { ref } from "vue";
 
 const router = useRouter();
