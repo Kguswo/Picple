@@ -47,8 +47,8 @@ const setCookie = (key, value, expireTime, isChecked) => {
   VueCookie.set(key, value, expireTime);
 };
 
-const navigateTo = (path) => {
-  router.push({ name: path });
+const navigateTo = (name) => {
+  router.push({ name });
 };
 </script>
 
