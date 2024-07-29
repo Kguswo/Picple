@@ -4,7 +4,7 @@ import BoardPhotoComp from "@/components/board/BoardPhotoComp.vue";
 import Page from "@/components/common/PageComp.vue";
 import { ref } from "vue";
 
-const nickname = ref('');
+const nickname = ref({ type: "text", label: "", value: "" });
 
 const submitForm = () => {
     if (nickname.value == "") {
@@ -33,16 +33,15 @@ const likeSort = () => {
             <div class="board-area">
                 <div class="button-box">
                     <form @submit.prevent="submitForm">
-                        <input type="text" name="nickname" id="nickname-input" placeholder=" 닉네임을 입력해주세요!"
-                            v-model="nickname">
-                        <button type="submit" id="nickname-btn">검색</button>
+                        <div class="input-container">
+                            <input type="text" name="nickname" placeholder=" 닉네임을 입력해주세요!" class="form-input"
+                                maxlength="8" autocomplete="off" />
+                            <button type="button" class="form-button-small">검색</button>
+                        </div>
                     </form>
 
-
                     <div class="btn-group">
-
-                        정렬방식 :
-                        <button class="likeSort" @click="likeSort">좋아요</button>
+                        <button class="likeSort" @click="likeSort">좋아요 순</button>
                         <button class="timeSort" @click="timeSort">최신순</button>
                     </div>
                 </div>
@@ -57,77 +56,91 @@ const likeSort = () => {
 
 <style scoped>
 .name-area {
-    /* size */
     width: 100%;
     height: 20%;
 
-    /* display */
     display: flex;
     justify-content: center;
     align-items: center;
 
-    /* color */
     border-bottom: 5px solid rgba(0, 0, 0, 0.9);
 
-    /* font */
     color: black;
     font-size: 50px;
 }
 
 .board-area {
-    /* size */
-    width: 100%;
-    height: 80%;
-
-    /* display */
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-
-    * {
+    /* * {
         font-family: 'PFStardust';
         font-weight: normal;
         font-style: normal;
         font-size: 15px;
-    }
+    } */
 
-    #nickname-input {
-        padding-left: 10px;
-        line-height: 30px;
-    }
+    width: 100%;
+    height: 80%;
 
-    #nickname-btn {
-        line-height: 30px;
-        padding: 0px 4px 0px 4px;
-
-        &:hover {
-            background-color: rgb(250, 198, 198);
-        }
-    }
-
-    .btn-group button {
-        padding: 0px 4px 3px 4px;
-        line-height: 30px;
-        height: 30px;
-        margin-left: 4px;
-    }
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 }
-
 
 .button-box {
     width: 85%;
-
-    padding: 20px 30px 20px 30px;
+    height: 10%;
+    padding: 20px 0px;
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
+.input-container {
+    width: 250px;
+    height: 50px;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 5px;
+}
+
+.form-input {
+    width: 100%;
+    box-sizing: border-box;
+    border-radius: 5px;
+    border: 2px solid gray;
+    padding: 5px 10px;
+    line-height: 35px;
+    cursor: pointer;
+    font-size: 15px;
+}
+
+.form-button-small {
+    position: absolute;
+    right: 5%;
+    top: 50%;
+    border: none;
+    border-radius: 5px;
+    transform: translateY(-50%);
+    padding: 5px 10px;
+    font-size: 15px;
+    background-color: #62abd9;
+    color: white;
+    cursor: pointer;
+}
+
 .btn-group {
     button {
-        padding: 0;
         border-radius: 8px;
+        padding: 5px 10px;
+        line-height: 30px;
+        margin-left: 8px;
+        font-size: 15px;
+        background-color: #ffffff;
+        color: black;
+        transition: background-color 0.3s ease;
+        cursor: pointer;
     }
 
     .timeSort,
@@ -143,8 +156,7 @@ const likeSort = () => {
 }
 
 .board {
-    /* size */
-    width: 80%;
+    width: 90%;
     height: 90%;
 
     display: flex;
