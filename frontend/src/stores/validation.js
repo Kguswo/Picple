@@ -45,18 +45,22 @@ const validateCurrentPassword = (currentPassword) => {
 	return setFormMessage("", false);
 };
 
-const validateBoothCode = (boothCodeField, boothCode) => {
-	const fields = [boothCodeField];
+const validateBoothCode = (boothCode) => {
 	if (!boothCode) {
-		const boothCodeMessage = setFormMessage(
-			"부스 코드를 입력하세요.",
-			true
-		);
-		const messages = [boothCodeMessage];
-		printMessageAndFocus(fields, messages);
-		return false;
+		return setFormMessage("부스 코드를 입력하세요.", true);
 	}
 	// todo: 부스 코드 일치 여부 검사
+	return setFormMessage("", false);
+};
+
+const validateJoinBooth = (boothCodeField, boothCode) => {
+	const fields = [boothCodeField];
+	const boothCodeMessage = validateBoothCode(boothCode);
+	const messages = [boothCodeMessage];
+	const isSuccess = printMessageAndFocus(fields, messages);
+	if (!isSuccess) {
+		return false;
+	}
 	return true;
 };
 
@@ -127,15 +131,12 @@ const validateNicknameDup = (nicknameField, nickname) => {
 };
 
 const validateSignup = (
-	nicknameField,
-	passwordField,
-	passwordConfirmField,
+	fields,
 	nickname,
 	password,
 	passwordConfirm,
 	checkedNickname
 ) => {
-	const fields = [nicknameField, passwordField, passwordConfirmField];
 	const nicknameMessage = setNicknameMessage(nickname, checkedNickname);
 	const passwordMessage = validatePasswordPattern(password);
 	const passwordConfirmMessage = validatePasswordConfirm(
@@ -163,6 +164,12 @@ const validateModifyAccount = (nicknameField, nickname, checkedNickname) => {
 	return true;
 };
 
+const validateCurrentAndNewPassword = (currentPassword, newPassword) => {
+	return currentPassword && currentPassword === newPassword
+		? setFormMessage("현재 비밀번호와 동일합니다.", true)
+		: setFormMessage("", false);
+};
+
 const validateModifyPassword = (
 	fields,
 	currentPassword,
@@ -170,11 +177,17 @@ const validateModifyPassword = (
 	newPasswordConfirm
 ) => {
 	const currentPasswordMessage = validateCurrentPassword(currentPassword);
-	const newPasswordMessage = validatePasswordPattern(newPassword);
+	let newPasswordMessage = validatePasswordPattern(newPassword);
 	const newPasswordConfirmMessage = validatePasswordConfirm(
 		newPassword,
 		newPasswordConfirm
 	);
+	if (currentPassword && !newPasswordMessage.isError) {
+		newPasswordMessage = validateCurrentAndNewPassword(
+			currentPassword,
+			newPassword
+		);
+	}
 	const messages = [newPasswordMessage, newPasswordConfirmMessage];
 	if (currentPassword != null) {
 		messages.unshift(currentPasswordMessage);
@@ -194,6 +207,7 @@ const setNicknameMessage = (nickname, checkedNickname) => {
 };
 
 const printMessageAndFocus = (fields, messages) => {
+	// 메시지가 출력될 필드에 메시지 할당 & 메시지가 출력되는 필드 중 최상단 필드에 포커스
 	let focused = false;
 	for (let i = 0; i < fields.length; i++) {
 		if (messages[i].isError) {
@@ -221,5 +235,5 @@ export {
 	validateSignup,
 	validateModifyAccount,
 	validateModifyPassword,
-	validateBoothCode,
+	validateJoinBooth,
 };

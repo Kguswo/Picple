@@ -5,6 +5,7 @@ import FormButtonComp from "@/components/form/FormButtonComp.vue";
 import { useRoute, useRouter } from "vue-router";
 import { validateModifyPassword } from "@/stores/validation";
 import { ref } from "vue";
+import Swal from 'sweetalert2';
 
 const route = useRoute();
 const router = useRouter();
@@ -16,11 +17,7 @@ const currentPasswordField = ref(null);
 const newPasswordField = ref(null);
 const newPasswordConfirmField = ref(null);
 
-const cancel = () => {
-  router.push({ name: "main" });
-};
-
-const modify = () => {
+const modify = async () => {
   const fields = [newPasswordField.value, newPasswordConfirmField.value]
   let isSuccess = false;
   if (route.params.path === 'modify') {
@@ -33,6 +30,8 @@ const modify = () => {
     return;
   }
   // todo: 비밀번호 변경
+  await Swal.fire({ title: "비밀번호가 변경되었습니다.", width: 600 });
+  router.push({ name: "main" });
 };
 </script>
 
@@ -46,7 +45,7 @@ const modify = () => {
       <FormButtonComp size="big" @click="modify">확인</FormButtonComp>
 
       <button type="button" class="form-button-big form-button-cancel mt-10" v-if="route.params.path === 'modify'"
-        @click="cancel">
+        @click="router.push({ name: 'main' })">
         취소
       </button>
     </form>
