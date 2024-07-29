@@ -2,7 +2,13 @@
 import WhiteBoardComp from "@/components/common/WhiteBoardComp.vue";
 import BoardPhotoComp from "@/components/board/BoardPhotoComp.vue";
 import Page from "@/components/common/PageComp.vue";
-import { ref } from "vue";
+import { onMounted, ref } from "vue";
+import { boardListApi } from "@/api/boardApi";
+
+onMounted(async () => {
+    const data = await boardListApi();
+    console.log(data);
+})
 
 const nickname = ref({ type: "text", label: "", value: "" });
 
