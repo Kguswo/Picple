@@ -5,8 +5,8 @@ import { useUserStore } from "@/stores/userStore";
 const router = useRouter();
 const userStore = useUserStore();
 
-const navigateTo = (path) => {
-    router.push({ name: path });
+const navigateTo = (name) => {
+    router.push({ name });
 };
 
 const logout = () => {
