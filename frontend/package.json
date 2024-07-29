@@ -9,6 +9,8 @@
         "preview": "vite preview"
     },
     "dependencies": {
+        "@mediapipe/selfie_segmentation": "^0.1.1675465747",
+        "@vueuse/core": "^10.11.0",
         "axios": "^1.7.2",
         "html2canvas": "^1.4.1",
         "pinia": "^2.1.7",
