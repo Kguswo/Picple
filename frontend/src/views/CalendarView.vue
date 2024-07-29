@@ -3,7 +3,7 @@ import Page from "@/components/common/PageComp.vue";
 import WhiteBoardComp from "@/components/common/WhiteBoardComp.vue";
 import ListModal from "@/components/calendar/ListModalComp.vue";
 import { ref } from "vue";
-import { allPhotos } from "@/assets/js/calendarModal";
+import { allPhotos } from "@/common/calendarModal";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
 

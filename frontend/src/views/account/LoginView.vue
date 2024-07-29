@@ -2,7 +2,7 @@
 import FormComp from "@/components/form/FormComp.vue";
 import FormInputComp from "@/components/form/FormInputComp.vue";
 import FormButtonComp from "@/components/form/FormButtonComp.vue";
-import { validateLogin } from "@/stores/validation";
+import { validateLogin } from "@/common/validation";
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import VueCookie from "vue-cookies";

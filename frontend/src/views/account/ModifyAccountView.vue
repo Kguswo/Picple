@@ -3,7 +3,7 @@ import FormComp from "@/components/form/FormComp.vue";
 import FormInputComp from "@/components/form/FormInputComp.vue";
 import FormButtonComp from "@/components/form/FormButtonComp.vue";
 import { useRouter } from "vue-router";
-import { validateNicknameDup, validateModifyAccount } from "@/stores/validation";
+import { validateNicknameDup, validateModifyAccount } from "@/common/validation";
 import { ref } from "vue";
 import Swal from "sweetalert2";
 
