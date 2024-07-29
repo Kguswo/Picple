@@ -1,16 +1,18 @@
 <script setup>
 import { ref, computed, watch } from "vue";
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 import WhiteBoardComp from "@/components/common/WhiteBoardComp.vue";
 import BoothBack from "@/components/booth/BoothBackComp.vue";
+import { usePhotoStore } from "@/stores/photoStore";
 
-// 각 템플릿의 실제 이미지 import
-import temp_1x1_4x3 from "@/assets/img/template/temp_1x1_4x3.jpg";
-import temp_1x2_4x5 from "@/assets/img/template/temp_1x2_4x5.jpg";
-import temp_1x3_3x4 from "@/assets/img/template/temp_1x3_3x4.png";
-import temp_2x2_4x3 from "@/assets/img/template/temp_2x2_4x3.jpg";
+import temp_1x1_4x3_479x360 from "@/assets/img/template/temp_1x1_4x3_479x360.jpg";
+import temp_1x2_4x5_288x360 from "@/assets/img/template/temp_1x2_4x5_288x360.jpg";
+import temp_1x3_3x4_270x360 from "@/assets/img/template/temp_1x3_3x4_270x360.png";
+import temp_2x2_4x3_481x360 from "@/assets/img/template/temp_2x2_4x3_481x360.jpg";
 
 const router = useRouter();
+const route = useRoute();
+const photoStore = usePhotoStore();
 
 const selectedTemplate = ref("all");
 const selectedImage = ref(null);
@@ -24,16 +26,19 @@ const templates = [
 ];
 
 const templateImages = {
-    1: [temp_1x1_4x3],
-    2: [temp_1x2_4x5],
-    3: [temp_1x3_3x4],
-    4: [temp_2x2_4x3],
+    1: [temp_1x1_4x3_479x360],
+    2: [temp_1x2_4x5_288x360],
+    3: [temp_1x3_3x4_270x360],
+    4: [temp_2x2_4x3_481x360],
 };
+
+const photos = photoStore.photoList;
+console.log("BoothTemplateView에서 불러온 이미지 리스트:", photos);
 
 const selectTemplate = (template) => {
     console.log(`템플릿 선택됨: ${template.key}`);
     selectedTemplate.value = template.key;
-    selectedImage.value = null; // 템플릿 변경 시 선택한 이미지 초기화
+    selectedImage.value = null;
 };
 
 const selectImage = (image) => {
@@ -41,9 +46,8 @@ const selectImage = (image) => {
     selectedImage.value = image;
 };
 
-// 랜덤으로 배열을 섞는 함수
 const shuffleArray = (array) => {
-    let shuffledArray = array.slice(); // 원본 배열을 복사
+    let shuffledArray = array.slice();
     for (let i = shuffledArray.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [shuffledArray[i], shuffledArray[j]] = [
@@ -64,7 +68,6 @@ const imagesToShow = computed(() => {
     return shuffleArray(images);
 });
 
-// "전체"가 기본 선택되도록 설정
 watch(
     selectedTemplate,
     (newVal) => {
@@ -77,11 +80,24 @@ watch(
     { immediate: true }
 );
 
+const extractInfoFromFilename = (filename) => {
+    const parts = filename.split("_");
+    const [photoCount, ratio, size] = parts.slice(1);
+    const [width, height] = size.split("x").map(Number);
+    return {
+        photoCount: photoCount.split("x").map(Number),
+        ratio: ratio.split("x").map(Number),
+        size: { width, height },
+    };
+};
+
 const goToNext = () => {
     if (selectedImage.value) {
+        const imageInfo = extractInfoFromFilename(selectedImage.value);
         console.log(
             `다음 화면으로 이동: 템플릿: ${selectedTemplate.value}, 이미지: ${selectedImage.value}`
         );
+        console.log("다음 화면으로 이동할 때 이미지 리스트:", photos);
         router.push({
             name: "insertImg",
             params: {
@@ -89,10 +105,26 @@ const goToNext = () => {
             },
             query: {
                 selectedImage: encodeURIComponent(selectedImage.value),
+                imageInfo: JSON.stringify(imageInfo),
             },
         });
     }
 };
+
+const goToPrevious = () => {
+    photoStore.clearPhotoList();
+    router.push("/booth");
+};
+
+watch(
+    () => route.query.selectedImage,
+    (newImage) => {
+        if (newImage) {
+            selectedImage.value = decodeURIComponent(newImage);
+        }
+    },
+    { immediate: true }
+);
 </script>
 
 <template>
@@ -123,6 +155,7 @@ const goToNext = () => {
                                 </div>
                             </div>
                             <div class="box-footer">
+                                <button @click="goToPrevious">이전</button>
                                 <button
                                     @click="goToNext"
                                     :disabled="!selectedImage"
@@ -164,45 +197,4 @@ const goToNext = () => {
 
 <style scoped>
 @import url("@/assets/css/boothsSelectTemp.css");
-
-.image-wrapper {
-    margin: 10px;
-    cursor: pointer;
-    height: 180px;
-}
-
-.image-wrapper img {
-    max-height: 100%;
-    max-width: 100%;
-    border: 2px solid transparent;
-}
-
-.image-wrapper img.selected {
-    border-color: blue;
-}
-
-.array-button {
-    display: block;
-    width: 100%;
-    padding: 10px;
-    margin: 5px 0;
-    background-color: #f0f0f0;
-    border: 1px solid #ccc;
-    cursor: pointer;
-    text-align: center;
-}
-
-.array-button:hover {
-    background-color: #e0e0e0;
-}
-
-.box-footer {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 20px;
-}
-
-.box-footer button {
-    padding: 10px 20px;
-}
 </style>
