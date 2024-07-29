@@ -6,6 +6,8 @@ import com.ssafy.picple.domain.photouser.dto.response.PhotoUserResponseDto;
 
 public interface PhotoUserService {
 
+	PhotoUserResponseDto getPhotoUserContent(PhotoUserRequestDto requestDto) throws BaseException;
+
 	void updateContent(Long photoUserId, String newContent) throws BaseException;
 
 	PhotoUserResponseDto createPhotoUser(PhotoUserRequestDto requestDto) throws BaseException;

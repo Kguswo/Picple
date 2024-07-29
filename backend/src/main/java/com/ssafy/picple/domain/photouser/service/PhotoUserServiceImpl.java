@@ -1,6 +1,7 @@
 package com.ssafy.picple.domain.photouser.service;
 
 import static com.ssafy.picple.config.baseResponse.BaseResponseStatus.*;
+import static com.ssafy.picple.domain.photouser.dto.response.PhotoUserResponseDto.*;
 
 import org.springframework.stereotype.Service;
 
@@ -24,6 +25,13 @@ public class PhotoUserServiceImpl implements PhotoUserService {
 	private final PhotoUserRepository photoUserRepository;
 	private final PhotoRepository photoRepository;
 	private final UserRepository userRepository;
+
+	@Override
+	public PhotoUserResponseDto getPhotoUserContent(PhotoUserRequestDto requestDto) throws BaseException {
+		PhotoUser photoUser = photoUserRepository.findByPhotoIdAndUserId(requestDto.getPhotoId(),
+				requestDto.getUserId());
+		return photoUserResponseDto(photoUser);
+	}
 
 	@Override
 	@Transactional
@@ -60,6 +68,7 @@ public class PhotoUserServiceImpl implements PhotoUserService {
 		photoUserRepository.save(photoUser);
 
 		// Response DTO로 변환하여 반환
-		return PhotoUserResponseDto.photoUserResponseDto(photoUser);
+		return photoUserResponseDto(photoUser);
 	}
+
 }
