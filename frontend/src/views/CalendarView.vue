@@ -1,50 +1,9 @@
-<template>
-    <Page>
-        <WhiteBoardComp class="whiteboard-area-calendar">
-            <div class="name-area">추억 저장소</div>
-            <div class="calendar-area">
-                <div class="calendar">
-                    <v-calendar
-                        class="my-calendar"
-                        transparent
-                        borderless
-                        expanded
-                        :attributes="attributes"
-                        :masks="{ title: 'YYYY MMM' }"
-                        @dayclick="openModal"
-                    >
-                        <template #day-popover="{ day, dayTitle, attributes }">
-                            <div class="vc-day-popover-container">
-                                <div class="vc-day-popover-header">
-                                    {{ formatDate(day.date) }}
-                                </div>
-                                <div
-                                    class="vc-day-popover-row"
-                                    v-for="attribute in attributes"
-                                    :key="attribute.key"
-                                >
-                                    {{ attribute.popover.label }}
-                                </div>
-                            </div>
-                        </template>
-                    </v-calendar>
-                </div>
-            </div>
-        </WhiteBoardComp>
-        <ListModal
-            :visible="showModal"
-            :selectedDate="selectedDate"
-            @close="closeModal"
-        />
-    </Page>
-</template>
-
 <script setup>
 import Page from "@/components/common/PageComp.vue";
 import WhiteBoardComp from "@/components/common/WhiteBoardComp.vue";
 import ListModal from "@/components/calendar/ListModalComp.vue";
 import { ref } from "vue";
-import { allPhotos } from "@/assets/js/calendarModal";
+import { allPhotos } from "@/common/calendarModal";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
 
@@ -110,6 +69,32 @@ const formatDate = (date) => {
 
 updateAttributes(); // 초기 로드 시 attributes 설정
 </script>
+
+<template>
+    <Page>
+        <WhiteBoardComp class="whiteboard-area-calendar">
+            <div class="name-area">추억 저장소</div>
+            <div class="calendar-area">
+                <div class="calendar">
+                    <v-calendar class="my-calendar" transparent borderless expanded :attributes="attributes"
+                        :masks="{ title: 'YYYY MMM' }" @dayclick="openModal">
+                        <template #day-popover="{ day, dayTitle, attributes }">
+                            <div class="vc-day-popover-container">
+                                <div class="vc-day-popover-header">
+                                    {{ formatDate(day.date) }}
+                                </div>
+                                <div class="vc-day-popover-row" v-for="attribute in attributes" :key="attribute.key">
+                                    {{ attribute.popover.label }}
+                                </div>
+                            </div>
+                        </template>
+                    </v-calendar>
+                </div>
+            </div>
+        </WhiteBoardComp>
+        <ListModal :visible="showModal" :selectedDate="selectedDate" @close="closeModal" />
+    </Page>
+</template>
 
 <style scoped>
 @import url("@/assets/css/calendar.css");

@@ -1,16 +1,22 @@
 <script setup>
 import FormInputComp from "@/components/form/FormInputComp.vue";
 import FormButtonComp from "@/components/form/FormButtonComp.vue";
-import { validateEmailBeforeSend, validateEmailCert } from "@/stores/validation";
+import { validateEmailPattern, setFormMessage } from "@/common/validation";
 import { ref } from "vue";
 import { useRouter } from "vue-router";
-import Swal from 'sweetalert2';
+import Swal from "sweetalert2";
+import { useUserStore } from "@/stores/userStore";
+import { storeToRefs } from "pinia";
 
 const props = defineProps({
-  path: String
-})
+  path: String,
+  params: Object,
+});
 
 const router = useRouter();
+const userStore = useUserStore();
+
+const { userEmail } = storeToRefs(userStore);
 
 const email = ref({ type: "email", label: "이메일", value: "" });
 const certNumber = ref({ type: "text", label: "인증번호", value: "" });
@@ -20,34 +26,48 @@ const certNumberField = ref(null);
 
 const sendCertNumber = (e) => {
   e.stopPropagation();
-  const isSuccess = validateEmailBeforeSend(emailField.value, email.value.value);
-  if (!isSuccess) {
+  emailField.value.message = validateEmailPattern(email.value.value);
+  if (emailField.value.message.text) {
+    emailField.value.focusInput();
     return;
   }
-  // todo: 인증번호 전송
-  // todo: 인증번호 제한시간 표시
+  emailField.value.message = { text: `인증번호를 전송하였습니다.`, isError: false };
   isSend.value = true;
+  // todo: 인증번호 전송 / 제한시간 표시
 };
 
-const certify = async () => {
-  const isSuccess = validateEmailCert(emailField.value, certNumberField.value, certNumber.value.value, isSend.value);
-  if (!isSuccess) {
+const certifyEmail = async () => {
+  emailField.value.message = !isSend.value
+    ? setFormMessage(`이메일 인증이 필요합니다.`, true)
+    : setFormMessage(``, false);
+  certNumberField.value.message = !certNumber.value.value
+    ? setFormMessage(`인증번호가 일치하지 않습니다.`, true)
+    : setFormMessage(``, false);
+  if (emailField.value.message.text) {
+    emailField.value.focusInput();
     return;
   }
+  if (certNumberField.value.message.text) {
+    certNumberField.value.focusInput();
+    return;
+  }
+  // todo: 인증번호 일치 여부 / 제한시간 검사
+  // todo: 이메일 중복 검사 (중복된 이메일이면 이메일 필드 block 해제, 중복 아니면 다음으로 이동)
   await Swal.fire({ title: "이메일 인증에 성공했습니다.", width: 600 });
-  router.push(props.path);
+  userEmail.value = email.value.value;
+  router.push({ name: props.path, params: props.params });
 };
 </script>
 
 <template>
-  <form class="form-content" @keyup.enter="certify">
-    <FormInputComp :params="email" :isSend="isSend" ref="emailField">
+  <form class="form-content" @keyup.enter="certifyEmail">
+    <FormInputComp :inputParams="email" :isSend="isSend" ref="emailField">
       <FormButtonComp size="small" @keyup.enter="sendCertNumber" @click="sendCertNumber">인증</FormButtonComp>
     </FormInputComp>
 
-    <FormInputComp :params="certNumber" ref="certNumberField" class="mt-10" />
+    <FormInputComp :inputParams="certNumber" ref="certNumberField" class="mt-10" />
 
-    <FormButtonComp size="big" @click="certify">다음</FormButtonComp>
+    <FormButtonComp size="big" @click="certifyEmail">다음</FormButtonComp>
   </form>
 </template>
 
