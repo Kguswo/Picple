@@ -1,14 +1,14 @@
 import { defineStore } from "pinia";
 
 export const usePhotoStore = defineStore("photo", () => {
-	const photoList = [];
+	const photoList = ref([]);
 
 	const setPhotoList = (photos) => {
-		photoList = photos;
+		photoList.value = photos;
 	};
 
 	const clearPhotoList = () => {
-		photoList = [];
+		photoList.value = [];
 	};
 
 	return {
