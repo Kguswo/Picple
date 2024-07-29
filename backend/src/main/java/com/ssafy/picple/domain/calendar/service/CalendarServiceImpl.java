@@ -26,6 +26,7 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class CalendarServiceImpl implements CalendarService {
 
 	private final CalendarRepository calendarRepository;
@@ -35,14 +36,12 @@ public class CalendarServiceImpl implements CalendarService {
 
 	// 캘린더 날짜(년월일)별 사진 개수 조회
 	@Override
-	@Transactional(readOnly = true)
 	public Long getPhotoCounts(Long userId, LocalDate createdAt) {
 		return calendarRepository.countByUserIdAndDate(userId, createdAt);
 	}
 
 	// 캘린더 일별 정보 조회
 	@Override
-	@Transactional(readOnly = true)
 	public List<CalendarDto> getDailyCalendars(Long userId, LocalDate createdAt) {
 		List<Calendar> calendars = calendarRepository.findByUserIdAndCreatedAt(userId, createdAt);
 		return calendars.stream()
@@ -85,39 +84,40 @@ public class CalendarServiceImpl implements CalendarService {
 	// 캘린더에서 보드로 공유하기
 	@Override
 	@Transactional
-	public void sharePhoto(Long calendarId) {
+	public void sharePhoto(Long calendarId) throws BaseException {
 		Calendar calendar = calendarRepository.findById(calendarId)
-				.orElseThrow(() -> new IllegalArgumentException(BaseResponseStatus.GET_CALENDAR_EMPTY.getMessage()));
+				.orElseThrow(() -> new BaseException(BaseResponseStatus.GET_CALENDAR_EMPTY));
 
 		Photo photo = calendar.getPhoto();
 		User user = calendar.getUser();
 
-		if (photo.isShared()) {
-			throw new IllegalStateException(BaseResponseStatus.ALREADY_SHARED.getMessage());
+		Photo selectedPhoto = photoRepository.findByPhotoUrl(photo.getPhotoUrl());
+		if (selectedPhoto != null) {
+			// 선택된 사진이 이미 공유된 경우 예외처리
+			if (selectedPhoto.isShared()) {
+				throw new BaseException(BaseResponseStatus.ALREADY_SHARED);
+			} else {
+				selectedPhoto.setIsShared(true);
+				photoRepository.save(selectedPhoto);
+
+				// 보드에 추가할 Board생성
+				Board board = Board.builder()
+						.user(user)
+						.photo(selectedPhoto)
+						.hit(0)
+						.isDeleted(false)
+						.build();
+				boardRepository.save(board);
+			}
 		}
-
-		Photo sharedPhoto = Photo.builder()
-				.photoUrl(photo.getPhotoUrl())
-				.isShared(true)
-				.isDeleted(photo.isDeleted())
-				.build();
-		photoRepository.save(sharedPhoto);
-
-		Board board = Board.builder()
-				.user(user)
-				.photo(sharedPhoto)
-				.hit(0)
-				.isDeleted(false)
-				.build();
-		boardRepository.save(board);
 	}
 
 	// 캘린더에서 사진 삭제
 	@Override
 	@Transactional
-	public void deleteCalendar(Long calendarId) {
+	public void deleteCalendar(Long calendarId) throws BaseException {
 		Calendar calendar = calendarRepository.findById(calendarId)
-				.orElseThrow(() -> new IllegalArgumentException(BaseResponseStatus.GET_CALENDAR_EMPTY.getMessage()));
+				.orElseThrow(() -> new BaseException(BaseResponseStatus.GET_CALENDAR_EMPTY));
 
 		calendarRepository.delete(calendar);
 	}

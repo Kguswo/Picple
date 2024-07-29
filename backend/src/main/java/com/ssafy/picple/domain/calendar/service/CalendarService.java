@@ -18,8 +18,8 @@ public interface CalendarService {
 	void updateContent(Long calendarId, String content) throws BaseException;
 
 	// 캘린더에서 보드로 공유하기
-	void sharePhoto(Long calendarId);
+	void sharePhoto(Long calendarId) throws BaseException;
 
 	// 캘린더에서 사진 삭제
-	void deleteCalendar(Long calendarId);
+	void deleteCalendar(Long calendarId) throws BaseException;
 }

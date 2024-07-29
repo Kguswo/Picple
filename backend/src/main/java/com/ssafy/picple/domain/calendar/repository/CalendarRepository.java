@@ -23,4 +23,6 @@ public interface CalendarRepository extends JpaRepository<Calendar, Long> {
 			"WHERE c.user_id = :userId AND p.is_deleted = false AND DATE(c.created_at) = :createdAt", nativeQuery = true)
 	Long countByUserIdAndDate(@Param("userId") Long userId, @Param("createdAt") LocalDate createdAt);
 
+	// photoId와 userId 일치하는 항목 있는지 중복체크(특정 사람이 특정 사진 캘린더에 한번만 저장가능)
+	boolean existsByPhotoIdAndUserId(Long photoId, Long userId);
 }

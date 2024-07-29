@@ -35,35 +35,47 @@ public class PhotoServiceImpl implements PhotoService {
 	// 사진 저장 -> Photo와 Calendar에 모두 저장, photoUser에 정보 추가
 	@Override
 	public Photo insertPhoto(Long userId, MultipartFile file) throws BaseException, IOException {
+
+		User user = userRepository.findById(userId)
+				.orElseThrow(() -> new BaseException(BaseResponseStatus.GET_USER_EMPTY));
+
 		// 사진을 S3에 업로드 후 photoUrl 가져오기
 		String photoUrl = s3FileUploadService.uploadFile(file);
 
-		// Photo 생성 및 저장
-		Photo newPhoto = Photo.builder()
-				.photoUrl(photoUrl)
-				.isShared(false)
-				.isDeleted(false)
-				.build();
-		newPhoto = photoRepository.save(newPhoto);
+		// 기존에 같은 photoUrl있는지 확인(같은사진 여러번 못 들어가도록)
+		Photo existingPhoto = photoRepository.findByPhotoUrl(photoUrl);
+		if (existingPhoto == null) {
+			// Photo 생성 및 저장
+			Photo newPhoto = Photo.builder()
+					.photoUrl(photoUrl)
+					.isShared(false)
+					.isDeleted(false)
+					.build();
+			existingPhoto = photoRepository.save(newPhoto);
+		}
 
-		User user = userRepository.findById(userId).get();
+		// 사진을 Calendar에 저장, Calendar에서 중복된 기록이 있는지 확인해야함
+		boolean calendarExists = calendarRepository.existsByPhotoIdAndUserId(existingPhoto.getId(), userId);
+		if (!calendarExists) {
+			Calendar newCalendar = Calendar.builder()
+					.photo(existingPhoto)
+					.user(user)
+					.build();
+			calendarRepository.save(newCalendar);
+		};
 
-		// 사진을 Calendar에 저장
-		Calendar newCalendar = Calendar.builder()
-				.photo(newPhoto)
-				.user(user)
-				.build();
-		calendarRepository.save(newCalendar);
+		// PhotoUser에 userId와 photoId 정보 저장, photoUser에서 중복된 기록이 있는지 확인해야함
+		boolean photoUserExists = photoUserRepository.existsByPhotoIdAndUserId(existingPhoto.getId(), userId);
+		if (!photoUserExists) {
+			PhotoUser photoUser = PhotoUser.builder()
+					.photo(existingPhoto)
+					.user(user)
+					.content("") // 생성 시 빈 값
+					.build();
+			photoUserRepository.save(photoUser);
+		}
 
-		// PhotoUser에 userId와 photoId 정보 저장
-		PhotoUser photoUser = PhotoUser.builder()
-				.photo(newPhoto)
-				.user(user)
-				.content("") // 생성시 빈 값
-				.build();
-		photoUserRepository.save(photoUser);
-
-		return newPhoto;
+		return existingPhoto;
 	}
 
 }
