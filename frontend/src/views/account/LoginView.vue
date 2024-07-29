@@ -29,8 +29,8 @@ const login = () => {
   navigateTo("main");
 }
 
-const navigateTo = (path) => {
-  router.push({ name: path });
+const navigateTo = (name) => {
+  router.push({ name });
 }
 
 const setCookie = (key, value, expireTime, isChecked) => {
