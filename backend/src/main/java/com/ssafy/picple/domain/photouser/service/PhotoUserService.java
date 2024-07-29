@@ -6,9 +6,12 @@ import com.ssafy.picple.domain.photouser.dto.response.PhotoUserResponseDto;
 
 public interface PhotoUserService {
 
+	// PhotoUser의 content 불러오기
 	PhotoUserResponseDto getPhotoUserContent(PhotoUserRequestDto requestDto) throws BaseException;
 
+	// Content 업데이트
 	void updateContent(Long photoUserId, String newContent) throws BaseException;
 
+	// PhotoUser 생성
 	PhotoUserResponseDto createPhotoUser(PhotoUserRequestDto requestDto) throws BaseException;
 }
