@@ -3,33 +3,23 @@ import WhiteBoardComp from "@/components/common/WhiteBoardComp.vue";
 import BoardPhotoComp from "@/components/board/BoardPhotoComp.vue";
 import Page from "@/components/common/PageComp.vue";
 import { ref } from "vue";
-// import axios from 'axios';
 
-// async function submitForm() {
-//   try {
-//     await axios.post('/api/search', { nickname: nickname.value });
-//     // 요청 성공 시 처리 로직
-//   } catch (error) {
-//     console.error(error);
-//     // 요청 실패 시 처리 로직
-//   }
-// }
 const nickname = ref('');
 
-const submitForm =() =>{
-    if(nickname.value==""){
+const submitForm = () => {
+    if (nickname.value == "") {
         window.alert("값을 입력해주세요!");
     }
-    else{
+    else {
         console.log('전송됨', nickname.value)
     }
 }
 
-const timeSort=() =>{
+const timeSort = () => {
     console.log('시간 정렬')
 }
 
-const likeSort=() =>{
+const likeSort = () => {
     console.log('like 정렬')
 }
 
@@ -37,31 +27,32 @@ const likeSort=() =>{
 
 <template>
     <Page>
-    <WhiteBoardComp class="whiteboard-area-calendar">
-        <div class="name-area">게시판</div>
+        <WhiteBoardComp class="whiteboard-area-calendar">
+            <div class="name-area">게시판</div>
 
-        <div class="board-area">
-            <div class="button-box">
-                <form @submit.prevent="submitForm">
-                    <input type="text" name="nickname" id="nickname-input" placeholder=" 닉네임을 입력해주세요!" v-model="nickname">
-                    <button type="submit" id="nickname-btn">검색</button>
-                </form>
+            <div class="board-area">
+                <div class="button-box">
+                    <form @submit.prevent="submitForm">
+                        <input type="text" name="nickname" id="nickname-input" placeholder=" 닉네임을 입력해주세요!"
+                            v-model="nickname">
+                        <button type="submit" id="nickname-btn">검색</button>
+                    </form>
 
 
-                <div class="btn-group">
+                    <div class="btn-group">
 
-                    정렬방식 : 
-                    <button class ="likeSort" @click="likeSort">좋아요</button>
-                    <button class ="timeSort" @click="timeSort">최신순</button>
+                        정렬방식 :
+                        <button class="likeSort" @click="likeSort">좋아요</button>
+                        <button class="timeSort" @click="timeSort">최신순</button>
+                    </div>
+                </div>
+
+                <div class="board">
+                    <BoardPhotoComp />
                 </div>
             </div>
-
-            <div class="board">
-                <BoardPhotoComp />
-            </div>
-        </div>
-    </WhiteBoardComp>
-</Page>
+        </WhiteBoardComp>
+    </Page>
 </template>
 
 <style scoped>
@@ -94,29 +85,30 @@ const likeSort=() =>{
     justify-content: center;
     align-items: center;
 
-    *{
+    * {
         font-family: 'PFStardust';
         font-weight: normal;
         font-style: normal;
         font-size: 15px;
     }
 
-    #nickname-input{
+    #nickname-input {
         padding-left: 10px;
         line-height: 30px;
     }
-    #nickname-btn{
+
+    #nickname-btn {
         line-height: 30px;
         padding: 0px 4px 0px 4px;
-        
-        &:hover{
+
+        &:hover {
             background-color: rgb(250, 198, 198);
         }
     }
 
     .btn-group button {
-        padding: 0px 4px 3px 4px;    
-        line-height: 30px; 
+        padding: 0px 4px 3px 4px;
+        line-height: 30px;
         height: 30px;
         margin-left: 4px;
     }
@@ -132,22 +124,25 @@ const likeSort=() =>{
     align-items: center;
 }
 
-.btn-group{
-    button{
+.btn-group {
+    button {
         padding: 0;
         border-radius: 8px;
     }
 
-    .timeSort, .likeSort {
-        &:hover{
+    .timeSort,
+    .likeSort {
+        &:hover {
             background-color: rgb(250, 198, 198);
         }
-        &:active{
+
+        &:active {
             transform: translateY(4px);
         }
     }
 }
-.board{
+
+.board {
     /* size */
     width: 80%;
     height: 90%;
@@ -155,10 +150,8 @@ const likeSort=() =>{
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    align-items: center; 
+    align-items: center;
 
-    overflow:scroll;
+    overflow: scroll;
 }
-
-
 </style>
