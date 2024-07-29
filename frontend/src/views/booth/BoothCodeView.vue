@@ -3,20 +3,26 @@ import FormComp from '@/components/form/FormComp.vue';
 import FormInputComp from '@/components/form/FormInputComp.vue';
 import FormButtonComp from '@/components/form/FormButtonComp.vue';
 import { useRouter } from 'vue-router';
-import { validateJoinBooth } from '@/common/validation';
 import { ref } from 'vue';
+import Swal from 'sweetalert2';
+import { setFormMessage } from '@/common/validation';
 
 const router = useRouter();
 
 const boothCode = ref({ type: 'text', label: '부스 코드', value: '' });
 const boothCodeField = ref(null);
 
-const join = () => {
-	const isSuccess = validateJoinBooth(boothCodeField.value, boothCode.value.value);
-	if (!isSuccess) {
+const certifyBoothCode = async () => {
+	boothCodeField.value.message = !boothCode.value.value
+		? setFormMessage('부스 코드가 일치하지 않습니다.', true)
+		: setFormMessage('', false);
+	if (boothCodeField.value.message.text) {
+		boothCodeField.value.focusInput();
 		return;
 	}
-	// todo: 부스 참여
+	// todo: 부스 코드 검사 api 연결
+	await Swal.fire({ title: '부스 코드가 인증되었습니다.', width: 600 });
+	router.push({});
 };
 
 const cancel = () => {
@@ -29,16 +35,16 @@ const cancel = () => {
 		<form
 			class="form-content"
 			@submit.prevent
-			@keyup.enter="join"
+			@keyup.enter="certifyBoothCode"
 		>
 			<FormInputComp
-				:params="boothCode"
+				:inputParams="boothCode"
 				ref="boothCodeField"
 			/>
 
 			<FormButtonComp
 				size="big"
-				@click="join"
+				@click="certifyBoothCode"
 				>확인</FormButtonComp
 			>
 			<button
