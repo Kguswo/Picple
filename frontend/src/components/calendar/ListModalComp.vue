@@ -1,6 +1,6 @@
 <script setup>
 import { defineProps, defineEmits, watch } from "vue";
-import useCalendarModal from "@/assets/js/calendarModal";
+import useCalendarModal from "@/common/calendarModal";
 
 const props = defineProps({
     visible: Boolean,
@@ -47,80 +47,35 @@ watch(
             </div>
             <div class="modal-body">
                 <div v-if="photos.length > 0" class="photo-container">
-                    <div
-                        class="photo prev-photo"
-                        v-if="photos.length > 2"
-                        :class="getPhotoClass(getPrevPhoto())"
-                    >
-                        <div
-                            class="photo-background"
-                            :class="getPhotoClass(getPrevPhoto())"
-                        >
-                            <img
-                                :src="getPrevPhoto().src"
-                                alt="Previous Photo"
-                            />
+                    <div class="photo prev-photo" v-if="photos.length > 2" :class="getPhotoClass(getPrevPhoto())">
+                        <div class="photo-background" :class="getPhotoClass(getPrevPhoto())">
+                            <img :src="getPrevPhoto().src" alt="Previous Photo" />
                         </div>
                     </div>
-                    <div
-                        class="photo current-photo"
-                        :class="[
-                            getPhotoClass(getCurrentPhoto()),
-                            { expanded: currentPhotoExpanded },
-                        ]"
-                        @click="toggleCurrentPhoto"
-                    >
-                        <div
-                            class="photo-background"
-                            :class="getPhotoClass(getCurrentPhoto())"
-                        >
-                            <img
-                                :src="getCurrentPhoto().src"
-                                alt="Current Photo"
-                            />
-                            <button
-                                class="nav-button share-button"
-                                :class="getPhotoClass(getCurrentPhoto())"
-                            >
-                                <img
-                                    src="@/assets/img/calendar/share.png"
-                                    alt="Share"
-                                />
+                    <div class="photo current-photo" :class="[
+                        getPhotoClass(getCurrentPhoto()),
+                        { expanded: currentPhotoExpanded },
+                    ]" @click="toggleCurrentPhoto">
+                        <div class="photo-background" :class="getPhotoClass(getCurrentPhoto())">
+                            <img :src="getCurrentPhoto().src" alt="Current Photo" />
+                            <button class="nav-button share-button" :class="getPhotoClass(getCurrentPhoto())">
+                                <img src="@/assets/img/calendar/share.png" alt="Share" />
                             </button>
                         </div>
                     </div>
-                    <div
-                        class="photo next-photo"
-                        v-if="photos.length > 1"
-                        :class="getPhotoClass(getNextPhoto())"
-                    >
-                        <div
-                            class="photo-background"
-                            :class="getPhotoClass(getNextPhoto())"
-                        >
+                    <div class="photo next-photo" v-if="photos.length > 1" :class="getPhotoClass(getNextPhoto())">
+                        <div class="photo-background" :class="getPhotoClass(getNextPhoto())">
                             <img :src="getNextPhoto().src" alt="Next Photo" />
                         </div>
                     </div>
                     <div class="nav-buttons">
-                        <button
-                            class="nav-button prev-button"
-                            :class="{ expanded: currentPhotoExpanded }"
-                            @click="prevPhoto"
-                        >
-                            <img
-                                src="@/assets/img/calendar/arrow-left.png"
-                                alt="Previous"
-                            />
+                        <button class="nav-button prev-button" :class="{ expanded: currentPhotoExpanded }"
+                            @click="prevPhoto">
+                            <img src="@/assets/img/calendar/arrow-left.png" alt="Previous" />
                         </button>
-                        <button
-                            class="nav-button next-button"
-                            :class="{ expanded: currentPhotoExpanded }"
-                            @click="nextPhoto"
-                        >
-                            <img
-                                src="@/assets/img/calendar/arrow-right.png"
-                                alt="Next"
-                            />
+                        <button class="nav-button next-button" :class="{ expanded: currentPhotoExpanded }"
+                            @click="nextPhoto">
+                            <img src="@/assets/img/calendar/arrow-right.png" alt="Next" />
                         </button>
                     </div>
                 </div>
