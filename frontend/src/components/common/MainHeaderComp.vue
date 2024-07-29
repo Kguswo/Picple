@@ -21,8 +21,8 @@ const logout = () => {
                 <img src="@/assets/img/mainView/picpleLogo.png" alt="" @click="navigateTo('main')" />
             </div>
             <div class="right">
-                <div v-if="userStore.isLogin()" class="dropdown">
-                    <span>{{ userStore.user.nickname }}</span>
+                <div v-if="userStore.userInfo.userId" class="dropdown">
+                    <span>{{ userStore.userInfo.nickname }}</span>
                     <div class="dropdown-content">
                         <button type="button" @click="navigateTo('modifyAccount')" class="navbar-button">정보 수정</button>
                         <br />
