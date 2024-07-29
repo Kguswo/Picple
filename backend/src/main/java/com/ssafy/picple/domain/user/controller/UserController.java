@@ -6,6 +6,8 @@ import com.ssafy.picple.config.baseResponse.BaseResponseStatus;
 import com.ssafy.picple.domain.user.dto.request.EmailCheckRequest;
 import com.ssafy.picple.domain.user.dto.request.EmailRequest;
 import com.ssafy.picple.domain.user.dto.request.LoginRequest;
+import com.ssafy.picple.domain.user.dto.request.ModifyPasswordRequest;
+import com.ssafy.picple.domain.user.dto.response.ModifyConfirmResponse;
 import com.ssafy.picple.domain.user.dto.response.Token;
 import com.ssafy.picple.domain.user.entity.User;
 import com.ssafy.picple.domain.user.service.EmailService;
@@ -47,13 +49,12 @@ public class UserController {
         if (userService.signUp(user) != null) {
             return new BaseResponse<>(SUCCESS);
         } else {
-            System.out.println("여기서 에러 발생");
             return new BaseResponse<>(FAILED_USER_SIGNUP);
         }
     }
 
     /**
-     * email 전송 (수정 필요)
+     * email 전송 (수정 필요 - PORT(587)가 열려있지 않음)
      * @param emailDto
      * @return
      * @throws BaseException
@@ -82,6 +83,34 @@ public class UserController {
     }
 
     /**
+     * 닉네임 수정
+     * @param request
+     * @param nickname
+     * @return
+     * @throws BaseException
+     */
+    @PatchMapping("/modify/nickname")
+    public BaseResponse<ModifyConfirmResponse> modifyUserNickname(HttpServletRequest request,
+                                                   @RequestBody String nickname) throws BaseException {
+        Long userId = (Long) request.getAttribute("userId");
+        return new BaseResponse<>(userService.modifyUserNickname(userId, nickname));
+    }
+
+    /**
+     * 비밀번호 변경
+     * @param request
+     * @param modifyPasswordRequest
+     * @return
+     * @throws BaseException
+     */
+    @PatchMapping("modify/password")
+    public BaseResponse<ModifyConfirmResponse> modifyUserPassword(HttpServletRequest request,
+                                                                  @RequestBody ModifyPasswordRequest modifyPasswordRequest) throws BaseException {
+        Long userId = (Long) request.getAttribute("userId");
+        return new BaseResponse<>(userService.modifyUserPassword(userId, modifyPasswordRequest));
+    }
+
+    /**
      * 회원 탈퇴
      * @param
      * @return
@@ -99,7 +128,7 @@ public class UserController {
      * @return
      * @throws BaseException
      */
-    @PostMapping("/testEmail")
+    @PostMapping("/test-email")
     public BaseResponse<?> checkEmailTemp(@RequestBody @Valid EmailRequest emailRequest) throws BaseException {
         if (emailRequest.getEmail() == null || emailRequest.getEmail().trim().isEmpty()) {
             throw new BaseException(USER_EMAIL_EMPTY);

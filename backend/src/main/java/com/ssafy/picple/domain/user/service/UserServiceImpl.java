@@ -2,6 +2,8 @@ package com.ssafy.picple.domain.user.service;
 
 import com.ssafy.picple.config.baseResponse.BaseException;
 import com.ssafy.picple.domain.user.dto.request.LoginRequest;
+import com.ssafy.picple.domain.user.dto.request.ModifyPasswordRequest;
+import com.ssafy.picple.domain.user.dto.response.ModifyConfirmResponse;
 import com.ssafy.picple.domain.user.dto.response.Token;
 import com.ssafy.picple.domain.user.entity.User;
 import com.ssafy.picple.domain.user.repository.UserRepository;
@@ -13,10 +15,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import static com.ssafy.picple.config.baseResponse.BaseResponseStatus.*;
-import static org.apache.tomcat.util.net.openssl.ciphers.Encryption.AES256;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
@@ -41,19 +43,21 @@ public class UserServiceImpl implements UserService {
         return userRepository.save(user);
     }
 
+    /**
+     * 로그인
+     * @param loginRequest
+     * @return
+     * @throws BaseException
+     */
     @Override
     @Transactional
     public Token login(LoginRequest loginRequest) throws BaseException {
         User user = userRepository.findByEmail(loginRequest.getEmail())
                 .orElseThrow(() -> new BaseException(NOT_FOUND_USER));
-        System.out.println(user.getPassword());
-        System.out.println(encodePassword(loginRequest.getPassword()));
-        if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
+        if (!validatePassword(loginRequest.getPassword(), user.getPassword())) {
             throw new BaseException(INVALID_PASSWORD);
         }
-        Token token = new Token();
-        token.setAccessToken(jwtUtil.createAccessToken(user.getId()));
-        return token;
+        return new Token(jwtUtil.createAccessToken(user.getId()));
     }
 
     /**
@@ -70,7 +74,57 @@ public class UserServiceImpl implements UserService {
     }
 
     /**
+     * 회원 정보 수정 (password, nickname)
+     * @param userId, nickname
+     * @throws BaseException
+     */
+    @Override
+    @Transactional
+    public ModifyConfirmResponse modifyUserNickname(Long userId, String nickname) throws BaseException {
+        if (userRepository.existsByNickname(nickname)) {
+            throw new BaseException(DUPLICATED_USER_NICKNAME);
+        }
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BaseException(NOT_FOUND_USER));
+        try {
+            user.modifyUserNickname(nickname);
+            userRepository.save(user);
+            return new ModifyConfirmResponse(user.getEmail(), nickname);
+        } catch (Exception e) {
+            throw new BaseException(ERROR_MODIFY_NICKNAME);
+        }
+    }
+
+    /**
+     * 비밀번호 변경
+     * @param userId
+     * @param modifyPassword
+     * @return
+     * @throws BaseException
+     */
+    @Override
+    public ModifyConfirmResponse modifyUserPassword(Long userId, ModifyPasswordRequest modifyPassword) throws BaseException {
+        String oldPassword = modifyPassword.getOldPassword();
+        String newPassword = modifyPassword.getNewPassword();
+        if (newPassword.isEmpty() || oldPassword.isEmpty()) {
+            throw new BaseException(EMPTY_REQUEST_PASSWORD);
+        }
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BaseException(NOT_FOUND_USER));
+        if (!validatePassword(oldPassword, user.getPassword())) {
+            throw new BaseException(INVALID_PASSWORD);
+        }
+        try {
+            user.setPasswordEncoding(encodePassword(user.getPassword()));
+            return new ModifyConfirmResponse(user.getEmail(), user.getNickname());
+        } catch (Exception e) {
+            throw new BaseException(ERROR_MODIFY_PASSWORD);
+        }
+    }
+
+    /**
      * User 회원 탈퇴
+     * is_delete --> true
      * @param userId
      * @return
      * @throws BaseException
@@ -85,8 +139,24 @@ public class UserServiceImpl implements UserService {
         }
     }
 
+    /**
+     * 비밀번호 암호화
+     * @param password
+     * @return
+     */
     private String encodePassword(String password) {
         return passwordEncoder.encode(password);
+    }
+
+    /**
+     * 비밀번호 검증
+     * 일치 : True
+     * @param requestPassword
+     * @param userPassword
+     * @return
+     */
+    private Boolean validatePassword(String requestPassword, String userPassword) {
+        return passwordEncoder.matches(requestPassword, userPassword);
     }
 
 }
