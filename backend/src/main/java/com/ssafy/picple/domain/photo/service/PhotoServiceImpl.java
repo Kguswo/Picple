@@ -2,7 +2,6 @@ package com.ssafy.picple.domain.photo.service;
 
 import com.ssafy.picple.AwsS3.S3FileUploadService;
 import com.ssafy.picple.config.baseResponse.BaseException;
-import com.ssafy.picple.domain.board.service.BoardService;
 import com.ssafy.picple.domain.photouser.entity.PhotoUser;
 import com.ssafy.picple.domain.photouser.repository.PhotoUserRepository;
 import org.springframework.stereotype.Service;
@@ -62,7 +61,7 @@ public class PhotoServiceImpl implements PhotoService {
 					.user(user)
 					.build();
 			calendarRepository.save(newCalendar);
-		};
+		}
 
 		// PhotoUser에 userId와 photoId 정보 저장, photoUser에서 중복된 기록이 있는지 확인해야함
 		boolean photoUserExists = photoUserRepository.existsByPhotoIdAndUserId(existingPhoto.getId(), userId);
