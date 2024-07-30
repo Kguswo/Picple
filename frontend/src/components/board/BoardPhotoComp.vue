@@ -1,6 +1,7 @@
 <script setup>
 import { ref } from 'vue';
 import BoardModalComp from '@/components/board/BoardModalComp.vue';
+import { boardDeleteApi } from '@/api/boardApi';
 
 const props = defineProps({
     photo: Object,
@@ -24,6 +25,14 @@ const toggleLike = () => {
     }
     props.photo.liked = !props.photo.liked
 }
+
+const deleteBoard = async () => {
+    const data = await boardDeleteApi(props.photo.id);
+    if (!data.isSuccess) {
+        await Swal.fire({ icon: "error", title: "게시글 삭제에 실패하였습니다.", width: 600 });
+        return;
+    }
+}   
 </script>
 
 <template>
@@ -49,7 +58,7 @@ const toggleLike = () => {
     </div>
 
     <div @keyup.esc="closeModal">
-        <BoardModalComp :isOpen="isModalOpen" :photo="photo" @close="closeModal" />
+        <BoardModalComp :isOpen="isModalOpen" :photo="photo" @close="closeModal" @delete="deleteBoard" />
     </div>
 </template>
 
