@@ -1,21 +1,19 @@
 <script setup>
 import { ref } from 'vue';
+import BoardModalComp from '@/components/board/BoardModalComp.vue';
 
 const props = defineProps({
     photo: Object,
 })
 
-const showModal = ref(false);
-const currentItem = ref(null);
+const isModalOpen = ref(false);
 
-const picZoom = () => {
-    showModal.value = true;
-    currentItem.value = props.photo;
+const openModal = () => {
+    isModalOpen.value = true;
 };
 
 const closeModal = () => {
-    showModal.value = false;
-    currentItem.value = null;
+    isModalOpen.value = false;
 };
 
 const toggleLike = () => {
@@ -30,7 +28,7 @@ const toggleLike = () => {
 
 <template>
     <div class="photo-card">
-        <div class="photo" @click="picZoom">
+        <div class="photo" @click="openModal">
         </div>
         <div class="content">
             <div class="like">
@@ -50,21 +48,58 @@ const toggleLike = () => {
         </div>
     </div>
 
-    <div class="modal" v-if="showModal">
-        <div class="modal-content">
-            <div class="close-box">
-                <span class="close" @click="closeModal">&times;</span>
-            </div>
-            <div class="modal-img">
-                <img src="@/assets/img/tempImg.png" alt="">
-                <div class="modal-text">
-                    <span class="modal-date">촬영일: {{ currentItem.createdAt }}</span>
-                </div>
-            </div>
-        </div>
+    <div @keyup.esc="closeModal">
+        <BoardModalComp :isOpen="isModalOpen" :photo="photo" @close="closeModal" />
     </div>
 </template>
 
 <style scoped>
-@import "@/assets/css/board.css";
+.photo-card {
+    margin: 5px;
+    height: 80%;
+    width: 23%;
+    border: 2px solid gray;
+    background-color: white;
+    box-shadow: 5px 5px 5px black;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    * {
+        font-family: "PFStardust";
+        font-weight: lighter;
+    }
+}
+
+.photo {
+    margin-top: 10px;
+    height: 80%;
+    width: 90%;
+    border: 2px solid gray;
+    background-color: rgba(192, 192, 192, 0.722);
+}
+
+.content {
+    display: flex;
+    align-items: center;
+    justify-content: end;
+    width: 90%;
+    height: 20%;
+
+    .like {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        svg {
+            margin-right: 7px;
+        }
+
+        .like-cnt {
+            font-size: 20px;
+        }
+    }
+}
 </style>
