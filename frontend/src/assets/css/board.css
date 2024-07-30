@@ -89,12 +89,16 @@
 	.timeSort,
 	.likeSort {
 		&:hover {
-			background-color: rgb(250, 198, 198);
+			background-color: rgba(250, 198, 198, 0.3);
 		}
 
 		&:active {
 			transform: translateY(4px);
 		}
+	}
+
+	.clicked {
+		background-color: rgb(250, 198, 198);
 	}
 }
 
@@ -222,8 +226,6 @@
 	.modal-text {
 		height: 10%;
 		width: 90%;
-		display: flex;
-		justify-content: space-between;
 		text-align: center;
 	}
 }
