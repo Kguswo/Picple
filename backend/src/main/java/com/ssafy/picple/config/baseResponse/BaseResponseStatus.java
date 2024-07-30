@@ -35,12 +35,15 @@ public enum BaseResponseStatus {
 	NOT_EQUAL_EMAIL_CODE(false, 3005, "인증 코드를 확인하세요."),
 	NOT_EXISTS_CODE(false, 3006, "인증을 다시 시도하여 주십시오."),
 
-	// about user service
-	GET_USER_EMPTY(false, 3016, "등록된 유저가 없습니다."),
-	FAILED_USER_SIGNUP(false, 3017, "등록된 유저가 없습니다."),
-	NOT_FOUND_USER(false, 3018, "값을 불러오는데 실패하였습니다."),
-	INVALID_PASSWORD(false, 3019, "비밀번호가 일치하지 않습니다."),
-	PASSWORD_ENCRYPTION_ERROR(false, 3020, "비밀번호가 일치하지 않습니다."),
+    // about user service
+    GET_USER_EMPTY(false, 3016, "등록된 유저가 없습니다."),
+    FAILED_USER_SIGNUP(false, 3017, "등록된 유저가 없습니다."),
+    NOT_FOUND_USER(false, 3018, "유저 정보가 없습니다."),
+    INVALID_PASSWORD(false, 3019, "비밀번호가 일치하지 않습니다."),
+	PASSWORD_ENCRYPTION_ERROR(false, 3020, "암호화된 비밀번호가 일치하지 않습니다."),
+	ERROR_MODIFY_NICKNAME(false, 3021, "닉네임 변경 중 오류가 발생하였습니다."),
+	ERROR_MODIFY_PASSWORD(false, 3022, "비밀번호 변경 중 오류가 발생하였습니다."),
+	EMPTY_REQUEST_PASSWORD(false, 3023, "비밀번호를 입력해주세요."),
 
 	// 3100 ~~ 3199 : 김현재
 	// boardlike
