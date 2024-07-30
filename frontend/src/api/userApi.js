@@ -2,6 +2,7 @@ import instance from "@/api/baseApi";
 
 const usersBaseUrl = instance.defaults.baseURL + "/users";
 
+// 로그인
 const loginApi = async (email, password) => {
 	try {
 		const response = await instance.post(`${usersBaseUrl}/login`, {
@@ -14,6 +15,7 @@ const loginApi = async (email, password) => {
 	}
 };
 
+// 회원가입
 const signupApi = async (email, password, nickname) => {
 	try {
 		const response = await instance.post(`${usersBaseUrl}/sign-up`, {
