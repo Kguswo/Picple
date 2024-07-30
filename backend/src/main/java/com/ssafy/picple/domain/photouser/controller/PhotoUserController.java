@@ -13,6 +13,7 @@ import com.ssafy.picple.domain.photouser.dto.request.PhotoUserRequestDto;
 import com.ssafy.picple.domain.photouser.dto.response.PhotoUserResponseDto;
 import com.ssafy.picple.domain.photouser.service.PhotoUserService;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -23,16 +24,23 @@ public class PhotoUserController {
 	private final PhotoUserService photoUserService;
 
 	@GetMapping("/{photoUserId}")
-	public BaseResponse<PhotoUserResponseDto> getPhotoUserContent(@RequestParam PhotoUserRequestDto requestDto) throws
-			BaseException {
-		PhotoUserResponseDto responseDto = photoUserService.createPhotoUser(requestDto);
-		return new BaseResponse<>(responseDto);
+	public BaseResponse<PhotoUserResponseDto> getPhotoUserContent(
+			HttpServletRequest request,
+			@RequestParam PhotoUserRequestDto requestDto) {
+
+		Long userId = (Long)request.getAttribute("userId");
+		return new BaseResponse<>(photoUserService.getPhotoUserContent(requestDto, userId));
+
 	}
 
 	@PostMapping
-	public BaseResponse<PhotoUserResponseDto> createPhotoUser(@RequestBody PhotoUserRequestDto requestDto) throws
-			BaseException {
-		PhotoUserResponseDto responseDto = photoUserService.createPhotoUser(requestDto);
-		return new BaseResponse<>(responseDto);
+	public BaseResponse<PhotoUserResponseDto> createPhotoUser(
+			HttpServletRequest request,
+			@RequestBody PhotoUserRequestDto requestDto)
+			throws BaseException {
+
+		Long userId = (Long)request.getAttribute("userId");
+		return new BaseResponse<>(photoUserService.createPhotoUser(requestDto, userId));
+
 	}
 }

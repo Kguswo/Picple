@@ -23,6 +23,7 @@ import com.ssafy.picple.domain.background.dto.response.InsertBackgroundResponse;
 import com.ssafy.picple.domain.background.dto.response.ModifyBackgroundTitleResponse;
 import com.ssafy.picple.domain.background.service.BackgroundService;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -43,9 +44,11 @@ public class BackgroundController {
 	}
 
 	@GetMapping("/{userId}")
-	public BaseResponse<List<BackgroundResponseDto>> getUserBackgrounds(@PathVariable Long userId) throws
-			BaseException {
+	public BaseResponse<List<BackgroundResponseDto>> getUserBackgrounds(
+			HttpServletRequest request)
+			throws BaseException {
 		try {
+			Long userId = (Long)request.getAttribute("userId");
 			List<BackgroundResponseDto> result = backgroundService.getUserBackgrounds(userId);
 			return new BaseResponse<>(result);
 		} catch (Exception e) {
@@ -55,10 +58,11 @@ public class BackgroundController {
 
 	@PostMapping("/ai/{userId}")
 	public BaseResponse<InsertBackgroundResponse> insertAiBackground(
-			@PathVariable Long userId,
-			@RequestBody InsertAIBackgroundRequest request) throws BaseException {
+			HttpServletRequest request,
+			@RequestBody InsertAIBackgroundRequest aiBackgroundRequest) throws BaseException {
 		try {
-			backgroundService.insertAIBackground(userId, request.getPrompt());
+			Long userId = (Long)request.getAttribute("userId");
+			backgroundService.insertAIBackground(userId, aiBackgroundRequest.getPrompt());
 			return new BaseResponse<>(SUCCESS);
 		} catch (Exception e) {
 			throw new BaseException(AI_BACKGROUND_GENERATION_ERROR);
@@ -67,9 +71,10 @@ public class BackgroundController {
 
 	@PostMapping("/local/{userId}")
 	public BaseResponse<InsertBackgroundResponse> insertLocalBackground(
-			@PathVariable Long userId,
+			HttpServletRequest request,
 			@RequestParam("file") MultipartFile file) throws BaseException {
 		try {
+			Long userId = (Long)request.getAttribute("userId");
 			backgroundService.insertLocalBackground(userId, file);
 			return new BaseResponse<>(SUCCESS);
 		} catch (Exception e) {
@@ -79,15 +84,17 @@ public class BackgroundController {
 
 	@DeleteMapping("/{backgroundId}")
 	public BaseResponse<ModifyBackgroundTitleResponse> deleteBackground(
+			HttpServletRequest request,
 			@PathVariable Long backgroundId,
-			@RequestBody DeleteBackgroundRequest request) throws BaseException {
+			@RequestBody DeleteBackgroundRequest deleteBackgroundRequest) throws BaseException {
 
-		if (!request.isValidUserId()) {
+		if (!deleteBackgroundRequest.isValidUserId()) {
 			throw new BaseException(INVALID_USER_JWT);
 		}
 
 		try {
-			backgroundService.deleteBackground(backgroundId, request.getUserId());
+			Long userId = (Long)request.getAttribute("userId");
+			backgroundService.deleteBackground(backgroundId, userId);
 			return new BaseResponse<>(SUCCESS);
 		} catch (Exception e) {
 			throw new BaseException(DELETE_BACKGROUND_ERROR);

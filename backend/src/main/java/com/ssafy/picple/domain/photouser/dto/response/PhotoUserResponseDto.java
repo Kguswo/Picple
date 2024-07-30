@@ -12,14 +12,12 @@ import lombok.experimental.SuperBuilder;
 public class PhotoUserResponseDto {
 	private Long id;
 	private Long photoId;
-	private Long userId;
 	private String content;
 
 	public static PhotoUserResponseDto photoUserResponseDto(PhotoUser photoUser) {
 		return PhotoUserResponseDto.builder()
 				.id(photoUser.getId())
 				.photoId(photoUser.getPhoto().getId())
-				.userId(photoUser.getUser().getId())
 				.content(photoUser.getContent())
 				.build();
 	}
