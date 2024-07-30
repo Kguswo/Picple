@@ -38,4 +38,8 @@ public class Photo {
 		this.isDeleted = isDeleted;
 	}
 
+	public void setIsShared(boolean isShared) {
+		this.isShared = isShared;
+	}
+
 }

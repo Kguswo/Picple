@@ -24,7 +24,7 @@ import lombok.NoArgsConstructor;
 public class PhotoUser {
 
 	@Id
-	@Column(name = "photo_user")
+	@Column(name = "photo_user_id")
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
@@ -46,8 +46,7 @@ public class PhotoUser {
 		this.content = content;
 	}
 
-	public void updateContent(String content) {
+	public void setContent(String content) {
 		this.content = content;
 	}
-
 }

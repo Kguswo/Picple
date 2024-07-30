@@ -44,8 +44,9 @@ public class Board extends BaseTimeEntity {
 	private boolean isDeleted;
 
 	@Builder
-	public Board(User user, int hit, boolean isDeleted) {
+	public Board(User user, Photo photo, int hit, boolean isDeleted) {
 		this.user = user;
+		this.photo = photo;
 		this.hit = hit;
 		this.isDeleted = isDeleted;
 	}
