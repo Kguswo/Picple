@@ -4,7 +4,7 @@ import com.ssafy.picple.config.baseResponse.BaseException;
 import com.ssafy.picple.domain.user.dto.request.LoginRequest;
 import com.ssafy.picple.domain.user.dto.request.ModifyPasswordRequest;
 import com.ssafy.picple.domain.user.dto.response.ModifyConfirmResponse;
-import com.ssafy.picple.domain.user.dto.response.Token;
+import com.ssafy.picple.domain.user.dto.response.LoginResponse;
 import com.ssafy.picple.domain.user.entity.User;
 import com.ssafy.picple.domain.user.repository.UserRepository;
 import com.ssafy.picple.util.JWTUtil;
@@ -51,13 +51,13 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     @Transactional
-    public Token login(LoginRequest loginRequest) throws BaseException {
+    public LoginResponse login(LoginRequest loginRequest) throws BaseException {
         User user = userRepository.findByEmail(loginRequest.getEmail())
                 .orElseThrow(() -> new BaseException(NOT_FOUND_USER));
         if (!validatePassword(loginRequest.getPassword(), user.getPassword())) {
             throw new BaseException(INVALID_PASSWORD);
         }
-        return new Token(jwtUtil.createAccessToken(user.getId()));
+        return new LoginResponse(jwtUtil.createAccessToken(user.getId()), user.getNickname());
     }
 
     /**

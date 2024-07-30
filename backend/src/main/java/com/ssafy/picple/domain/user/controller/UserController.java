@@ -5,10 +5,11 @@ import com.ssafy.picple.config.baseResponse.BaseResponse;
 import com.ssafy.picple.config.baseResponse.BaseResponseStatus;
 import com.ssafy.picple.domain.user.dto.request.*;
 import com.ssafy.picple.domain.user.dto.response.ModifyConfirmResponse;
-import com.ssafy.picple.domain.user.dto.response.Token;
+import com.ssafy.picple.domain.user.dto.response.LoginResponse;
 import com.ssafy.picple.domain.user.entity.User;
 import com.ssafy.picple.domain.user.service.EmailService;
 import com.ssafy.picple.domain.user.service.UserService;
+import com.ssafy.picple.util.JWTUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +24,7 @@ public class UserController {
 
     private final UserService userService;
     private final EmailService emailService;
+    private final JWTUtil jwtUtil;
 
     /**
      * 로그인
@@ -31,7 +33,7 @@ public class UserController {
      * @throws BaseException
      */
     @PostMapping("/login")
-    public BaseResponse<Token> login(@RequestBody LoginRequest loginRequest) throws BaseException {
+    public BaseResponse<LoginResponse> login(@RequestBody LoginRequest loginRequest) throws BaseException {
         return new BaseResponse<>(userService.login(loginRequest));
     }
 
@@ -105,6 +107,20 @@ public class UserController {
                                                                   @RequestBody ModifyPasswordRequest modifyPasswordRequest) throws BaseException {
         Long userId = (Long) request.getAttribute("userId");
         return new BaseResponse<>(userService.modifyUserPassword(userId, modifyPasswordRequest));
+    }
+
+
+
+    /**
+     * 로그아웃
+     * @param request
+     * @return
+     * @throws BaseException
+     */
+    @PostMapping("/logout")
+    public BaseResponse<BaseResponseStatus> logout(HttpServletRequest request) throws BaseException {
+        jwtUtil.logout(request.getHeader("X-ACCESS-TOKEN"));
+        return new BaseResponse<>(SUCCESS);
     }
 
     /**

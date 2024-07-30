@@ -4,13 +4,13 @@ import com.ssafy.picple.config.baseResponse.BaseException;
 import com.ssafy.picple.domain.user.dto.request.LoginRequest;
 import com.ssafy.picple.domain.user.dto.request.ModifyPasswordRequest;
 import com.ssafy.picple.domain.user.dto.response.ModifyConfirmResponse;
-import com.ssafy.picple.domain.user.dto.response.Token;
+import com.ssafy.picple.domain.user.dto.response.LoginResponse;
 import com.ssafy.picple.domain.user.entity.User;
 
 public interface UserService {
     User signUp(User user) throws BaseException;
 
-    Token login(LoginRequest loginRequest) throws BaseException;
+    LoginResponse login(LoginRequest loginRequest) throws BaseException;
 
     void checkEmailDuplication(String email) throws BaseException;
 
