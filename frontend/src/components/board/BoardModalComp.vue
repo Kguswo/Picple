@@ -2,7 +2,7 @@
 import { ref } from "vue";
 
 const props = defineProps({
-    photo: Object,
+    board: Object,
     isOpen: Boolean
 })
 
@@ -11,6 +11,7 @@ const emit = defineEmits(["close", "delete"]);
 const isDropdownOpen = ref(false);
 
 const closeModal = () => {
+    isDropdownOpen.value = false;
     emit("close");
 }
 
@@ -38,7 +39,7 @@ const deleteBoard = () => {
             <div class="modal-img">
                 <img src="@/assets/img/tempImg.png" alt="">
                 <div class="modal-text">
-                    <span class="modal-date">촬영일: {{ photo.createdAt }}</span>
+                    <span class="modal-date">촬영일: {{ board.createdAt }}</span>
                 </div>
             </div>
         </div>
