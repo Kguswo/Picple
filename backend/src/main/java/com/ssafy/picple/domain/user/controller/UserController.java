@@ -19,7 +19,7 @@ import static com.ssafy.picple.config.baseResponse.BaseResponseStatus.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/user")
+@RequestMapping("/users")
 public class UserController {
 
     private final UserService userService;
