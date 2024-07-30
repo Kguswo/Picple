@@ -12,7 +12,7 @@ const boardListApi = async () => {
 	}
 };
 
-// 게시판 정렬
+// 게시판 정렬 조회
 const boardSortApi = async (criteria) => {
 	try {
 		const response = await instance.get(
@@ -24,4 +24,14 @@ const boardSortApi = async (criteria) => {
 	}
 };
 
-export { boardListApi, boardSortApi };
+// 게시판 닉네임 검색 조회
+const boardSearchApi = async (nickname) => {
+	try {
+		const response = await instance.get(`${boardBaseUrl}/user/${nickname}`);
+		return response.data;
+	} catch (error) {
+		return error;
+	}
+};
+
+export { boardListApi, boardSortApi, boardSearchApi };
