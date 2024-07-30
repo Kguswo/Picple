@@ -26,8 +26,10 @@ const toggleLike = async () => {
     }
     if (props.photo.liked) {
         --props.photo.hit;
+        props.photo.liked = false;
     } else {
         ++props.photo.hit;
+        props.photo.liked = true;
     }
 }
 
