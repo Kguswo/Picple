@@ -1,53 +1,15 @@
 <script setup>
 import { ref } from 'vue';
-const item = [
-    {
-        id: 1,
-        content: '작성자: 김수완무거북이와두루미'
-    },
-    {
-        id: 2,
-        content: 'Hi'
-    }
-    ,
-    {
-        id: 3,
-        content: 'Hi'
-    }
-    ,
-    {
-        id: 4,
-        content: 'Hi'
-    }
-    ,
-    {
-        id: 5,
-        content: 'Hi'
-    }
-    ,
-    {
-        id: 6,
-        content: 'Hi'
-    }
-    ,
-    {
-        id: 7,
-        content: 'Hi'
-    }
-    ,
-    {
-        id: 8,
-        content: 'Hi'
-    }
-
-];
+const props = defineProps({
+    photos: Array,
+})
 
 const showModal = ref(false);
 const currentItem = ref(null);
 
-const picZoom = (i) => {
+const picZoom = (item) => {
     showModal.value = true;
-    currentItem.value = i;
+    currentItem.value = item;
 };
 
 const closeModal = () => {
@@ -57,13 +19,22 @@ const closeModal = () => {
 </script>
 
 <template>
-    <div class="photo-card" v-for="i in item" :key="i.id" @click="picZoom">
+    <div class="photo-card" v-for="item in photos" :key="item.id" @click="picZoom(item)">
         <div class="photo">
         </div>
         <div class="content">
             <div class="like">
-                <img src="@/assets/icon/heart.png" alt="">
-                {{ i.id }}
+                <svg v-if="item.liked" xmlns="@/assets/icon/hear-fill.svg" class="heart" width="20" height="20"
+                    fill="currentColor" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd"
+                        d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314" />
+                </svg>
+                <svg v-else xmlns="@/assets/icon/hear.svg" width="20" height="20" fill="currentColor" class="heart"
+                    viewBox="0 0 16 16">
+                    <path
+                        d="m8 2.748-.717-.737C5.6.281 2.514.878 1.4 3.053c-.523 1.023-.641 2.5.314 4.385.92 1.815 2.834 3.989 6.286 6.357 3.452-2.368 5.365-4.542 6.286-6.357.955-1.886.838-3.362.314-4.385C13.486.878 10.4.28 8.717 2.01zM8 15C-7.333 4.868 3.279-3.04 7.824 1.143q.09.083.176.171a3 3 0 0 1 .176-.17C12.72-3.042 23.333 4.867 8 15" />
+                </svg>
+                <span class="like-cnt">{{ item.hit }}</span>
             </div>
 
         </div>
@@ -86,118 +57,5 @@ const closeModal = () => {
 </template>
 
 <style scoped>
-* {
-    font-family: 'PFStardust';
-    font-weight: lighter;
-}
-
-.photo-card {
-    margin: 5px;
-    height: 80%;
-    width: 23%;
-    border: 2px solid gray;
-    background-color: white;
-    box-shadow: 5px 5px 5px black;
-
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-}
-
-.photo {
-    margin-top: 5px;
-    height: 70%;
-    width: 90%;
-    border: 2px solid gray;
-    background-color: rgba(192, 192, 192, 0.722)
-}
-
-.content {
-    display: flex;
-    align-items: center;
-    justify-content: end;
-    width: 90%;
-
-    img {
-        height: 20px;
-        width: 20px;
-        margin-right: 5px;
-    }
-
-    .like {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-}
-
-.modal {
-    display: block;
-    position: fixed;
-    z-index: 1;
-    left: 0;
-    top: 15%;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgba(0, 0, 0, 0.4);
-}
-
-.modal-content {
-    background-color: #fefefe;
-    margin: 10vh auto;
-    padding: 20px;
-    border: 1px solid #888;
-    width: 40%;
-    max-width: 60%;
-    height: 60%;
-    max-height: 80vh;
-    overflow-y: auto;
-    border-radius: 10px;
-}
-
-.close-box {
-    padding-top: 0px;
-    padding-bottom: 0px;
-    height: 8%;
-}
-
-.close {
-    color: #aaa;
-    float: right;
-    font-size: 28px;
-    line-height: 28px;
-    font-weight: bold;
-    height: 28px;
-}
-
-.close:hover,
-.close:focus {
-    color: black;
-    text-decoration: none;
-    cursor: pointer;
-}
-
-.modal-img {
-    height: 90%;
-    display: flex;
-    align-items: center;
-    text-align: center;
-    justify-content: center;
-    flex-wrap: wrap;
-
-    img {
-        height: 90%;
-        width: 95%;
-    }
-
-    .modal-text {
-        height: 10%;
-        width: 90%;
-        display: flex;
-        justify-content: space-between;
-        text-align: center;
-    }
-}
+@import "@/assets/css/board.css";
 </style>
