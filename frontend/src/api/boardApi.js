@@ -1,6 +1,6 @@
 import instance from "@/api/baseApi";
 
-const boardBaseUrl = instance.defaults.baseURL + "/board";
+const boardBaseUrl = instance.defaults.baseURL + "/boards";
 
 // 게시판 전체 조회
 const boardListApi = async () => {
@@ -34,4 +34,14 @@ const boardSearchApi = async (nickname) => {
 	}
 };
 
-export { boardListApi, boardSortApi, boardSearchApi };
+// 게시물 삭제
+const boardDeleteApi = async (boardId) => {
+	try {
+		const response = await instance.delete(`${boardBaseUrl}/${boardId}`);
+		return response.data;
+	} catch (error) {
+		return error;
+	}
+};
+
+export { boardListApi, boardSortApi, boardSearchApi, boardDeleteApi };
