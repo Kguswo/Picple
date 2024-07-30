@@ -12,13 +12,4 @@ export default defineConfig({
 			"@": fileURLToPath(new URL("./src", import.meta.url)),
 		},
 	},
-	// server: {
-	// 	proxy: {
-	// 		"/picple": {
-	// 			target: "http://localhost:8080",
-	// 			changeOrigin: true,
-	// 			rewrite: (path) => path.replace(/^\/api/, ""),
-	// 		},
-	// 	},
-	// },
 });
