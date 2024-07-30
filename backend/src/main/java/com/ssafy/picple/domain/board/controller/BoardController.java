@@ -6,7 +6,6 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.ssafy.picple.config.baseResponse.BaseException;
@@ -73,8 +72,8 @@ public class BoardController {
 	 * @return
 	 * @throws BaseException
 	 */
-	@DeleteMapping("")
-	public BaseResponse<?> deleteBoard(HttpServletRequest request, @RequestParam Long boardId) throws BaseException {
+	@DeleteMapping("/{boardId}")
+	public BaseResponse<?> deleteBoard(HttpServletRequest request, @PathVariable Long boardId) throws BaseException {
 		Long userId = boardService.getUserId(request);
 		boolean isDeleted = boardService.deleteBoard(boardId, userId);
 		if (isDeleted) {
