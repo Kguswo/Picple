@@ -47,7 +47,7 @@ const boardDeleteApi = async (boardId) => {
 	}
 };
 
-// 게시글 좋아요
+// 게시글 좋아요 / 좋아요 취소
 const boardLikeApi = async (boardId) => {
 	try {
 		const response = await instance.patch(`${likesBaseUrl}/${boardId}`);
