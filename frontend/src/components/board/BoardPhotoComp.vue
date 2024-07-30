@@ -1,7 +1,8 @@
 <script setup>
 import { ref } from 'vue';
 import BoardModalComp from '@/components/board/BoardModalComp.vue';
-import { boardDeleteApi } from '@/api/boardApi';
+import { boardDeleteApi, boardLikeApi } from '@/api/boardApi';
+import Swal from "sweetalert2";
 
 const props = defineProps({
     photo: Object,
@@ -17,13 +18,17 @@ const closeModal = () => {
     isModalOpen.value = false;
 };
 
-const toggleLike = () => {
+const toggleLike = async () => {
+    const data = await boardLikeApi(props.photo.id);
+    if (!data.isSuccess) {
+        await Swal.fire({ icon: "error", title: "좋아요 누르기에 실패하였습니다.", width: 600 });
+        return;
+    }
     if (props.photo.liked) {
         --props.photo.hit;
     } else {
         ++props.photo.hit;
     }
-    props.photo.liked = !props.photo.liked
 }
 
 const deleteBoard = async () => {

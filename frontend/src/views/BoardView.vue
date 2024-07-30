@@ -12,7 +12,9 @@ const timeClicked = ref(false);
 
 onMounted(async () => {
     const data = await boardSortApi("createdAt") // 기본은 최신순 정렬
+    console.log(data);
     if (!data.isSuccess) {
+        await Swal.fire({ icon: "error", title: "게시글을 불러오지 못했습니다.", width: 600 });
         return;
     }
     photos.value = data.result;
@@ -80,7 +82,7 @@ const sortByHit = async () => {
                 </div>
 
                 <div class="board">
-                    <div v-if="photos.length === 0" style="font-size: 50px">게시물 없음</div>
+                    <div v-if="photos.length === 0" style="font-size: 50px">게시글 없음</div>
                     <BoardPhotoComp v-else v-for="photo in photos" :key="photo.id" :photo="photo" />
                 </div>
             </div>
