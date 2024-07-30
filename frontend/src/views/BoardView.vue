@@ -5,9 +5,11 @@ import Page from "@/components/common/PageComp.vue";
 import { onMounted, ref } from "vue";
 import { boardListApi } from "@/api/boardApi";
 
+const photos = ref([]);
+
 onMounted(async () => {
     const data = await boardListApi();
-    console.log(data);
+    photos.value = data.result;
 })
 
 const nickname = ref({ type: "text", label: "", value: "" });
@@ -53,7 +55,7 @@ const likeSort = () => {
                 </div>
 
                 <div class="board">
-                    <BoardPhotoComp />
+                    <BoardPhotoComp :photos="photos"/>
                 </div>
             </div>
         </WhiteBoardComp>
@@ -61,115 +63,5 @@ const likeSort = () => {
 </template>
 
 <style scoped>
-.name-area {
-    width: 100%;
-    height: 20%;
-
-    display: flex;
-    justify-content: center;
-    align-items: center;
-
-    border-bottom: 5px solid rgba(0, 0, 0, 0.9);
-
-    color: black;
-    font-size: 50px;
-}
-
-.board-area {
-    /* * {
-        font-family: 'PFStardust';
-        font-weight: normal;
-        font-style: normal;
-        font-size: 15px;
-    } */
-
-    width: 100%;
-    height: 80%;
-
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-}
-
-.button-box {
-    width: 85%;
-    height: 10%;
-    padding: 20px 0px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.input-container {
-    width: 250px;
-    height: 50px;
-    position: relative;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border-radius: 5px;
-}
-
-.form-input {
-    width: 100%;
-    box-sizing: border-box;
-    border-radius: 5px;
-    border: 2px solid gray;
-    padding: 5px 10px;
-    line-height: 35px;
-    cursor: pointer;
-    font-size: 15px;
-}
-
-.form-button-small {
-    position: absolute;
-    right: 5%;
-    top: 50%;
-    border: none;
-    border-radius: 5px;
-    transform: translateY(-50%);
-    padding: 5px 10px;
-    font-size: 15px;
-    background-color: #62abd9;
-    color: white;
-    cursor: pointer;
-}
-
-.btn-group {
-    button {
-        border-radius: 8px;
-        padding: 5px 10px;
-        line-height: 30px;
-        margin-left: 8px;
-        font-size: 15px;
-        background-color: #ffffff;
-        color: black;
-        transition: background-color 0.3s ease;
-        cursor: pointer;
-    }
-
-    .timeSort,
-    .likeSort {
-        &:hover {
-            background-color: rgb(250, 198, 198);
-        }
-
-        &:active {
-            transform: translateY(4px);
-        }
-    }
-}
-
-.board {
-    width: 90%;
-    height: 90%;
-
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: center;
-
-    overflow: scroll;
-}
+@import "@/assets/css/board.css";
 </style>
