@@ -1,10 +1,10 @@
 import instance from "@/api/baseApi";
 
-const userBaseUrl = instance.defaults.baseURL + "/user";
+const usersBaseUrl = instance.defaults.baseURL + "/users";
 
 const loginApi = async (email, password) => {
 	try {
-		const response = await instance.post(`${userBaseUrl}/login`, {
+		const response = await instance.post(`${usersBaseUrl}/login`, {
 			email,
 			password,
 		});
@@ -16,7 +16,7 @@ const loginApi = async (email, password) => {
 
 const signupApi = async (email, password, nickname) => {
 	try {
-		const response = await instance.post(`${userBaseUrl}/sign-up`, {
+		const response = await instance.post(`${usersBaseUrl}/sign-up`, {
 			email,
 			password,
 			nickname,
