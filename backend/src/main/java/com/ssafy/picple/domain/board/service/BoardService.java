@@ -19,7 +19,7 @@ public interface BoardService {
 	List<BoardDto> findAllBoardsByUserNickname(Long userId, String nickname);
 
 	// 내가 올린 사진 삭제하기
-	boolean deleteBoard(Long boardId, Long userId);
+	boolean deleteBoard(Long boardId, Long userId) throws BaseException;
 
 	// 접속한 유저 아이디
 	Long getUserId(HttpServletRequest request) throws BaseException;

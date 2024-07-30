@@ -7,10 +7,12 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import com.ssafy.picple.config.baseResponse.BaseException;
+import com.ssafy.picple.config.baseResponse.BaseResponseStatus;
 import com.ssafy.picple.domain.board.dto.BoardDto;
 import com.ssafy.picple.domain.board.entity.Board;
 import com.ssafy.picple.domain.board.repository.BoardRepository;
 import com.ssafy.picple.domain.boardlike.repository.BoardLikeRepository;
+import com.ssafy.picple.domain.photo.entity.Photo;
 import com.ssafy.picple.domain.photo.repository.PhotoRepository;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -53,7 +55,13 @@ public class BoardServiceImpl implements BoardService {
 		return photoRepository.findById(board.getPhoto().getId()).get().getPhotoUrl();
 	}
 
-	// 사용자 기준에 따라 정렬
+	/**
+	 * 사용자 기준에 따라 정렬
+	 *
+	 * @param userId
+	 * @param criteria
+	 * @return
+	 */
 	@Override
 	public List<BoardDto> findAllBoardsOrderByMyCriteria(Long userId, String criteria) {
 		Sort sort = Sort.by(Sort.Direction.DESC, criteria);
@@ -70,7 +78,13 @@ public class BoardServiceImpl implements BoardService {
 				.collect(Collectors.toList());
 	}
 
-	// 사용자 닉네임 검색으로 해당 유저(닉네임) 포함된 사진 조회
+	/**
+	 * 사용자 닉네임 검색으로 해당 유저(닉네임) 포함된 사진 조회
+	 *
+	 * @param userId
+	 * @param nickname
+	 * @return
+	 */
 	@Override
 	public List<BoardDto> findAllBoardsByUserNickname(Long userId, String nickname) {
 		List<Board> boards = boardRepository.findAllByUserNickname(nickname);
@@ -85,13 +99,29 @@ public class BoardServiceImpl implements BoardService {
 				.collect(Collectors.toList());
 	}
 
-	// 내가 올린 사진 삭제
+	/**
+	 * 내가 올린 사진 삭제
+	 * board에서 삭제 후 photo에서 isShared도 false로 바꾼다
+	 *
+	 * @param boardId
+	 * @param userId
+	 * @return
+	 */
 	@Override
-	public boolean deleteBoard(Long boardId, Long userId) {
+	public boolean deleteBoard(Long boardId, Long userId) throws BaseException {
 		int deletedCount = boardRepository.deleteMyBoard(boardId, userId);
-		return deletedCount > 0;
+		if (deletedCount > 0) {
+			Board board = boardRepository.findById(boardId)
+					.orElseThrow(() -> new BaseException(BaseResponseStatus.GET_BOARD_EMPTY));
+			Photo photo = board.getPhoto();
+			photo.setIsShared(false);
+			photoRepository.save(photo);
+			return true;
+		}
+		return false;
 	}
 
+	// 자주사용되는 로그인유저아이디 가져오기 메서드화
 	public Long getUserId(HttpServletRequest request) throws BaseException {
 		return (Long)request.getAttribute("userId");
 	}
