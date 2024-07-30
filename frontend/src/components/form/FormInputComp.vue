@@ -12,7 +12,7 @@ const props = defineProps({
 const message = ref(null)
 
 const inputField = ref(null);
-const maxLength = props.inputParams.label === '이메일' ? 254 : props.inputParams.label === '닉네임' ? 8 : props.inputParams.label.includes('비밀번호') ? 16 : 10;
+const maxLength = props.inputParams.label === '이메일' ? 254 : props.inputParams.label === '닉네임' ? 8 : props.inputParams.label.includes('비밀번호') ? 64 : 10;
 
 const focusInput = () => {
   inputField.value.focus();

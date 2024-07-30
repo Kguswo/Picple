@@ -1,6 +1,6 @@
 const patternNickname = /^[가-힣a-zA-Z0-9]{2,8}$/;
 const patternEmail = /^[A-Za-z0-9_\.\-]+@[A-Za-z0-9\-]+\.[A-za-z0-9\-]+$/;
-const patternPassword = /^(?=.*[a-zA-Z])(?=.*[!@#$%^&*?_])(?=.*[0-9]).{8,16}$/;
+const patternPassword = /^(?=.*[a-zA-Z])(?=.*[!@#$%^&*?_])(?=.*[0-9]).{8,64}$/;
 const patternWhiteSpace = /\s/;
 
 const validateEmailPattern = (email) => {
@@ -13,7 +13,7 @@ const validateEmailPattern = (email) => {
 const validatePasswordPattern = (password) => {
 	if (!patternPassword.test(password) || patternWhiteSpace.test(password)) {
 		return setFormMessage(
-			"비밀번호는 8~16자의 영문 대/소문자, 숫자, 특수문자만 가능합니다.",
+			"비밀번호는 8~64자의 영문 대/소문자, 숫자, 특수문자만 가능합니다.",
 			true
 		);
 	}
