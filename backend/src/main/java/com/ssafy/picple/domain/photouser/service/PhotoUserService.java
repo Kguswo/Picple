@@ -9,9 +9,6 @@ public interface PhotoUserService {
 	// PhotoUser의 content 불러오기
 	PhotoUserResponseDto getPhotoUserContent(PhotoUserRequestDto requestDto, Long userId);
 
-	// Content 업데이트
-	void updateContent(Long photoUserId, String newContent) throws BaseException;
-
 	// PhotoUser 생성
 	PhotoUserResponseDto createPhotoUser(PhotoUserRequestDto requestDto, Long userId) throws BaseException;
 }

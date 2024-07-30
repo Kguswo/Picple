@@ -33,21 +33,21 @@ public class PhotoUserServiceImpl implements PhotoUserService {
 		return photoUserResponseDto(photoUser);
 	}
 
-	@Override
-	@Transactional
-	public void updateContent(Long photoUserId, String newContent) throws BaseException {
-		photoUserRepository.updatePhotoUserContent(photoUserId, newContent);
-
-		// PhotoUser 객체를 ID로 조회
-		PhotoUser photoUser = photoUserRepository.findById(photoUserId)
-				.orElseThrow(() -> new BaseException(NOT_FOUND_USER));
-
-		// Content 업데이트
-		photoUser.updateContent(newContent);
-
-		// 변경된 PhotoUser 객체 저장
-		photoUserRepository.save(photoUser);
-	}
+	// @Override
+	// @Transactional
+	// public void updateContent(Long photoUserId, String newContent) throws BaseException {
+	// 	photoUserRepository.updatePhotoUserContent(photoUserId, newContent);
+	//
+	// 	// PhotoUser 객체를 ID로 조회
+	// 	PhotoUser photoUser = photoUserRepository.findById(photoUserId)
+	// 			.orElseThrow(() -> new BaseException(NOT_FOUND_USER));
+	//
+	// 	// Content 업데이트
+	// 	photoUser.updateContent(newContent);
+	//
+	// 	// 변경된 PhotoUser 객체 저장
+	// 	photoUserRepository.save(photoUser);
+	// }
 
 	@Override
 	@Transactional
