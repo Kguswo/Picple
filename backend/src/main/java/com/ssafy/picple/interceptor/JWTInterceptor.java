@@ -21,6 +21,10 @@ public class JWTInterceptor implements HandlerInterceptor {
                              Object handler) throws BaseException {
         String token = request.getHeader("X-ACCESS-TOKEN");
 
+        if (CorsUtils.isPreFlightRequest(request)) {
+            return true;
+        }
+
         if (token == null) {
             throw new BaseException(EMPTY_JWT);
         } else if (!jwtUtil.verifyToken(token)) {
