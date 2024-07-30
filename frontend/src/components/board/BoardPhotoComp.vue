@@ -5,7 +5,7 @@ import { boardDeleteApi, boardLikeApi } from '@/api/boardApi';
 import Swal from "sweetalert2";
 
 const props = defineProps({
-    photo: Object,
+    board: Object,
 })
 
 const isModalOpen = ref(false);
@@ -19,25 +19,41 @@ const closeModal = () => {
 };
 
 const toggleLike = async () => {
-    const data = await boardLikeApi(props.photo.id);
+    const data = await boardLikeApi(props.board.id);
     if (!data.isSuccess) {
         await Swal.fire({ icon: "error", title: "좋아요 누르기에 실패하였습니다.", width: 600 });
         return;
     }
-    if (props.photo.liked) {
-        --props.photo.hit;
-        props.photo.liked = false;
+    if (props.board.liked) {
+        --props.board.hit;
+        props.board.liked = false;
     } else {
-        ++props.photo.hit;
-        props.photo.liked = true;
+        ++props.board.hit;
+        props.board.liked = true;
     }
 }
 
 const deleteBoard = async () => {
-    const data = await boardDeleteApi(props.photo.id);
-    if (!data.isSuccess) {
-        await Swal.fire({ icon: "error", title: "게시글 삭제에 실패하였습니다.", width: 600 });
-        return;
+    const { value: accept } = await Swal.fire({
+        title: "정말 게시글을 삭제하시겠습니까?",
+        confirmButtonText: `Continue&nbsp;<i class="fa fa-arrow-right"></i>`,
+        showCancelButton: true,
+        inputValidator: (result) => {
+            return !result && "회원탈퇴는 동의가 필요합니다.";
+        },
+    });
+    if (accept) {
+        const data = await boardDeleteApi(props.board.id);
+        if (data.code === 2000) {
+            await Swal.fire({ icon: "error", title: "게시글 삭제는 작성자만 할 수 있습니다.", width: 600 });
+            return;
+        }
+        if (!data.isSuccess) {
+            await Swal.fire({ icon: "error", title: "게시글 삭제에 실패하였습니다.", width: 600 });
+            return;
+        }
+        await Swal.fire("게시글이 삭제되었습니다.");
+        window.location.href = "/board";
     }
 }   
 </script>
@@ -48,7 +64,7 @@ const deleteBoard = async () => {
         </div>
         <div class="content">
             <div class="like">
-                <svg v-if="photo.liked" xmlns="@/assets/icon/hear-fill.svg" class="heart" width="20" height="20"
+                <svg v-if="board.liked" xmlns="@/assets/icon/hear-fill.svg" class="heart" width="20" height="20"
                     fill="red" viewBox="0 0 16 16" @click="toggleLike">
                     <path fill-rule="evenodd"
                         d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314" />
@@ -58,14 +74,14 @@ const deleteBoard = async () => {
                     <path
                         d="m8 2.748-.717-.737C5.6.281 2.514.878 1.4 3.053c-.523 1.023-.641 2.5.314 4.385.92 1.815 2.834 3.989 6.286 6.357 3.452-2.368 5.365-4.542 6.286-6.357.955-1.886.838-3.362.314-4.385C13.486.878 10.4.28 8.717 2.01zM8 15C-7.333 4.868 3.279-3.04 7.824 1.143q.09.083.176.171a3 3 0 0 1 .176-.17C12.72-3.042 23.333 4.867 8 15" />
                 </svg>
-                <span class="like-cnt">{{ photo.hit }}</span>
+                <span class="like-cnt">{{ board.hit }}</span>
             </div>
 
         </div>
     </div>
 
     <div @keyup.esc="closeModal">
-        <BoardModalComp :isOpen="isModalOpen" :photo="photo" @close="closeModal" @delete="deleteBoard" />
+        <BoardModalComp :isOpen="isModalOpen" :board="board" @close="closeModal" @delete="deleteBoard" />
     </div>
 </template>
 
