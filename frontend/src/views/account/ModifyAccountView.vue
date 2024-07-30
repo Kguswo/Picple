@@ -67,7 +67,7 @@ const deleteAccount = async () => {
   <FormComp title="정보 수정">
     <form class="form-content" @keyup.enter="modifyAccount">
       <div class="input-container background-color-disabled">
-        <input type="text" class="form-input has-content background-color-disabled" disabled />
+        <input type="text" class="form-input has-content background-color-disabled" :value="userInfo.email" disabled />
         <label class="form-label">이메일</label>
       </div>
 
