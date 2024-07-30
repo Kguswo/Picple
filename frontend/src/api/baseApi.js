@@ -1,5 +1,16 @@
 import axios from "axios";
 
-export const instance = axios.create({
+const instance = axios.create({
 	baseURL: "http://localhost:8080",
 });
+
+// instance.interceptors.request.use(
+// 	(config) => {
+// 		const accessToken = localStorage.getItem("accessToken");
+// 		config.headers["X-ACCESS-TOKEN"] = `${accessToken}`;
+// 		return config;
+// 	},
+// 	(error) => Promise.reject(error)
+// );
+
+export default instance;
