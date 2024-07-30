@@ -3,12 +3,14 @@ import WhiteBoardComp from "@/components/common/WhiteBoardComp.vue";
 import BoardPhotoComp from "@/components/board/BoardPhotoComp.vue";
 import Page from "@/components/common/PageComp.vue";
 import { onMounted, ref } from "vue";
-import { boardListApi } from "@/api/boardApi";
+import { boardSortApi } from "@/api/boardApi";
 
 const photos = ref([]);
+const likeClicked = ref(false);
+const timeClicked = ref(false);
 
 onMounted(async () => {
-    const data = await boardListApi();
+    const data = await boardSortApi("createdAt") // 기본은 최신순 정렬
     photos.value = data.result;
 })
 
@@ -23,12 +25,18 @@ const submitForm = () => {
     }
 }
 
-const timeSort = () => {
-    console.log('시간 정렬')
+const sortByCreatedAt = async () => {
+    const data = await boardSortApi("createdAt")
+    photos.value = data.result;
+    timeClicked.value = true;
+    likeClicked.value = false;
 }
 
-const likeSort = () => {
-    console.log('like 정렬')
+const sortByHit = async () => {
+    const data = await boardSortApi("hit")
+    photos.value = data.result;
+    likeClicked.value = true;
+    timeClicked.value = false;
 }
 
 </script>
@@ -49,13 +57,13 @@ const likeSort = () => {
                     </form>
 
                     <div class="btn-group">
-                        <button class="likeSort" @click="likeSort">좋아요 순</button>
-                        <button class="timeSort" @click="timeSort">최신순</button>
+                        <button class="likeSort" :class="{ clicked: likeClicked }" @click="sortByHit">좋아요 순</button>
+                        <button class="timeSort" :class="{ clicked: timeClicked }" @click="sortByCreatedAt">최신순</button>
                     </div>
                 </div>
 
                 <div class="board">
-                    <BoardPhotoComp :photos="photos"/>
+                    <BoardPhotoComp v-for="photo in photos" :key="photo.id" :photo="photo" />
                 </div>
             </div>
         </WhiteBoardComp>
