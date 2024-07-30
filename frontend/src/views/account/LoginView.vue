@@ -3,15 +3,17 @@ import FormComp from "@/components/form/FormComp.vue";
 import FormInputComp from "@/components/form/FormInputComp.vue";
 import FormButtonComp from "@/components/form/FormButtonComp.vue";
 import FormMessageComp from "@/components/form/FormMessageComp.vue";
-import { validateEmailPattern, validatePasswordPattern } from "@/common/validation";
+import { setFormMessage, validateEmailPattern, validatePasswordPattern } from "@/common/validation";
 import { ref } from "vue";
-import { useRouter } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import VueCookie from "vue-cookies";
 import { useUserStore } from "@/stores/userStore";
 import { storeToRefs } from "pinia";
+import { loginApi } from "@/api/userApi";
 
 const userStore = useUserStore();
 const router = useRouter();
+const route = useRoute();
 
 const { userInfo } = storeToRefs(userStore);
 
@@ -20,7 +22,7 @@ const password = ref({ type: "password", label: "비밀번호", value: "" });
 const emailField = ref(null);
 const passwordField = ref(null);
 const isChecked = VueCookie.get("saveId") ? ref(true) : ref(false);
-const loginMessage = ref(null);
+const errorMessage = route.query.errorMessage ? ref(JSON.parse(route.query.errorMessage)) : ref(null);
 
 const login = async () => {
   emailField.value.message = validateEmailPattern(email.value.value);
@@ -33,10 +35,15 @@ const login = async () => {
     passwordField.value.focusInput();
     return;
   }
-  // todo: 로그인 api 연결
-  // todo: 유저 정보 api 연결
   setCookie("saveId", email.value.value, "1d", isChecked.value);
-  navigateTo("main");
+  const data = await loginApi(email.value.value, password.value.value);
+  if (data.isSuccess) {
+    userInfo.value.email = email.value.value;
+    localStorage.setItem("accessToken", data.result.accessToken);
+    router.push({ name: "main" });
+    return;
+  }
+  window.location.href = `/login?errorMessage=${JSON.stringify(setFormMessage("아이디 또는 비밀번호를 틀렸습니다.", true))}`;
 };
 
 const setCookie = (key, value, expireTime, isChecked) => {
@@ -63,12 +70,12 @@ const navigateTo = (name) => {
         <label for="checkbox-save-id">아이디 저장</label>
       </div>
 
-      <FormMessageComp v-if="loginMessage" :message="loginMessage" class="mt-10" />
+      <FormMessageComp v-if="errorMessage" :message="errorMessage" class="mt-10" />
 
       <FormButtonComp size="big" @click="login">로그인</FormButtonComp>
 
       <div class="flex-justify-content-between mt-10">
-        <FormButtonComp size="none" @click="navigateTo('signupEmail')">회원가입</FormButtonComp>
+        <FormButtonComp size="none" @click="navigateTo('signup')">회원가입</FormButtonComp>
         <FormButtonComp size="none" @click="navigateTo('findPassword')">비밀번호 찾기</FormButtonComp>
       </div>
     </form>

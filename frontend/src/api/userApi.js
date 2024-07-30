@@ -1,7 +1,6 @@
 import { instance } from "@/api/baseApi";
-import axios from "axios";
 
-const userBaseUrl = axios.defaults.baseURL + "/user";
+const userBaseUrl = instance.defaults.baseURL + "/user";
 
 const loginApi = async (email, password) => {
 	try {
