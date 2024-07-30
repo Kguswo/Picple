@@ -21,7 +21,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class BackgroundServiceImpl implements BackgroundService {
 
-	final BackgroundRepository backgroundRepository;
+	private final BackgroundRepository backgroundRepository;
 
 	@Override
 	public List<BackgroundResponseDto> getDefaultBackgrounds() throws BaseException {
