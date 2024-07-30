@@ -18,7 +18,7 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/photo_user")
+@RequestMapping("/photo_users")
 public class PhotoUserController {
 
 	private final PhotoUserService photoUserService;

@@ -28,7 +28,7 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/background")
+@RequestMapping("/backgrounds")
 public class BackgroundController {
 
 	private final BackgroundService backgroundService;
