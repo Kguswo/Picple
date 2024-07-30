@@ -15,11 +15,11 @@ public interface CalendarService {
 	List<CalendarDto> getDailyCalendars(Long userId, LocalDate createdAt);
 
 	// 캘린더 선택 사진별 설명 작성
-	void updateContent(Long calendarId, String content) throws BaseException;
+	void updateContent(Long calendarId, Long userId, String content) throws BaseException;
 
 	// 캘린더에서 보드로 공유하기
-	void sharePhoto(Long calendarId) throws BaseException;
+	void sharePhoto(Long calendarId, Long userId) throws BaseException;
 
 	// 캘린더에서 사진 삭제
-	void deleteCalendar(Long calendarId) throws BaseException;
+	void deleteCalendar(Long calendarId, Long userId) throws BaseException;
 }

@@ -1,11 +1,9 @@
 package com.ssafy.picple.domain.calendar.controller;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
-import com.ssafy.picple.config.baseResponse.BaseException;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.ssafy.picple.config.baseResponse.BaseException;
 import com.ssafy.picple.config.baseResponse.BaseResponse;
 import com.ssafy.picple.config.baseResponse.BaseResponseStatus;
 import com.ssafy.picple.domain.calendar.dto.CalendarDto;
@@ -26,20 +25,25 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/calendars")
+@Transactional(readOnly = true)
 public class CalendarController {
 
 	private final CalendarService calendarService;
 
-	// 캘린더 날짜(년월일)별 사진 개수 조회
+	/**
+	 * 캘린더 날짜(년월일)별 사진 개수 조회
+	 *
+	 * @param request
+	 * @param createdAt
+	 * @return
+	 */
 	@GetMapping("/counts")
-	@Transactional(readOnly = true)
 	public BaseResponse<Long> getPhotoCounts(HttpServletRequest request,
-											 @RequestParam("createdAt") String createdAt) {
+			@RequestParam("createdAt") String createdAt) {
 		try {
 			Long userId = (Long)request.getAttribute("userId");
-			// 문자열 파싱 후, LocalDateTime -> LocalDate
-			LocalDateTime dateTime = LocalDateTime.parse(createdAt, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-			LocalDate date = dateTime.toLocalDate();
+			// 문자열 파싱 후 -> LocalDate
+			LocalDate date = LocalDate.parse(createdAt, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
 			Long count = calendarService.getPhotoCounts(userId, date);
 			return new BaseResponse<>(count);
@@ -48,44 +52,76 @@ public class CalendarController {
 		}
 	}
 
-	// 캘린더 일별 정보 조회
+	/**
+	 * 캘린더 일별 정보 조회
+	 *
+	 * @param request
+	 * @param createdAt
+	 * @return
+	 */
 	@GetMapping("/daily")
-	public BaseResponse<List<CalendarDto>> getDailyCalendars(@RequestParam Long userId,
-															 @RequestParam("createdAt") String createdAt) {
+	public BaseResponse<List<CalendarDto>> getDailyCalendars(HttpServletRequest request,
+			@RequestParam("createdAt") String createdAt) {
 
-		// 문자열 파싱
+		Long userId = (Long)request.getAttribute("userId");
+		// 문자열 파싱 -> LocalDate
 		LocalDate date = LocalDate.parse(createdAt, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 		List<CalendarDto> calendars = calendarService.getDailyCalendars(userId, date);
 		return new BaseResponse<>(calendars);
 
 	}
 
-	// 캘린더 선택 사진별 설명 작성
+	/**
+	 * 캘린더 선택 사진별 설명 작성
+	 *
+	 * @param calendarId
+	 * @param content
+	 * @return
+	 * @throws BaseException
+	 */
 	@PostMapping("/{calendarId}")
-	public BaseResponse<BaseResponseStatus> updateContent(@PathVariable Long calendarId,
-														  @RequestParam String content) throws BaseException {
+	@Transactional
+	public BaseResponse<BaseResponseStatus> updateContent(HttpServletRequest request, @PathVariable Long calendarId,
+			@RequestParam String content) throws BaseException {
 
-		calendarService.updateContent(calendarId, content);
+		Long userId = (Long)request.getAttribute("userId");
+		calendarService.updateContent(calendarId, userId, content);
 		return new BaseResponse<>(BaseResponseStatus.SUCCESS);
 
 	}
 
-	// 캘린더에서 보드로 공유
+	/**
+	 * 캘린더에서 보드로 공유
+	 *
+	 * @param calendarId
+	 * @return
+	 * @throws BaseException
+	 */
 	@PostMapping("/share/{calendarId}")
 	@Transactional
-	public BaseResponse<BaseResponseStatus> shareCalendar(@PathVariable("calendarId") Long calendarId) throws BaseException {
+	public BaseResponse<BaseResponseStatus> shareCalendar(HttpServletRequest request,
+			@PathVariable("calendarId") Long calendarId) throws BaseException {
 
-		calendarService.sharePhoto(calendarId);
+		Long userId = (Long)request.getAttribute("userId");
+		calendarService.sharePhoto(calendarId, userId);
 		return new BaseResponse<>(BaseResponseStatus.SUCCESS);
 
 	}
 
-	// 캘린더에서 사진 삭제
+	/**
+	 * 캘린더에서 사진 삭제
+	 *
+	 * @param calendarId
+	 * @return
+	 * @throws BaseException
+	 */
 	@DeleteMapping("/{calendarId}")
 	@Transactional
-	public BaseResponse<?> deleteCalendar(@PathVariable("calendarId") Long calendarId) throws BaseException {
+	public BaseResponse<?> deleteCalendar(HttpServletRequest request,
+			@PathVariable("calendarId") Long calendarId) throws BaseException {
 
-		calendarService.deleteCalendar(calendarId);
+		Long userId = (Long)request.getAttribute("userId");
+		calendarService.deleteCalendar(calendarId, userId);
 		return new BaseResponse<>(BaseResponseStatus.SUCCESS);
 
 	}

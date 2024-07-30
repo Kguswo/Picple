@@ -13,6 +13,7 @@ import com.ssafy.picple.config.baseResponse.BaseException;
 import com.ssafy.picple.config.baseResponse.BaseResponseStatus;
 import com.ssafy.picple.domain.board.entity.Board;
 import com.ssafy.picple.domain.board.repository.BoardRepository;
+import com.ssafy.picple.domain.board.service.BoardService;
 import com.ssafy.picple.domain.calendar.dto.CalendarDto;
 import com.ssafy.picple.domain.calendar.entity.Calendar;
 import com.ssafy.picple.domain.calendar.repository.CalendarRepository;
@@ -33,6 +34,7 @@ public class CalendarServiceImpl implements CalendarService {
 	private final BoardRepository boardRepository;
 	private final PhotoRepository photoRepository;
 	private final PhotoUserRepository photoUserRepository;
+	private final BoardService boardService;
 
 	// 캘린더 날짜(년월일)별 사진 개수 조회
 	@Override
@@ -64,32 +66,46 @@ public class CalendarServiceImpl implements CalendarService {
 	// 로그인 유저와 선택캘린더 userId 비교후 하려했지만 이미 캘린더 페이지는 로그인 체크를 마쳤기에 패스
 	@Override
 	@Transactional
-	public void updateContent(Long calendarId, String content) throws BaseException {
+	public void updateContent(Long calendarId, Long userId, String content) throws BaseException {
 		Calendar calendar = calendarRepository.findById(calendarId)
 				.orElseThrow(() -> new IllegalArgumentException(BaseResponseStatus.GET_CALENDAR_EMPTY.getMessage()));
-		Photo photo = calendar.getPhoto();
-		User user = calendar.getUser();
-		PhotoUser photoUser = photoUserRepository.findByPhotoIdAndUserId(photo.getId(),
-				user.getId()); // 특정 사용자의 특정 사진 content찾기
 
-		if (photoUser != null) {
-			photoUser.setContent(content);
+		User user = calendar.getUser();
+		Photo photo = calendar.getPhoto();
+
+		// 현재 접속자와 캘린더 작성자가 같은지 확인
+		if (userId == user.getId()) {
+
+			// 특정 사용자의 특정 사진 content찾기
+			PhotoUser photoUser = photoUserRepository.findByPhotoIdAndUserId(photo.getId(), userId);
+
+			if (photoUser != null) {
+				photoUser.setContent(content);
+			} else {
+				throw new BaseException(GET_PHOTO_USER_EMPTY);
+			}
+
+			photoUserRepository.save(photoUser);
+
 		} else {
-			throw new BaseException(GET_PHOTO_USER_EMPTY);
+			throw new BaseException(NOT_EQUAL_USER_ID);
 		}
 
-		photoUserRepository.save(photoUser);
 	}
 
-	// 캘린더에서 보드로 공유하기
+	// 캘린더에서 보드로 공유하기 - isShared = true로
 	@Override
 	@Transactional
-	public void sharePhoto(Long calendarId) throws BaseException {
+	public void sharePhoto(Long calendarId, Long userId) throws BaseException {
 		Calendar calendar = calendarRepository.findById(calendarId)
 				.orElseThrow(() -> new BaseException(BaseResponseStatus.GET_CALENDAR_EMPTY));
 
 		Photo photo = calendar.getPhoto();
 		User user = calendar.getUser();
+
+		if (userId != user.getId()) {
+			throw new BaseException(NOT_EQUAL_USER_ID);
+		}
 
 		Photo selectedPhoto = photoRepository.findByPhotoUrl(photo.getPhotoUrl());
 		if (selectedPhoto != null) {
@@ -113,12 +129,18 @@ public class CalendarServiceImpl implements CalendarService {
 	}
 
 	// 캘린더에서 사진 삭제
+	// 삭제시 board에서도 삭제됨.
 	@Override
 	@Transactional
-	public void deleteCalendar(Long calendarId) throws BaseException {
+	public void deleteCalendar(Long calendarId, Long userId) throws BaseException {
 		Calendar calendar = calendarRepository.findById(calendarId)
 				.orElseThrow(() -> new BaseException(BaseResponseStatus.GET_CALENDAR_EMPTY));
 
 		calendarRepository.delete(calendar);
+
+		Board board = boardRepository.findByUserIdAndPhotoIdAndIsDeletedFalse(calendar.getUser().getId(),
+				calendar.getPhoto().getId());
+
+		boardService.deleteBoard(board.getId(), board.getUser().getId());
 	}
 }
