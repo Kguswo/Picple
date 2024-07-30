@@ -3,7 +3,6 @@ import { ref } from "vue";
 
 export const useUserStore = defineStore("userStore", () => {
 	const userInfo = ref({
-		userId: null,
 		email: null,
 		nickname: null,
 	}); // 로그인한 유저의 정보
