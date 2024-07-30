@@ -37,13 +37,14 @@ const login = async () => {
   }
   setCookie("saveId", email.value.value, "1d", isChecked.value);
   const data = await loginApi(email.value.value, password.value.value);
-  if (data.isSuccess) {
-    userInfo.value.email = email.value.value;
-    localStorage.setItem("accessToken", data.result.accessToken);
-    router.push({ name: "main" });
+  if (!data.isSuccess) {
+    window.location.href = `/login?errorMessage=${JSON.stringify(setFormMessage("아이디 또는 비밀번호를 틀렸습니다.", true))}`;
     return;
   }
-  window.location.href = `/login?errorMessage=${JSON.stringify(setFormMessage("아이디 또는 비밀번호를 틀렸습니다.", true))}`;
+  userInfo.value.email = email.value.value;
+  userInfo.value.nickname = data.result.nickname;
+  localStorage.setItem("accessToken", data.result.accessToken);
+  router.push({ name: "main" });
 };
 
 const setCookie = (key, value, expireTime, isChecked) => {
