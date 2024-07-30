@@ -19,7 +19,7 @@ const router = useRouter();
 const photoStore = usePhotoStore();
 
 const navigateTo = (path) => {
-  router.push({ name: path });
+    router.push({ name: path });
 };
 
 const videoElement = ref(null);
@@ -27,7 +27,7 @@ const canvasElement = ref(null);
 let mediaStream = null;
 let selfieSegmentationInstance = null;
 
-let isMirrored = ref(false);
+let isMirrored = ref(true); // 초기값을 true로 변경
 let isvideoOn = ref(true);
 let isMicroOn = ref(true);
 const remainPicCnt = ref(10);
@@ -46,220 +46,272 @@ const isProcessing = ref(true);
 const isDragging = ref(false);
 const isFocused = ref(false);
 
+const isLoading = ref(true);
+
 const videoStyle = computed(() => ({
-  position: "absolute",
-  left: "50%",
-  top: "50%",
-  transform: `translate(-50%, -50%) translate(${videoPosition.value.x}px, ${videoPosition.value.y}px) scale(${videoScale.value}) rotate(${videoRotation.value}deg)`,
-  cursor: isDragging.value ? "grabbing" : "grab",
-  border: isFocused.value ? "2px dashed gray" : "2px dashed lightgray",
-  width: `${videoWidth.value}px`,
-  height: `${videoHeight.value}px`,
+    position: "absolute",
+    left: "50%",
+    top: "50%",
+    transform: `translate(-50%, -50%) translate(${videoPosition.value.x}px, ${videoPosition.value.y}px) scale(${videoScale.value}) rotate(${videoRotation.value}deg)`,
+    cursor: isDragging.value ? "grabbing" : "grab",
+    border: isFocused.value ? "2px dashed gray" : "2px dashed lightgray",
+    width: `${videoWidth.value}px`,
+    height: `${videoHeight.value}px`,
 }));
 
 const centerIndicatorStyle = computed(() => ({
-  position: "absolute",
-  top: "50%",
-  left: "50%",
-  width: "10px",
-  height: "1px",
-  backgroundColor: isFocused.value ? "gray" : "lightgray",
-  transform: "translate(-50%, -50%)",
-  "&::after": {
-    content: '""',
     position: "absolute",
     top: "50%",
     left: "50%",
-    width: "1px",
-    height: "10px",
+    width: "10px",
+    height: "1px",
     backgroundColor: isFocused.value ? "gray" : "lightgray",
     transform: "translate(-50%, -50%)",
-  },
+    "&::after": {
+        content: '""',
+        position: "absolute",
+        top: "50%",
+        left: "50%",
+        width: "1px",
+        height: "10px",
+        backgroundColor: isFocused.value ? "gray" : "lightgray",
+        transform: "translate(-50%, -50%)",
+    },
 }));
 
 const updateVideoStyle = () => {
-  if (videoContainerRef.value) {
-    Object.assign(videoContainerRef.value.style, {
-      transform: `translate(-50%, -50%) translate(${videoPosition.value.x}px, ${videoPosition.value.y}px) scale(${videoScale.value}) rotate(${videoRotation.value}deg)`,
-    });
-  }
+    if (videoContainerRef.value) {
+        Object.assign(videoContainerRef.value.style, {
+            transform: `translate(-50%, -50%) translate(${videoPosition.value.x}px, ${videoPosition.value.y}px) scale(${videoScale.value}) rotate(${videoRotation.value}deg)`,
+        });
+    }
 };
 
 const startDrag = (event) => {
-  isDragging.value = true;
-  startPosition.value = {
-    x: event.clientX - videoPosition.value.x,
-    y: event.clientY - videoPosition.value.y,
-  };
+    isDragging.value = true;
+    startPosition.value = {
+        x: event.clientX - videoPosition.value.x,
+        y: event.clientY - videoPosition.value.y,
+    };
 };
 
 const onDrag = (event) => {
-  if (!isDragging.value) return;
+    if (!isDragging.value) return;
 
-  const dx = event.clientX - startPosition.value.x;
-  const dy = event.clientY - startPosition.value.y;
+    const dx = event.clientX - startPosition.value.x;
+    const dy = event.clientY - startPosition.value.y;
 
-  const photoZone = document.querySelector(".photo-zone");
-  const photoZoneRect = photoZone.getBoundingClientRect();
-  const videoContainerRect = videoContainerRef.value.getBoundingClientRect();
+    const photoZone = document.querySelector(".photo-zone");
+    const photoZoneRect = photoZone.getBoundingClientRect();
+    const videoContainerRect = videoContainerRef.value.getBoundingClientRect();
 
-  // 드래그된 위치가 photoZone 내에 있는지 확인
-  const newPosX = Math.max(
-    Math.min(dx, photoZoneRect.width / 2 - videoContainerRect.width / 2),
-    -photoZoneRect.width / 2 + videoContainerRect.width / 2
-  );
-  const newPosY = Math.max(
-    Math.min(dy, photoZoneRect.height / 2 - videoContainerRect.height / 2),
-    -photoZoneRect.height / 2 + videoContainerRect.height / 2
-  );
+    const newPosX = Math.max(
+        Math.min(dx, photoZoneRect.width / 2 - videoContainerRect.width / 2),
+        -photoZoneRect.width / 2 + videoContainerRect.width / 2
+    );
+    const newPosY = Math.max(
+        Math.min(dy, photoZoneRect.height / 2 - videoContainerRect.height / 2),
+        -photoZoneRect.height / 2 + videoContainerRect.height / 2
+    );
 
-  videoPosition.value = { x: newPosX, y: newPosY };
+    videoPosition.value = { x: newPosX, y: newPosY };
 };
 
 const stopDrag = () => {
-  isDragging.value = false;
+    isDragging.value = false;
 };
 
 const { isDragging: isDraggableActive } = useDraggable(videoContainerRef, {
-  initialValue: videoPosition,
-  onStart: startDrag,
-  onMove: onDrag,
-  onEnd: stopDrag,
+    initialValue: videoPosition,
+    onStart: startDrag,
+    onMove: onDrag,
+    onEnd: stopDrag,
 });
 
 const loadSelfieSegmentation = async () => {
-  console.log("Loading Selfie Segmentation model");
-  selfieSegmentationInstance = new selfieSegmentation.SelfieSegmentation({
-    locateFile: (file) => {
-      return `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file}`;
-    },
-  });
-  selfieSegmentationInstance.setOptions({
-    modelSelection: 1,
-    selfieMode: true,
-  });
-  selfieSegmentationInstance.onResults(onResults);
-  console.log("Selfie Segmentation model loaded successfully");
+    console.log("Loading Selfie Segmentation model");
+    selfieSegmentationInstance = new selfieSegmentation.SelfieSegmentation({
+        locateFile: (file) => {
+            return `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file}`;
+        },
+    });
+    selfieSegmentationInstance.setOptions({
+        modelSelection: 1,
+        selfieMode: false,
+    });
+    selfieSegmentationInstance.onResults(onResults);
+    console.log("Selfie Segmentation model loaded successfully");
 };
 
 const onResults = (results) => {
-  if (!results || !results.segmentationMask || !results.image) return;
+    if (!results || !results.segmentationMask || !results.image) return;
 
-  const canvasCtx = canvasElement.value.getContext("2d");
-  canvasCtx.save();
-  canvasCtx.clearRect(0, 0, canvasElement.value.width, canvasElement.value.height);
+    const canvasCtx = canvasElement.value.getContext("2d");
+    canvasCtx.save();
+    canvasCtx.clearRect(
+        0,
+        0,
+        canvasElement.value.width,
+        canvasElement.value.height
+    );
 
-  const tempCanvas = document.createElement("canvas");
-  tempCanvas.width = results.segmentationMask.width;
-  tempCanvas.height = results.segmentationMask.height;
-  const tempCtx = tempCanvas.getContext("2d");
-  tempCtx.drawImage(results.segmentationMask, 0, 0);
-  const imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+    const tempCanvas = document.createElement("canvas");
+    tempCanvas.width = results.segmentationMask.width;
+    tempCanvas.height = results.segmentationMask.height;
+    const tempCtx = tempCanvas.getContext("2d");
+    tempCtx.drawImage(results.segmentationMask, 0, 0);
 
-  const threshold = 128;
+    // 가우시안 블러 적용
+    tempCtx.filter = "blur(4px)";
+    tempCtx.drawImage(tempCanvas, 0, 0);
+    tempCtx.filter = "none";
 
-  for (let i = 0; i < imageData.data.length; i += 4) {
-    if (imageData.data[i] < threshold) {
-      imageData.data[i + 3] = 0;
+    const imageData = tempCtx.getImageData(
+        0,
+        0,
+        tempCanvas.width,
+        tempCanvas.height
+    );
+
+    const threshold = 128;
+
+    for (let i = 0; i < imageData.data.length; i += 4) {
+        if (imageData.data[i] < threshold) {
+            imageData.data[i + 3] = 0;
+        }
     }
-  }
 
-  const maskCanvas = document.createElement("canvas");
-  maskCanvas.width = imageData.width;
-  maskCanvas.height = imageData.height;
-  const maskCtx = maskCanvas.getContext("2d");
-  maskCtx.putImageData(imageData, 0, 0);
+    const maskCanvas = document.createElement("canvas");
+    maskCanvas.width = imageData.width;
+    maskCanvas.height = imageData.height;
+    const maskCtx = maskCanvas.getContext("2d");
+    maskCtx.putImageData(imageData, 0, 0);
 
-  canvasCtx.drawImage(results.image, 0, 0, canvasElement.value.width, canvasElement.value.height);
+    canvasCtx.drawImage(
+        results.image,
+        0,
+        0,
+        canvasElement.value.width,
+        canvasElement.value.height
+    );
 
-  canvasCtx.globalCompositeOperation = "destination-in";
-  canvasCtx.drawImage(maskCanvas, 0, 0, canvasElement.value.width, canvasElement.value.height);
+    canvasCtx.globalCompositeOperation = "destination-in";
+    canvasCtx.drawImage(
+        maskCanvas,
+        0,
+        0,
+        canvasElement.value.width,
+        canvasElement.value.height
+    );
 
-  canvasCtx.globalCompositeOperation = "source-over";
-  canvasCtx.restore();
+    canvasCtx.globalCompositeOperation = "source-over";
+    canvasCtx.restore();
 };
 
 const processFrame = async () => {
-  if (!isProcessing.value || !videoElement.value || !selfieSegmentationInstance) return;
+    if (
+        !isProcessing.value ||
+        !videoElement.value ||
+        !selfieSegmentationInstance
+    )
+        return;
 
-  try {
-    await selfieSegmentationInstance.send({ image: videoElement.value });
-  } catch (error) {
-    console.error("Error processing frame:", error);
-  }
-  requestAnimationFrame(processFrame);
+    try {
+        await selfieSegmentationInstance.send({ image: videoElement.value });
+    } catch (error) {
+        console.error("Error processing frame:", error);
+    }
+    requestAnimationFrame(processFrame);
 };
 
 onMounted(async () => {
-  console.log("shootView Mounted!");
-  try {
-    mediaStream = await navigator.mediaDevices.getUserMedia({
-      video: { width: 640, height: 480 },
-      audio: true,
-    });
+    console.log("shootView Mounted!");
+    const startTime = Date.now();
 
-    if (videoElement.value) {
-      videoElement.value.srcObject = mediaStream;
-      videoElement.value.onloadedmetadata = async () => {
-        console.log("Video metadata loaded");
-        videoWidth.value = videoElement.value.videoWidth / 3;
-        videoHeight.value = videoElement.value.videoHeight / 3;
-        await loadSelfieSegmentation();
-        videoElement.value.play();
-        requestAnimationFrame(processFrame);
-      };
-    } else {
-      console.error("Video element not found");
+    try {
+        mediaStream = await navigator.mediaDevices.getUserMedia({
+            video: { width: 640, height: 480 },
+            audio: true,
+        });
+
+        if (videoElement.value) {
+            videoElement.value.srcObject = mediaStream;
+            videoElement.value.onloadedmetadata = async () => {
+                console.log("Video metadata loaded");
+                videoWidth.value = videoElement.value.videoWidth / 3;
+                videoHeight.value = videoElement.value.videoHeight / 3;
+                await loadSelfieSegmentation();
+                videoElement.value.play();
+                requestAnimationFrame(processFrame);
+
+                // 비디오와 캔버스를 반전 상태로 설정
+                videoElement.value.style.transform = "scaleX(-1)";
+                canvasElement.value.style.transform = "scaleX(-1)";
+            };
+        } else {
+            console.error("Video element not found");
+        }
+    } catch (error) {
+        console.error("Error accessing webcam:", error);
     }
-  } catch (error) {
-    console.error("Error accessing webcam:", error);
-  }
 
-  updateVideoStyle();
-  watch([videoPosition, videoScale, videoRotation], updateVideoStyle);
+    updateVideoStyle();
+    watch([videoPosition, videoScale, videoRotation], updateVideoStyle);
+
+    // 최소 2초 동안 로딩 화면 표시
+    const elapsedTime = Date.now() - startTime;
+    const remainingTime = Math.max(1000 - elapsedTime, 0);
+
+    setTimeout(() => {
+        isLoading.value = false;
+    }, remainingTime);
 });
 
 onUnmounted(() => {
-  console.log("shootView unMounted!");
-  isProcessing.value = false;
-  if (mediaStream) {
-    mediaStream.getTracks().forEach((track) => {
-      track.stop();
-    });
-  }
+    console.log("shootView unMounted!");
+    isProcessing.value = false;
+    if (mediaStream) {
+        mediaStream.getTracks().forEach((track) => {
+            track.stop();
+        });
+    }
 });
 
 const toggleMirror = () => {
-  isMirrored.value = !isMirrored.value;
-  videoElement.value.style.transform = isMirrored.value ? "scaleX(-1)" : "scaleX(1)";
-  canvasElement.value.style.transform = isMirrored.value ? "scaleX(-1)" : "scaleX(1)";
-  console.log("영상 반전 상태:", isMirrored.value);
+    isMirrored.value = !isMirrored.value;
+    videoElement.value.style.transform = isMirrored.value
+        ? "scaleX(-1)"
+        : "scaleX(1)";
+    canvasElement.value.style.transform = isMirrored.value
+        ? "scaleX(-1)"
+        : "scaleX(1)";
+    console.log("영상 반전 상태:", isMirrored.value);
 };
 
 const toggleCamera = () => {
-  isvideoOn.value = !isvideoOn.value;
-  console.log("비디오 온/오프:", isvideoOn.value);
+    isvideoOn.value = !isvideoOn.value;
+    console.log("비디오 온/오프:", isvideoOn.value);
 
-  mediaStream.getVideoTracks().forEach((track) => {
-    track.enabled = isvideoOn.value;
-  });
-  videoElement.value.srcObject = mediaStream;
+    mediaStream.getVideoTracks().forEach((track) => {
+        track.enabled = isvideoOn.value;
+    });
+    videoElement.value.srcObject = mediaStream;
 };
 
 const toggleMicro = () => {
-  isMicroOn.value = !isMicroOn.value;
-  console.log("마이크 온/오프:", isMicroOn.value);
+    isMicroOn.value = !isMicroOn.value;
+    console.log("마이크 온/오프:", isMicroOn.value);
 
-  mediaStream.getAudioTracks().forEach((track) => {
-    track.enabled = isMicroOn.value;
-  });
+    mediaStream.getAudioTracks().forEach((track) => {
+        track.enabled = isMicroOn.value;
+    });
 };
 
 const bgImage = ref("https://via.placeholder.com/400");
 
 const changeImage = (image) => {
-  console.log("이미지 변경 클릭", image);
-  bgImage.value = image;
+    console.log("이미지 변경 클릭", image);
+    bgImage.value = image;
 };
 
 const captureArea = ref(null);
@@ -267,251 +319,363 @@ const countdown = ref(0);
 var cameraaudio = new Audio("/src/assets/audio/shutter.mp3");
 
 const startCountdown = () => {
-  const countdownInterval = setInterval(() => {
-    countdown.value--;
-    if (countdown.value <= 0) {
-      clearInterval(countdownInterval);
-      Swal.close();
-      capturePhoto();
-    } else {
-      Swal.update({
-        html: `<p style='color:white; font-size:50px;'>${countdown.value}</h3>`,
-      });
+    const countdownInterval = setInterval(() => {
+        countdown.value--;
+        if (countdown.value <= 0) {
+            clearInterval(countdownInterval);
+            Swal.close();
+            capturePhoto();
+        } else {
+            Swal.update({
+                html: `<p style='color:white; font-size:50px;'>${countdown.value}</h3>`,
+            });
 
-      if (countdown.value === 1) {
-        if (videoElement.value) {
-          videoElement.value.pause();
+            if (countdown.value === 1) {
+                if (videoElement.value) {
+                    videoElement.value.pause();
+                }
+            }
         }
-      }
-    }
-  }, 1000);
+    }, 1000);
 };
 
 const takePhoto = async () => {
-  console.log("사진 찍기 시작");
-  const img = new Image();
-  img.crossOrigin = "Anonymous";
-  img.src = bgImage.value;
+    console.log("사진 찍기 시작");
+    const img = new Image();
+    img.crossOrigin = "Anonymous";
+    img.src = bgImage.value;
 
-  countdown.value = 3;
+    countdown.value = 3;
 
-  img.onload = async () => {
-    await nextTick();
+    img.onload = async () => {
+        await nextTick();
 
-    Swal.fire({
-      title: `<h1 style='color:white;'>포즈!</h1>`,
-      html: `<p style='color:white; font-size:50px;'>${countdown.value}</p>`,
-      showConfirmButton: false,
-      background: "rgba(0, 0, 0, 0.3)",
-      backdrop: false,
-      didOpen: () => {
-        startCountdown();
-      },
-    });
-  };
+        Swal.fire({
+            title: `<h1 style='color:white;'>포즈!</h1>`,
+            html: `<p style='color:white; font-size:50px;'>${countdown.value}</p>`,
+            showConfirmButton: false,
+            background: "rgba(0, 0, 0, 0.3)",
+            backdrop: false,
+            didOpen: () => {
+                startCountdown();
+            },
+        });
+    };
 
-  img.onerror = async (error) => {
-    console.error("배경 로딩 에러 발생: ", error);
-    await Swal.fire({
-      title: "배경 오류 발생",
-      text: "해당 사진은 배경으로 사용할 수 없습니다!",
-      icon: "warning",
-    });
-  };
+    img.onerror = async (error) => {
+        console.error("배경 로딩 에러 발생: ", error);
+        await Swal.fire({
+            title: "배경 오류 발생",
+            text: "해당 사진은 배경으로 사용할 수 없습니다!",
+            icon: "warning",
+        });
+    };
 };
 
 const capturePhoto = async () => {
-  console.log("사진 캡처 시작");
-  await nextTick();
+    console.log("사진 캡처 시작");
+    await nextTick();
 
-  cameraaudio.play();
+    cameraaudio.play();
 
-  const videoContainer = videoContainerRef.value;
-  const canvas = canvasElement.value;
-  const captureAreaElement = captureArea.value;
+    const videoContainer = videoContainerRef.value;
+    const canvas = canvasElement.value;
+    const captureAreaElement = captureArea.value;
 
-  const tempCanvas = document.createElement("canvas");
-  const tempCtx = tempCanvas.getContext("2d");
-  tempCanvas.width = captureAreaElement.clientWidth;
-  tempCanvas.height = captureAreaElement.clientHeight;
+    const tempCanvas = document.createElement("canvas");
+    const tempCtx = tempCanvas.getContext("2d");
+    tempCanvas.width = captureAreaElement.clientWidth;
+    tempCanvas.height = captureAreaElement.clientHeight;
 
-  try {
-    const bgImg = new Image();
-    bgImg.crossOrigin = "anonymous";
-    bgImg.src = bgImage.value;
-    await new Promise((resolve, reject) => {
-      bgImg.onload = resolve;
-      bgImg.onerror = reject;
-    });
-    tempCtx.drawImage(bgImg, 0, 0, tempCanvas.width, tempCanvas.height);
+    try {
+        const bgImg = new Image();
+        bgImg.crossOrigin = "anonymous";
+        bgImg.src = bgImage.value;
+        await new Promise((resolve, reject) => {
+            bgImg.onload = resolve;
+            bgImg.onerror = reject;
+        });
+        tempCtx.drawImage(bgImg, 0, 0, tempCanvas.width, tempCanvas.height);
 
-    const containerRect = videoContainer.getBoundingClientRect();
-    const captureAreaRect = captureAreaElement.getBoundingClientRect();
-    const scale = videoScale.value;
-    const rotation = videoRotation.value;
+        const containerRect = videoContainer.getBoundingClientRect();
+        const captureAreaRect = captureAreaElement.getBoundingClientRect();
+        const scale = videoScale.value;
+        const rotation = videoRotation.value;
 
-    tempCtx.save();
-    tempCtx.translate(
-      containerRect.left - captureAreaRect.left + containerRect.width / 2,
-      containerRect.top - captureAreaRect.top + containerRect.height / 2
-    );
-    tempCtx.rotate((rotation * Math.PI) / 180);
-    tempCtx.scale(scale, scale);
-    tempCtx.translate(-canvas.width / 2, -canvas.height / 2);
-    tempCtx.drawImage(canvas, 0, 0);
-    tempCtx.restore();
+        tempCtx.save();
+        tempCtx.translate(
+            containerRect.left - captureAreaRect.left + containerRect.width / 2,
+            containerRect.top - captureAreaRect.top + containerRect.height / 2
+        );
+        tempCtx.rotate((rotation * Math.PI) / 180);
+        tempCtx.scale(scale, scale);
+        tempCtx.translate(-canvas.width / 2, -canvas.height / 2);
+        tempCtx.drawImage(canvas, 0, 0);
+        tempCtx.restore();
 
-    const imageData = tempCanvas.toDataURL("image/png");
-    images.value.push({ src: imageData, visible: true });
-    remainPicCnt.value = 10 - images.value.length;
+        const imageData = tempCanvas.toDataURL("image/png");
+        images.value.push({ src: imageData, visible: true });
+        remainPicCnt.value = 10 - images.value.length;
 
-    if (images.value.length === 10) {
-      const { value: result } = await Swal.fire({
-        title: "사진 촬영 종료",
-        text: "10장을 모두 촬영하여 프레임 선택창으로 이동합니다!",
-        icon: "success",
-      });
-      if (result) {
-        exitphoto();
-      }
+        if (images.value.length === 10) {
+            const { value: result } = await Swal.fire({
+                title: "사진 촬영 종료",
+                text: "10장을 모두 촬영하여 프레임 선택창으로 이동합니다!",
+                icon: "success",
+            });
+            if (result) {
+                exitphoto();
+            }
+        }
+    } catch (error) {
+        console.error("이미지 캡쳐 에러 발생: ", error);
+    } finally {
+        if (videoElement.value) {
+            videoElement.value.play();
+        }
     }
-  } catch (error) {
-    console.error("이미지 캡쳐 에러 발생: ", error);
-  } finally {
-    if (videoElement.value) {
-      videoElement.value.play();
-    }
-  }
 };
 
 const exitphoto = async () => {
-  console.log("촬영종료");
-  console.log("저장할 이미지 리스트:", images.value);
+    console.log("촬영종료");
+    console.log("저장할 이미지 리스트:", images.value);
 
-  const { value: result } = await Swal.fire({
-    title: "촬영 끝내기",
-    text: "촬영을 종료하고 저장을 위해 나가시겠습니까?",
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonText: "확인",
-    cancelButtonText: "취소",
-  });
+    const { value: result } = await Swal.fire({
+        title: "촬영 끝내기",
+        text: "촬영을 종료하고 저장을 위해 나가시겠습니까?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "확인",
+        cancelButtonText: "취소",
+    });
 
-  if (result) {
-    photoStore.setPhotoList(images.value);
-    console.log("Pinia store에 저장된 이미지 리스트:", photoStore.photoList);
-    router.push("/selectTemp");
-  } else {
-    Swal.fire("취소", "촬영을 계속합니다!", "error");
-  }
+    if (result) {
+        photoStore.setPhotoList(images.value);
+        console.log(
+            "Pinia store에 저장된 이미지 리스트:",
+            photoStore.photoList
+        );
+        router.push("/selectTemp");
+    } else {
+        Swal.fire("취소", "촬영을 계속합니다!", "error");
+    }
 };
 
 const showtype = ref(1);
 
 const changeComponent = () => {
-  showtype.value = showtype.value === 1 ? 2 : 1;
-  navigateTo(showtype.value === 1 ? "background" : "showphoto");
-  console.log("컴포넌트 변경:", showtype.value === 1 ? "배경 선택" : "사진 보기");
+    showtype.value = showtype.value === 1 ? 2 : 1;
+    navigateTo(showtype.value === 1 ? "background" : "showphoto");
+    console.log(
+        "컴포넌트 변경:",
+        showtype.value === 1 ? "배경 선택" : "사진 보기"
+    );
+};
+
+const handleFocus = () => {
+    isFocused.value = true;
+};
+
+const handleBlur = () => {
+    isFocused.value = false;
+};
+
+const showControls = ref(false);
+
+const toggleControls = () => {
+    showControls.value = !showControls.value;
+};
+
+const handleControlClick = (event) => {
+    event.stopPropagation();
 };
 </script>
 
 <template>
-  <WhiteBoardComp class="whiteboard-area-booth">
-    <div class="booth-content">
-      <div class="booth-top-div">
-        <div>남은 사진 수: {{ remainPicCnt }}/10</div>
-        <div class="close-btn">
-          <button class="close" @click="navigateTo('main')">나가기</button>
+    <WhiteBoardComp class="whiteboard-area-booth">
+        <div v-if="isLoading" class="loading-overlay">
+            <img src="@/assets/img/common/loading.gif" alt="Loading..." />
         </div>
-      </div>
-
-      <div class="booth-content-main">
-        <BoothBack class="booth-camera-box">
-          <div
-            ref="captureArea"
-            :style="{ backgroundImage: `url(${bgImage})` }"
-            class="photo-zone"
-            @focus="handleFocus"
-            @blur="handleBlur"
-            tabindex="0"
-          >
-            <div
-              class="video-container"
-              ref="videoContainerRef"
-              :style="videoStyle"
-              @mousedown="startDrag"
-              @mousemove="onDrag"
-              @mouseup="stopDrag"
-              @mouseleave="stopDrag"
-              @focus="handleFocus"
-              @blur="handleBlur"
-              tabindex="0"
-            >
-              <canvas ref="canvasElement" :width="videoWidth" :height="videoHeight"></canvas>
-              <video ref="videoElement" autoplay :width="videoWidth" :height="videoHeight" style="display: none"></video>
-              <div :style="centerIndicatorStyle"></div>
-              <div v-if="isFocused" class="rotate-handle">
-                <input type="range" v-model="videoRotation" min="0" max="360" />
-              </div>
-              <div v-if="isFocused" class="scale-handle">
-                <input type="range" v-model="videoScale" min="0.5" max="2" step="0.01" />
-              </div>
-            </div>
-          </div>
-
-          <div class="create-btn">
-            <div class="left-btn">
-              <button class="circle-btn" @click="toggleMicro">
-                <img :src="isMicroOn ? microOn : microOff" alt="M" />
-              </button>
-              <button class="circle-btn" @click="toggleCamera">
-                <img :src="isvideoOn ? videoOn : videoOff" alt="C" />
-              </button>
-              <button class="ract-btn" @click="toggleMirror">반전</button>
+        <div class="booth-content">
+            <div class="booth-top-div">
+                <div>남은 사진 수: {{ remainPicCnt }}/10</div>
+                <div class="close-btn">
+                    <button class="close" @click="navigateTo('main')">
+                        나가기
+                    </button>
+                </div>
             </div>
 
-            <button @click="takePhoto" class="take-photo">
-              <img src="@/assets/icon/camera.png" alt="" />
-            </button>
-            <div class="right-btn">
-              <button class="ract-btn" @click="exitphoto">템플릿 선택</button>
-            </div>
-          </div>
-        </BoothBack>
+            <div class="booth-content-main">
+                <BoothBack class="booth-camera-box">
+                    <div
+                        ref="captureArea"
+                        :style="{ backgroundImage: `url(${bgImage})` }"
+                        class="photo-zone"
+                        @focus="handleFocus"
+                        @blur="handleBlur"
+                        tabindex="0"
+                    >
+                        <div
+                            class="video-container"
+                            ref="videoContainerRef"
+                            :style="videoStyle"
+                            @mousedown="startDrag"
+                            @mousemove="onDrag"
+                            @mouseup="stopDrag"
+                            @mouseleave="stopDrag"
+                            @click="toggleControls"
+                            tabindex="0"
+                        >
+                            <canvas
+                                ref="canvasElement"
+                                :width="videoWidth"
+                                :height="videoHeight"
+                            ></canvas>
+                            <video
+                                ref="videoElement"
+                                autoplay
+                                :width="videoWidth"
+                                :height="videoHeight"
+                                style="display: none"
+                            ></video>
+                            <div :style="centerIndicatorStyle"></div>
+                        </div>
+                        <div
+                            v-if="showControls"
+                            class="controls"
+                            @click="handleControlClick"
+                        >
+                            <button
+                                class="close-controls"
+                                @click="toggleControls"
+                            >
+                                X
+                            </button>
+                            <label>
+                                Rotate
+                                <input
+                                    type="range"
+                                    v-model="videoRotation"
+                                    min="0"
+                                    max="360"
+                                />
+                            </label>
+                            <label>
+                                Scale
+                                <input
+                                    type="range"
+                                    v-model="videoScale"
+                                    min="0.5"
+                                    max="2"
+                                    step="0.01"
+                                />
+                            </label>
+                        </div>
+                    </div>
 
-        <BoothBack class="booth-select-box">
-          <div class="select-box-top">
-            <button class="prev-btn" @click="changeComponent">&lt;</button>
-            <div class="box-name">
-              <p v-if="showtype === 1">배경선택</p>
-              <p v-if="showtype === 2">사진보기</p>
-            </div>
-            <button class="next-btn" @click="changeComponent">&gt;</button>
-          </div>
+                    <div class="create-btn">
+                        <div class="left-btn">
+                            <button class="circle-btn" @click="toggleMicro">
+                                <img
+                                    :src="isMicroOn ? microOn : microOff"
+                                    alt="M"
+                                />
+                            </button>
+                            <button class="circle-btn" @click="toggleCamera">
+                                <img
+                                    :src="isvideoOn ? videoOn : videoOff"
+                                    alt="C"
+                                />
+                            </button>
+                            <button class="ract-btn" @click="toggleMirror">
+                                반전
+                            </button>
+                        </div>
 
-          <div class="select-text-box">
-            <RouterView v-if="showtype === 1" @update="changeImage"></RouterView>
-            <RouterView v-else :images="images"> </RouterView>
-          </div>
-        </BoothBack>
-      </div>
-    </div>
-  </WhiteBoardComp>
+                        <button @click="takePhoto" class="take-photo">
+                            <img src="@/assets/icon/camera.png" alt="" />
+                        </button>
+                        <div class="right-btn">
+                            <button class="ract-btn" @click="exitphoto">
+                                템플릿 선택
+                            </button>
+                        </div>
+                    </div>
+                </BoothBack>
+
+                <BoothBack class="booth-select-box">
+                    <div class="select-box-top">
+                        <button class="prev-btn" @click="changeComponent">
+                            &lt;
+                        </button>
+                        <div class="box-name">
+                            <p v-if="showtype === 1">배경선택</p>
+                            <p v-if="showtype === 2">사진보기</p>
+                        </div>
+                        <button class="next-btn" @click="changeComponent">
+                            &gt;
+                        </button>
+                    </div>
+
+                    <div class="select-text-box">
+                        <RouterView
+                            v-if="showtype === 1"
+                            @update="changeImage"
+                        ></RouterView>
+                        <RouterView v-else :images="images"> </RouterView>
+                    </div>
+                </BoothBack>
+            </div>
+        </div>
+    </WhiteBoardComp>
 </template>
-
 <style scoped>
 @import url("@/assets/css/shootView.css");
 
-.rotate-handle,
-.scale-handle {
-  position: absolute;
-  bottom: 10px;
-  left: 10px;
-  width: 150px;
+.controls {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    width: 150px;
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 10px;
+    padding: 10px;
+    z-index: 10;
 }
 
-.scale-handle {
-  top: 10px;
-  left: 10px;
+.controls label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.close-controls {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #8551ff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    filter: hue-rotate(320deg) saturate(10%) brightness(85%) contrast(100%);
+}
+
+.loading-overlay img {
+    width: 10vw; /* 뷰포트 너비의 15% */
+    height: 9vw; /* 뷰포트 너비의 15% */
+    max-width: 200px; /* 최대 크기 제한 */
+    max-height: 180px; /* 최대 크기 제한 */
 }
 </style>
