@@ -39,4 +39,7 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
 	@Query("UPDATE Board b SET b.isDeleted = true WHERE b.id = :boardId AND b.user.id = :userId")
 	int deleteMyBoard(@Param("boardId") Long boardId, @Param("userId") Long userId);
 
+	// 특정 유저가 특정 사진 공유한 게시물 찾기
+	Board findByUserIdAndPhotoIdAndIsDeletedFalse(Long userId, Long photoId);
+
 }
