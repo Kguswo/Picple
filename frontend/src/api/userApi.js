@@ -1,4 +1,4 @@
-import { instance } from "@/api/baseApi";
+import instance from "@/api/baseApi";
 
 const userBaseUrl = instance.defaults.baseURL + "/user";
 
