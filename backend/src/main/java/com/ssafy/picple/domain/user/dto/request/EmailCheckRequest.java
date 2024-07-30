@@ -9,6 +9,5 @@ import lombok.Setter;
 public class EmailCheckRequest {
     @Email
     private String email;
-
     private String authNumber;
 }

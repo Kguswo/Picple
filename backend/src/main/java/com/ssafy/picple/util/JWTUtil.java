@@ -70,6 +70,7 @@ public class JWTUtil {
         }
     }
 
+    // 수정 필요 (작동 안 됨)
     public void logout(String token) throws BaseException {
         try {
             // 만료 시간을 현재 시간으로 설정하여 토큰을 무효화

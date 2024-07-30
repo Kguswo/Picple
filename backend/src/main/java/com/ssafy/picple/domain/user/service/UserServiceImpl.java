@@ -15,9 +15,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-
 import static com.ssafy.picple.config.baseResponse.BaseResponseStatus.*;
 
 @Service
@@ -102,7 +99,6 @@ public class UserServiceImpl implements UserService {
         }
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BaseException(NOT_FOUND_USER));
-        System.out.println(user.getNickname() + " " + user.getEmail());
         try {
             user.modifyUserNickname(nickname);
             userRepository.save(user);
@@ -133,9 +129,7 @@ public class UserServiceImpl implements UserService {
             throw new BaseException(INVALID_PASSWORD);
         }
         try {
-            System.out.println(user.getPassword());
             user.setPasswordEncoding(encodePassword(newPassword));
-            System.out.println(user.getPassword());
             userRepository.save(user);
             return new ModifyConfirmResponse(user.getEmail(), user.getNickname());
         } catch (Exception e) {
