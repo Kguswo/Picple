@@ -6,9 +6,9 @@ import { onMounted, ref } from "vue";
 import { boardSearchApi, boardSortApi } from "@/api/boardApi";
 import Swal from "sweetalert2";
 
-const photos = ref([]);
-const likeClicked = ref(false);
-const timeClicked = ref(false);
+const boardList = ref([]);
+const isLikeClicked = ref(false);
+const isTimeClicked = ref(false);
 
 onMounted(async () => {
     const data = await boardSortApi("createdAt") // 기본은 최신순 정렬
@@ -16,7 +16,7 @@ onMounted(async () => {
         await Swal.fire({ icon: "error", title: "게시글을 불러오지 못했습니다.", width: 600 });
         return;
     }
-    photos.value = data.result;
+    boardList.value = data.result;
 })
 
 const nickname = ref("");
@@ -30,7 +30,7 @@ const searchByNickname = async () => {
         await Swal.fire({ icon: "error", title: "검색 조회에 실패하였습니다.", width: 600 });
         return;
     }
-    photos.value = data.result;
+    boardList.value = data.result;
 }
 
 const sortByCreatedAt = async () => {
@@ -39,9 +39,9 @@ const sortByCreatedAt = async () => {
         await Swal.fire({ icon: "error", title: "최신순 정렬에 실패하였습니다.", width: 600 });
         return;
     }
-    photos.value = data.result;
-    timeClicked.value = true;
-    likeClicked.value = false;
+    boardList.value = data.result;
+    isTimeClicked.value = true;
+    isLikeClicked.value = false;
 }
 
 const sortByHit = async () => {
@@ -50,9 +50,9 @@ const sortByHit = async () => {
         await Swal.fire({ icon: "error", title: "좋아요순 정렬에 실패하였습니다.", width: 600 });
         return;
     }
-    photos.value = data.result;
-    likeClicked.value = true;
-    timeClicked.value = false;
+    boardList.value = data.result;
+    isLikeClicked.value = true;
+    isTimeClicked.value = false;
 }
 
 </script>
@@ -73,16 +73,16 @@ const sortByHit = async () => {
                     </form>
 
                     <div class="button-group">
-                        <button class="button-sort-like" :class="{ clicked: likeClicked }"
+                        <button class="button-sort-like" :class="{ clicked: isLikeClicked }"
                             @click="sortByHit">좋아요순</button>
-                        <button class="button-sort-time" :class="{ clicked: timeClicked }"
+                        <button class="button-sort-time" :class="{ clicked: isTimeClicked }"
                             @click="sortByCreatedAt">최신순</button>
                     </div>
                 </div>
 
                 <div class="board">
-                    <div v-if="photos.length === 0" style="font-size: 50px">게시글 없음</div>
-                    <BoardPhotoComp v-else v-for="photo in photos" :key="photo.id" :photo="photo" />
+                    <div v-if="boardList.length === 0" style="font-size: 50px">게시글 없음</div>
+                    <BoardPhotoComp v-else v-for="board in boardList" :key="board.id" :board="board" />
                 </div>
             </div>
         </WhiteBoardComp>
