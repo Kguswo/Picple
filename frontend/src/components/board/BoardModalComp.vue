@@ -6,7 +6,7 @@ const props = defineProps({
     isOpen: Boolean
 })
 
-const emit = defineEmits(["close"]);
+const emit = defineEmits(["close", "delete"]);
 
 const isDropdownOpen = ref(false);
 
@@ -16,6 +16,10 @@ const closeModal = () => {
 
 const toggleDropdown = () => {
     isDropdownOpen.value = !isDropdownOpen.value;
+}
+
+const deleteBoard = () => {
+    emit("delete");
 }
 </script>
 
@@ -29,7 +33,7 @@ const toggleDropdown = () => {
                     <path
                         d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0" />
                 </svg>
-                <button v-if="isDropdownOpen" class="dropdown-menu">삭제하기</button>
+                <button v-if="isDropdownOpen" class="dropdown-menu" @click="deleteBoard">삭제하기</button>
             </div>
             <div class="modal-img">
                 <img src="@/assets/img/tempImg.png" alt="">
