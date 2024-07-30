@@ -22,6 +22,17 @@ const toggleDropdown = () => {
 const deleteBoard = () => {
     emit("delete");
 }
+
+const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+
+    return `${year}년 ${month}월 ${day}일 ${hours}:${minutes}`
+}
 </script>
 
 <template>
@@ -39,7 +50,7 @@ const deleteBoard = () => {
             <div class="modal-img">
                 <img src="@/assets/img/tempImg.png" alt="">
                 <div class="modal-text">
-                    <span class="modal-date">촬영일: {{ board.createdAt }}</span>
+                    <span class="modal-date">작성일 {{ formatDate(board.createdAt) }}</span>
                 </div>
             </div>
         </div>
@@ -122,9 +133,12 @@ const deleteBoard = () => {
     }
 
     .modal-text {
-        height: 10%;
         width: 90%;
-        text-align: center;
+        text-align: right;
+
+        .modal-date {
+            font-size: 15px;
+        }
     }
 }
 
