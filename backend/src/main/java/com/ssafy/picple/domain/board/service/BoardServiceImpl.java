@@ -11,6 +11,7 @@ import com.ssafy.picple.config.baseResponse.BaseResponseStatus;
 import com.ssafy.picple.domain.board.dto.BoardDto;
 import com.ssafy.picple.domain.board.entity.Board;
 import com.ssafy.picple.domain.board.repository.BoardRepository;
+import com.ssafy.picple.domain.boardlike.entity.BoardLike;
 import com.ssafy.picple.domain.boardlike.repository.BoardLikeRepository;
 import com.ssafy.picple.domain.photo.entity.Photo;
 import com.ssafy.picple.domain.photo.repository.PhotoRepository;
@@ -47,7 +48,10 @@ public class BoardServiceImpl implements BoardService {
 
 	// 좋아요 여부 표시위함
 	private boolean isLikedByUser(Board board, Long userId) {
-		return boardLikeRepository.existsByBoardIdAndUserId(board.getId(), userId);
+		Long boardId = board.getId();
+		return boardLikeRepository.findByBoardIdAndUserId(boardId, userId)
+				.map(BoardLike::getIsLiked)
+				.orElse(false);
 	}
 
 	// 사진 표시 위함
