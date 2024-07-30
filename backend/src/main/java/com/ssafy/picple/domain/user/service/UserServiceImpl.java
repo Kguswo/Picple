@@ -5,6 +5,7 @@ import com.ssafy.picple.domain.user.dto.request.LoginRequest;
 import com.ssafy.picple.domain.user.dto.request.ModifyPasswordRequest;
 import com.ssafy.picple.domain.user.dto.response.ModifyConfirmResponse;
 import com.ssafy.picple.domain.user.dto.response.LoginResponse;
+import com.ssafy.picple.domain.user.dto.response.UserInfoResponse;
 import com.ssafy.picple.domain.user.entity.User;
 import com.ssafy.picple.domain.user.repository.UserRepository;
 import com.ssafy.picple.util.JWTUtil;
@@ -13,6 +14,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import static com.ssafy.picple.config.baseResponse.BaseResponseStatus.*;
 
@@ -58,6 +62,17 @@ public class UserServiceImpl implements UserService {
             throw new BaseException(INVALID_PASSWORD);
         }
         return new LoginResponse(jwtUtil.createAccessToken(user.getId()), user.getNickname());
+    }
+
+    @Override
+    public UserInfoResponse getUserInfo(Long userId) throws BaseException {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BaseException(NOT_FOUND_USER));
+        return new UserInfoResponse(
+                user.getEmail(),
+                user.getNickname(),
+                user.getCreatedAt().toLocalDate()
+        );
     }
 
     /**

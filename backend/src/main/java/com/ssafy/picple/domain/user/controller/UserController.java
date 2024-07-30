@@ -6,6 +6,7 @@ import com.ssafy.picple.config.baseResponse.BaseResponseStatus;
 import com.ssafy.picple.domain.user.dto.request.*;
 import com.ssafy.picple.domain.user.dto.response.ModifyConfirmResponse;
 import com.ssafy.picple.domain.user.dto.response.LoginResponse;
+import com.ssafy.picple.domain.user.dto.response.UserInfoResponse;
 import com.ssafy.picple.domain.user.entity.User;
 import com.ssafy.picple.domain.user.service.EmailService;
 import com.ssafy.picple.domain.user.service.UserService;
@@ -50,6 +51,12 @@ public class UserController {
         } else {
             return new BaseResponse<>(FAILED_USER_SIGNUP);
         }
+    }
+
+    @GetMapping("/info")
+    public BaseResponse<UserInfoResponse> getUserInfo(HttpServletRequest request) throws BaseException {
+        Long userId = (Long) request.getAttribute("userId");
+        return new BaseResponse<>(userService.getUserInfo(userId));
     }
 
     /**
