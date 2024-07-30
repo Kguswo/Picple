@@ -74,18 +74,20 @@ public class UserServiceImpl implements UserService {
     }
 
     /**
-     * 회원 정보 수정 (password, nickname)
+     * 닉네임 수정
      * @param userId, nickname
      * @throws BaseException
      */
     @Override
     @Transactional
     public ModifyConfirmResponse modifyUserNickname(Long userId, String nickname) throws BaseException {
+        System.out.println(nickname);
         if (userRepository.existsByNickname(nickname)) {
             throw new BaseException(DUPLICATED_USER_NICKNAME);
         }
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BaseException(NOT_FOUND_USER));
+        System.out.println(user.getNickname() + " " + user.getEmail());
         try {
             user.modifyUserNickname(nickname);
             userRepository.save(user);
@@ -103,6 +105,7 @@ public class UserServiceImpl implements UserService {
      * @throws BaseException
      */
     @Override
+    @Transactional
     public ModifyConfirmResponse modifyUserPassword(Long userId, ModifyPasswordRequest modifyPassword) throws BaseException {
         String oldPassword = modifyPassword.getOldPassword();
         String newPassword = modifyPassword.getNewPassword();
@@ -115,7 +118,10 @@ public class UserServiceImpl implements UserService {
             throw new BaseException(INVALID_PASSWORD);
         }
         try {
-            user.setPasswordEncoding(encodePassword(user.getPassword()));
+            System.out.println(user.getPassword());
+            user.setPasswordEncoding(encodePassword(newPassword));
+            System.out.println(user.getPassword());
+            userRepository.save(user);
             return new ModifyConfirmResponse(user.getEmail(), user.getNickname());
         } catch (Exception e) {
             throw new BaseException(ERROR_MODIFY_PASSWORD);

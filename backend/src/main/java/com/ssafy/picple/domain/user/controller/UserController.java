@@ -3,10 +3,7 @@ package com.ssafy.picple.domain.user.controller;
 import com.ssafy.picple.config.baseResponse.BaseException;
 import com.ssafy.picple.config.baseResponse.BaseResponse;
 import com.ssafy.picple.config.baseResponse.BaseResponseStatus;
-import com.ssafy.picple.domain.user.dto.request.EmailCheckRequest;
-import com.ssafy.picple.domain.user.dto.request.EmailRequest;
-import com.ssafy.picple.domain.user.dto.request.LoginRequest;
-import com.ssafy.picple.domain.user.dto.request.ModifyPasswordRequest;
+import com.ssafy.picple.domain.user.dto.request.*;
 import com.ssafy.picple.domain.user.dto.response.ModifyConfirmResponse;
 import com.ssafy.picple.domain.user.dto.response.Token;
 import com.ssafy.picple.domain.user.entity.User;
@@ -85,15 +82,15 @@ public class UserController {
     /**
      * 닉네임 수정
      * @param request
-     * @param nickname
+     * @param modifyNicknameRequest
      * @return
      * @throws BaseException
      */
     @PatchMapping("/modify/nickname")
     public BaseResponse<ModifyConfirmResponse> modifyUserNickname(HttpServletRequest request,
-                                                   @RequestBody String nickname) throws BaseException {
+                                                   @RequestBody ModifyNicknameRequest modifyNicknameRequest) throws BaseException {
         Long userId = (Long) request.getAttribute("userId");
-        return new BaseResponse<>(userService.modifyUserNickname(userId, nickname));
+        return new BaseResponse<>(userService.modifyUserNickname(userId, modifyNicknameRequest.getNickname()));
     }
 
     /**
@@ -103,7 +100,7 @@ public class UserController {
      * @return
      * @throws BaseException
      */
-    @PatchMapping("modify/password")
+    @PatchMapping("/modify/password")
     public BaseResponse<ModifyConfirmResponse> modifyUserPassword(HttpServletRequest request,
                                                                   @RequestBody ModifyPasswordRequest modifyPasswordRequest) throws BaseException {
         Long userId = (Long) request.getAttribute("userId");
