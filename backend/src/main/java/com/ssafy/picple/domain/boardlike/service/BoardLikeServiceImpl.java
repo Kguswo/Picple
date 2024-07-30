@@ -17,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class BoardLikeServiceImpl implements BoardLikeService {
 
 	private final BoardLikeRepository boardLikeRepository;

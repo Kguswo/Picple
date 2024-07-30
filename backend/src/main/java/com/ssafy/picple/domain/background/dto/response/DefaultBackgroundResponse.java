@@ -12,7 +12,7 @@ import lombok.experimental.SuperBuilder;
 public class DefaultBackgroundResponse extends BackgroundResponseDto {
 	private List<Long> userIds;
 
-	public static DefaultBackgroundResponse from(Background background) {
+	public static DefaultBackgroundResponse defaultBackgroundResponse(Background background) {
 		return DefaultBackgroundResponse.builder()
 				.id(background.getId())
 				.backgroundTitle(background.getBackgroundTitle())
