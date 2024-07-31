@@ -6,14 +6,10 @@ import { useRoute, useRouter } from 'vue-router';
 import { validatePasswordPattern, validatePasswordConfirm, setFormMessage } from '@/common/validation';
 import { ref } from 'vue';
 import Swal from 'sweetalert2';
-import { useUserStore } from '@/stores/userStore';
-import { storeToRefs } from 'pinia';
+import { modifyPasswordApi } from '@/api/userApi';
 
 const route = useRoute();
 const router = useRouter();
-const userStore = useUserStore();
-
-const { userInfo } = storeToRefs(userStore);
 
 const currentPassword = ref({ type: 'password', label: '현재 비밀번호', value: '' });
 const newPassword = ref({ type: 'password', label: '새 비밀번호', value: '' });
@@ -23,17 +19,15 @@ const newPasswordField = ref(null);
 const newPasswordConfirmField = ref(null);
 
 const modifyPassword = async () => {
-	if (route.params.path === 'modify') {
-		currentPasswordField.value.message =
-			currentPassword.value.value !== userInfo.value.password
-				? setFormMessage('비밀번호를 틀렸습니다.', true)
-				: setFormMessage('', false);
-	}
+	currentPasswordField.value.message = !currentPassword.value.value
+		? setFormMessage('기존 비밀번호를 입력하세요.', true)
+		: setFormMessage('', false);
 	newPasswordField.value.message = validatePasswordPattern(newPassword.value.value);
 	newPasswordConfirmField.value.message = validatePasswordConfirm(
 		newPassword.value.value,
 		newPasswordConfirm.value.value,
 	);
+
 	if (currentPasswordField.value?.message.text) {
 		currentPasswordField.value.focusInput();
 		return;
@@ -46,7 +40,12 @@ const modifyPassword = async () => {
 		newPasswordConfirmField.value.focusInput();
 		return;
 	}
-	// todo: 비밀번호 변경 api 연결
+	const data = await modifyPasswordApi(currentPassword.value.value, newPassword.value.value);
+	if (!data.isSuccess && data.code === 3019) {
+		currentPasswordField.value.message = setFormMessage(data.message, true);
+		currentPasswordField.value.focusInput();
+		return;
+	}
 	await Swal.fire({ icon: 'success', title: '비밀번호가 변경되었습니다.', width: 600 });
 	router.push({ name: 'main' });
 };
