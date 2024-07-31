@@ -66,4 +66,24 @@ const modifyAccountApi = async (nickname) => {
 	}
 };
 
-export { loginApi, signupApi, sendCertNumberApi, verifyCertNumberApi, modifyAccountApi };
+// 로그아웃
+const logoutApi = async () => {
+	try {
+		const response = await instance.post(`${usersBaseUrl}/logout`);
+		return response.data;
+	} catch (error) {
+		return error;
+	}
+};
+
+// 회원탈퇴
+const deleteAccountApi = async () => {
+	try {
+		const response = await instance.delete(`${usersBaseUrl}`);
+		return response.data;
+	} catch (error) {
+		return error;
+	}
+};
+
+export { loginApi, signupApi, sendCertNumberApi, verifyCertNumberApi, modifyAccountApi, deleteAccountApi, logoutApi };
