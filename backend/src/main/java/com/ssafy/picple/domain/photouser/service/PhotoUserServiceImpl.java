@@ -43,7 +43,7 @@ public class PhotoUserServiceImpl implements PhotoUserService {
 				.orElseThrow(() -> new BaseException(NOT_FOUND_USER));
 
 		// Content 업데이트
-		photoUser.updateContent(newContent);
+		photoUser.setContent(newContent);
 
 		// 변경된 PhotoUser 객체 저장
 		photoUserRepository.save(photoUser);
