@@ -94,4 +94,16 @@ const router = createRouter({
 	],
 });
 
+router.beforeEach((to, from) => {
+	if (
+		!localStorage.getItem('accessToken') &&
+		to.name !== 'main' &&
+		to.name !== 'login' &&
+		to.name !== 'signupEmail' &&
+		to.name !== 'findPassword'
+	) {
+		return { name: 'login', replace: true };
+	}
+});
+
 export default router;
