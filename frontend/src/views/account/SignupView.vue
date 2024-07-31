@@ -13,9 +13,12 @@ import { useRouter } from 'vue-router';
 import Swal from 'sweetalert2';
 import { signupApi } from '@/api/userApi';
 import { useUserStore } from '@/stores/userStore';
+import { storeToRefs } from 'pinia';
 
 const router = useRouter();
 const userStore = useUserStore();
+
+const { verifiedEmail } = storeToRefs(userStore);
 
 const nickname = ref({ type: 'text', label: '닉네임', value: '' });
 const password = ref({ type: 'password', label: '비밀번호', value: '' });
@@ -50,6 +53,7 @@ const signup = async () => {
 		await Swal.fire({ icon: 'error', title: `${data.message}`, width: 600 });
 		return;
 	}
+	verifiedEmail.value = '';
 	await Swal.fire({ icon: 'success', title: '회원가입이 완료되었습니다.', width: 600 });
 	router.push({ name: 'main' });
 };
