@@ -7,6 +7,9 @@ import { RouterView, useRouter } from "vue-router";
 import { ref, onMounted, onUnmounted, nextTick, computed, watch } from "vue";
 import { useDraggable } from "@vueuse/core";
 
+import WebSocketService from "@/services/WebSocketService";
+import WebRTCService from "@/services/WebRTCService";
+
 import Swal from "sweetalert2";
 import * as selfieSegmentation from "@mediapipe/selfie_segmentation";
 
@@ -17,6 +20,8 @@ import microOff from "@/assets/icon/micro_off.png";
 
 const router = useRouter();
 const photoStore = usePhotoStore();
+
+const participants = ref([]);
 
 const navigateTo = (path) => {
     router.push({ name: path });
@@ -265,6 +270,21 @@ onMounted(async () => {
     setTimeout(() => {
         isLoading.value = false;
     }, remainingTime);
+
+    WebSocketService.connect();
+    participants.value = WebSocketService.participants.value;
+
+    await WebRTCService.initializeLocalStream();
+    videoElement.value.srcObject = WebRTCService.localStream;
+
+    WebRTCService.onRemoteStream = (participantId, stream) => {
+        const participant = participants.value.find(
+            (p) => p.id === participantId
+        );
+        if (participant) {
+            participant.stream = stream;
+        }
+    };
 });
 
 onUnmounted(() => {
@@ -275,6 +295,8 @@ onUnmounted(() => {
             track.stop();
         });
     }
+
+    WebRTCService.closeAllConnections();
 });
 
 const toggleMirror = () => {
@@ -535,50 +557,28 @@ const handleControlClick = (event) => {
                             @click="toggleControls"
                             tabindex="0"
                         >
-                            <canvas
-                                ref="canvasElement"
-                                :width="videoWidth"
-                                :height="videoHeight"
-                            ></canvas>
-                            <video
-                                ref="videoElement"
-                                autoplay
-                                :width="videoWidth"
-                                :height="videoHeight"
-                                style="display: none"
-                            ></video>
-                            <div :style="centerIndicatorStyle"></div>
-                        </div>
-                        <div
-                            v-if="showControls"
-                            class="controls"
-                            @click="handleControlClick"
-                        >
-                            <button
-                                class="close-controls"
-                                @click="toggleControls"
+                            <!-- 로컬 비디오 -->
+                            <div class="video-item">
+                                <video
+                                    ref="videoElement"
+                                    autoplay
+                                    muted
+                                ></video>
+                                <p>You</p>
+                            </div>
+                            <!-- 원격 참가자 비디오 -->
+                            <div
+                                v-for="participant in participants"
+                                :key="participant.id"
+                                class="video-item"
                             >
-                                X
-                            </button>
-                            <label>
-                                Rotate
-                                <input
-                                    type="range"
-                                    v-model="videoRotation"
-                                    min="0"
-                                    max="360"
-                                />
-                            </label>
-                            <label>
-                                Scale
-                                <input
-                                    type="range"
-                                    v-model="videoScale"
-                                    min="0.5"
-                                    max="2"
-                                    step="0.01"
-                                />
-                            </label>
+                                <video
+                                    :ref="'video-' + participant.id"
+                                    autoplay
+                                    :srcObject="participant.stream"
+                                ></video>
+                                <p>{{ participant.name }}</p>
+                            </div>
                         </div>
                     </div>
 
