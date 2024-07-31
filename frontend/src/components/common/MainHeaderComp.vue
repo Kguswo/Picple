@@ -6,7 +6,7 @@ const router = useRouter();
 const userStore = useUserStore();
 
 const user = userStore.user;
-console.log(localStorage.getItem('user'));
+
 const navigateTo = (name) => {
 	router.push({ name });
 };

@@ -1,18 +1,18 @@
-import axios from "axios";
+import axios from 'axios';
 
 const instance = axios.create({
-	baseURL: "http://localhost:8080",
+	baseURL: 'http://localhost:8080',
 });
 
 instance.interceptors.request.use(
 	(config) => {
-		const accessToken = localStorage.getItem("accessToken");
+		const accessToken = localStorage.getItem('accessToken');
 		if (accessToken) {
-			config.headers["X-ACCESS-TOKEN"] = accessToken;
+			config.headers['X-ACCESS-TOKEN'] = accessToken;
 		}
 		return config;
 	},
-	(error) => Promise.reject(error)
+	(error) => Promise.reject(error),
 );
 
 export default instance;
