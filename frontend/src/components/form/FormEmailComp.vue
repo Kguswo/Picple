@@ -5,7 +5,7 @@ import { validateEmailPattern, setFormMessage } from '@/common/validation';
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import Swal from 'sweetalert2';
-import { sendCertNumberApi, verifyCertNumber } from '@/api/userApi';
+import { sendCertNumberApi, verifyCertNumberApi } from '@/api/userApi';
 import { useUserStore } from '@/stores/userStore';
 import { storeToRefs } from 'pinia';
 
@@ -59,7 +59,7 @@ const certifyEmail = async () => {
 		return;
 	}
 	// todo: 제한시간 검사
-	const data = await verifyCertNumber(email.value.value, certNumber.value.value);
+	const data = await verifyCertNumberApi(email.value.value, certNumber.value.value);
 	if (!data.isSuccess && (data.code === 3005 || data.code === 3006)) {
 		await Swal.fire({ icon: 'error', title: `${data.message}`, width: 600 });
 		return;
