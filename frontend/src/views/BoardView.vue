@@ -144,7 +144,6 @@ const sortByHit = async () => {
     width: 100%;
     box-sizing: border-box;
     border-radius: 5px;
-    border: 2px solid gray;
     padding: 5px 10px;
     line-height: 35px;
     cursor: pointer;
