@@ -1,11 +1,10 @@
 <script setup>
-import { RouterView, RouterLink } from 'vue-router';
+import { RouterView } from 'vue-router';
 </script>
 
 <template>
 	<div class="main">
 		<RouterView />
-		<!-- <router-link :to="{ name: '' }"></router-link> -->
 	</div>
 </template>
 
@@ -22,7 +21,6 @@ import { RouterView, RouterLink } from 'vue-router';
 	background-size: cover;
 	opacity: 1;
 
-	/* display */
 	display: flex;
 	justify-content: center;
 	align-items: center;
