@@ -42,7 +42,7 @@ const sendCertNumberApi = async (email) => {
 };
 
 // 이메일 인증번호 확인
-const verifyCertNumber = async (email, certNumber) => {
+const verifyCertNumberApi = async (email, certNumber) => {
 	try {
 		const response = await instance.post(`${usersBaseUrl}/mailcheck`, {
 			email,
@@ -54,4 +54,16 @@ const verifyCertNumber = async (email, certNumber) => {
 	}
 };
 
-export { loginApi, signupApi, sendCertNumberApi, verifyCertNumber };
+// 회원정보 수정
+const modifyAccountApi = async (nickname) => {
+	try {
+		const response = await instance.patch(`${usersBaseUrl}/modify/nickname`, {
+			nickname,
+		});
+		return response.data;
+	} catch (error) {
+		return error;
+	}
+};
+
+export { loginApi, signupApi, sendCertNumberApi, verifyCertNumberApi, modifyAccountApi };

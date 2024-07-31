@@ -23,11 +23,16 @@ export const useUserStore = defineStore(
 			localStorage.removeItem('user');
 		};
 
+		const changeNickname = (nickname) => {
+			user.value.nickname = nickname;
+		};
+
 		return {
 			user,
 			verifiedEmail,
 			setUser,
 			resetUser,
+			changeNickname,
 		};
 	},
 	{
