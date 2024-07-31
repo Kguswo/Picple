@@ -8,7 +8,7 @@ import { ref } from 'vue';
 import Swal from 'sweetalert2';
 import { useUserStore } from '@/stores/userStore';
 import { storeToRefs } from 'pinia';
-import { modifyAccountApi } from '@/api/userApi';
+import { deleteAccountApi, modifyAccountApi } from '@/api/userApi';
 
 const router = useRouter();
 const userStore = useUserStore();
@@ -49,7 +49,7 @@ const deleteAccount = async () => {
 		title: '정말 회원을 탈퇴하시겠습니까?',
 		input: 'checkbox',
 		inputValue: 0,
-		inputPlaceholder: `회원탈퇴 동의`,
+		inputPlaceholder: `탈퇴 시 서비스를 이용하지 못합니다. 동의하십니까?`,
 		confirmButtonText: `Continue&nbsp;<i class="fa fa-arrow-right"></i>`,
 		showCancelButton: true,
 		inputValidator: (result) => {
@@ -57,7 +57,12 @@ const deleteAccount = async () => {
 		},
 	});
 	if (accept) {
-		// todo: 회원탈퇴 api 연결
+		const data = await deleteAccountApi();
+		if (!data.isSuccess) {
+			await Swal.fire({ icon: 'error', title: `${data.message}`, width: 600 });
+			return;
+		}
+		userStore.resetUser();
 		await Swal.fire({ icon: 'success', title: '회원탈퇴가 완료되었습니다.', width: 600 });
 		router.push({ name: 'main' });
 	}
