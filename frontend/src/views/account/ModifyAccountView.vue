@@ -3,7 +3,7 @@ import FormComp from '@/components/form/FormComp.vue';
 import FormInputComp from '@/components/form/FormInputComp.vue';
 import FormButtonComp from '@/components/form/FormButtonComp.vue';
 import { useRouter } from 'vue-router';
-import { validateNicknamePattern } from '@/common/validation';
+import { validateNicknamePattern, setFormMessage } from '@/common/validation';
 import { ref } from 'vue';
 import Swal from 'sweetalert2';
 import { useUserStore } from '@/stores/userStore';
@@ -23,8 +23,18 @@ const modifyAccount = async () => {
 		nicknameField.value.focusInput();
 		return;
 	}
+	if (nickname.value.value === user.value.nickname) {
+		nicknameField.value.message = setFormMessage('기존 닉네임과 동일합니다.', true);
+		nicknameField.value.focusInput();
+		return;
+	}
 
 	const data = await modifyAccountApi(nickname.value.value);
+	if (!data.isSuccess && data.code === 3003) {
+		nicknameField.value.message = setFormMessage(data.message, true);
+		nicknameField.value.focusInput();
+		return;
+	}
 	if (!data.isSuccess) {
 		await Swal.fire({ icon: 'error', title: `${data.message}`, width: 600 });
 		return;
@@ -98,6 +108,14 @@ const deleteAccount = async () => {
 				@click="modifyAccount"
 				>저장</FormButtonComp
 			>
+
+			<button
+				type="button"
+				class="form-button-big form-button-cancel mt-10"
+				@click="router.push({ name: 'main' })"
+			>
+				취소
+			</button>
 
 			<div class="text-align-right mt-10">
 				<FormButtonComp
