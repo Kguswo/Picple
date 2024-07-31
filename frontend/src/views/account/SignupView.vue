@@ -23,24 +23,9 @@ const passwordConfirm = ref({ type: 'password', label: '비밀번호 확인', va
 const nicknameField = ref(null);
 const passwordField = ref(null);
 const passwordConfirmField = ref(null);
-const checkedNickname = ref('');
-
-const validateNicknameDup = (e) => {
-	e.stopPropagation();
-	nicknameField.value.message = validateNicknamePattern(nickname.value.value);
-	if (nicknameField.value.message.text) {
-		nicknameField.value.focusInput();
-		return;
-	}
-	// todo: 닉네임 중복 api 연결
-	nicknameField.value.message = setFormMessage('사용 가능한 닉네임입니다.', false);
-	checkedNickname.value = nickname.value.value;
-};
 
 const signup = async () => {
-	nicknameField.value.message = !checkedNickname.value
-		? setFormMessage('닉네임 중복 확인이 필요합니다.', true)
-		: setFormMessage('', false);
+	nicknameField.value.message = validateNicknamePattern(nickname.value.value);
 	passwordField.value.message = validatePasswordPattern(password.value.value);
 	passwordConfirmField.value.message = validatePasswordConfirm(password.value.value, passwordConfirm.value.value);
 	if (nicknameField.value.message.text) {
@@ -56,13 +41,17 @@ const signup = async () => {
 		return;
 	}
 	const data = await signupApi(userStore.verifiedEmail, password.value.value, nickname.value.value);
-	if (data.isSuccess) {
-		await Swal.fire({ icon: 'success', title: '회원가입이 완료되었습니다.', width: 600 });
-		router.push({ name: 'main' });
+	if (!data.isSuccess && data.code === 3003) {
+		nicknameField.value.message = setFormMessage(data.message, true);
+		nicknameField.value.focusInput();
 		return;
 	}
-	await Swal.fire({ icon: 'error', title: '회원가입에 실패하였습니다.', width: 600 });
-	router.push({ name: 'signup' });
+	if (!data.isSuccess) {
+		await Swal.fire({ icon: 'error', title: `${data.message}`, width: 600 });
+		return;
+	}
+	await Swal.fire({ icon: 'success', title: '회원가입이 완료되었습니다.', width: 600 });
+	router.push({ name: 'main' });
 };
 </script>
 
@@ -77,14 +66,7 @@ const signup = async () => {
 				ref="nicknameField"
 				name="nickname"
 				class="mt-10"
-			>
-				<FormButtonComp
-					size="small"
-					@keyup.enter="validateNicknameDup"
-					@click="validateNicknameDup"
-					>중복
-				</FormButtonComp>
-			</FormInputComp>
+			/>
 
 			<FormInputComp
 				:inputParams="password"
