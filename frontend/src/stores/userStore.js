@@ -38,7 +38,7 @@ export const useUserStore = defineStore(
 	{
 		persist: {
 			key: 'user',
-			path: ['user.email', 'user.nickname'],
+			paths: ['user'],
 		},
 	},
 );

@@ -1,6 +1,8 @@
 <script setup>
 import { useRouter } from 'vue-router';
 import { useUserStore } from '@/stores/userStore';
+import { logoutApi } from '@/api/userApi';
+import Swal from 'sweetalert2';
 
 const router = useRouter();
 const userStore = useUserStore();
@@ -11,9 +13,14 @@ const navigateTo = (name) => {
 	router.push({ name });
 };
 
-const logout = () => {
+const logout = async () => {
+	const data = await logoutApi();
+	if (!data.isSuccess) {
+		await Swal.fire({ icon: 'error', title: `${data.message}`, width: 600 });
+		return;
+	}
 	userStore.resetUser();
-	window.location.href = '/';
+	router.push({ name: 'main' });
 };
 </script>
 
