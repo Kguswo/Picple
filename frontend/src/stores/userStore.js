@@ -9,6 +9,8 @@ export const useUserStore = defineStore(
 			nickname: '',
 		});
 
+		const verifiedEmail = ref('');
+
 		const setUser = (email, nickname) => {
 			user.value.email = email;
 			user.value.nickname = nickname;
@@ -23,6 +25,7 @@ export const useUserStore = defineStore(
 
 		return {
 			user,
+			verifiedEmail,
 			setUser,
 			resetUser,
 		};

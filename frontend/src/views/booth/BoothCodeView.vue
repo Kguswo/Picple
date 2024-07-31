@@ -21,7 +21,7 @@ const certifyBoothCode = async () => {
 		return;
 	}
 	// todo: 부스 코드 검사 api 연결
-	await Swal.fire({ title: '부스 코드가 인증되었습니다.', width: 600 });
+	await Swal.fire({ icon: 'success', title: '부스 코드가 인증되었습니다.', width: 600 });
 	router.push({});
 };
 
