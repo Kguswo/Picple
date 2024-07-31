@@ -3,42 +3,33 @@ import FormComp from '@/components/form/FormComp.vue';
 import FormInputComp from '@/components/form/FormInputComp.vue';
 import FormButtonComp from '@/components/form/FormButtonComp.vue';
 import { useRouter } from 'vue-router';
-import { validateNicknamePattern, setFormMessage } from '@/common/validation';
+import { validateNicknamePattern } from '@/common/validation';
 import { ref } from 'vue';
 import Swal from 'sweetalert2';
 import { useUserStore } from '@/stores/userStore';
 import { storeToRefs } from 'pinia';
+import { modifyAccountApi } from '@/api/userApi';
 
 const router = useRouter();
 const userStore = useUserStore();
-const { userInfo } = storeToRefs(userStore);
+const { user } = storeToRefs(userStore);
 
-const nickname = ref({ type: 'text', label: '닉네임', value: '' });
+const nickname = ref({ type: 'text', label: '닉네임', value: user.value.nickname });
 const nicknameField = ref(null);
-const checkedNickname = ref('');
 
-const validateNicknameDup = (e) => {
-	e.stopPropagation();
+const modifyAccount = async () => {
 	nicknameField.value.message = validateNicknamePattern(nickname.value.value);
 	if (nicknameField.value.message.text) {
 		nicknameField.value.focusInput();
 		return;
 	}
-	// todo: 닉네임 중복 api 연결
-	nicknameField.value.message = setFormMessage('사용 가능한 닉네임입니다.', false);
-	checkedNickname.value = nickname.value.value;
-};
 
-const modifyAccount = async () => {
-	nicknameField.value.message = !checkedNickname.value
-		? setFormMessage('닉네임 중복 확인이 필요합니다.', true)
-		: setFormMessage('', false);
-	if (nicknameField.value.message.text) {
-		nicknameField.value.focusInput();
+	const data = await modifyAccountApi(nickname.value.value);
+	if (!data.isSuccess) {
+		await Swal.fire({ icon: 'error', title: `${data.message}`, width: 600 });
 		return;
 	}
-	// todo: 정보 수정 api 연결
-	userInfo.value.nickname = nickname.value.value;
+	userStore.changeNickname(nickname.value.value);
 	await Swal.fire({ icon: 'success', title: '닉네임이 변경되었습니다.', width: 600 });
 	router.push({ name: 'main' });
 };
@@ -73,7 +64,7 @@ const deleteAccount = async () => {
 				<input
 					type="text"
 					class="form-input has-content background-color-disabled"
-					:value="userInfo.email"
+					:value="user.email"
 					disabled
 				/>
 				<label class="form-label">이메일</label>
@@ -83,14 +74,7 @@ const deleteAccount = async () => {
 				:inputParams="nickname"
 				ref="nicknameField"
 				class="mt-10"
-			>
-				<FormButtonComp
-					size="small"
-					@keyup.enter="validateNicknameDup"
-					@click="validateNicknameDup"
-					>중복</FormButtonComp
-				>
-			</FormInputComp>
+			/>
 
 			<div class="input-container background-color-disabled mt-10">
 				<input
