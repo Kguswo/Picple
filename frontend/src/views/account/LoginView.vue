@@ -2,24 +2,22 @@
 import FormComp from '@/components/form/FormComp.vue';
 import FormInputComp from '@/components/form/FormInputComp.vue';
 import FormButtonComp from '@/components/form/FormButtonComp.vue';
-import FormMessageComp from '@/components/form/FormMessageComp.vue';
-import { setFormMessage, validateEmailPattern, validatePasswordPattern } from '@/common/validation';
+import { validateEmailPattern, validatePasswordPattern } from '@/common/validation';
 import { ref } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { useRouter } from 'vue-router';
 import VueCookie from 'vue-cookies';
 import { useUserStore } from '@/stores/userStore';
 import { loginApi } from '@/api/userApi';
+import Swal from 'sweetalert2';
 
 const userStore = useUserStore();
 const router = useRouter();
-const route = useRoute();
 
 const email = ref({ type: 'email', label: '이메일', value: VueCookie.get('saveId') });
 const password = ref({ type: 'password', label: '비밀번호', value: '' });
 const emailField = ref(null);
 const passwordField = ref(null);
 const isChecked = VueCookie.get('saveId') ? ref(true) : ref(false);
-const errorMessage = route.query.errorMessage ? ref(JSON.parse(route.query.errorMessage)) : ref(null);
 
 const login = async () => {
 	emailField.value.message = validateEmailPattern(email.value.value);
@@ -35,9 +33,8 @@ const login = async () => {
 	setCookie('saveId', email.value.value, '1d', isChecked.value);
 	const data = await loginApi(email.value.value, password.value.value);
 	if (!data.isSuccess) {
-		window.location.href = `/login?errorMessage=${JSON.stringify(
-			setFormMessage('아이디 또는 비밀번호를 틀렸습니다.', true),
-		)}`;
+		await Swal.fire({ icon: 'error', title: '아이디 또는 비밀번호를 틀렸습니다.', width: 600 });
+		router.go(0);
 		return;
 	}
 	userStore.setUser(email.value.value, data.result.nickname);
@@ -84,12 +81,6 @@ const navigateTo = (name) => {
 				/>
 				<label for="checkbox-save-id">아이디 저장</label>
 			</div>
-
-			<FormMessageComp
-				v-if="errorMessage"
-				:message="errorMessage"
-				class="mt-10"
-			/>
 
 			<FormButtonComp
 				size="big"
