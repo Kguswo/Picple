@@ -1,101 +1,109 @@
-import { createRouter, createWebHistory } from "vue-router";
+import { createRouter, createWebHistory } from 'vue-router';
 
 const router = createRouter({
 	history: createWebHistory(import.meta.env.BASE_URL),
 	routes: [
 		{
-			path: "/",
-			name: "main",
-			component: () => import("@/views/MainView.vue"),
+			path: '/',
+			name: 'main',
+			component: () => import('@/views/MainView.vue'),
 		},
 		{
-			path: "/calendar",
-			name: "calendarView",
-			component: () => import("@/views/CalendarView.vue"),
+			path: '/calendar',
+			name: 'calendarView',
+			component: () => import('@/views/CalendarView.vue'),
 		},
 		{
-			path: "/login",
-			name: "login",
-			component: () => import("@/views/account/LoginView.vue"),
+			path: '/login',
+			name: 'login',
+			component: () => import('@/views/account/LoginView.vue'),
 		},
 		{
-			path: "/signup",
-			name: "signup",
-			component: () => import("@/views/account/SignupView.vue"),
+			path: '/signup',
+			name: 'signup',
+			component: () => import('@/views/account/SignupView.vue'),
 		},
 		{
-			path: "/signup/email",
-			name: "signupEmail",
-			component: () => import("@/views/account/SignupEmailView.vue"),
+			path: '/signup/email',
+			name: 'signupEmail',
+			component: () => import('@/views/account/SignupEmailView.vue'),
 		},
 		{
-			path: "/modifyAccount",
-			name: "modifyAccount",
-			component: () => import("@/views/account/ModifyAccountView.vue"),
+			path: '/modifyAccount',
+			name: 'modifyAccount',
+			component: () => import('@/views/account/ModifyAccountView.vue'),
 		},
 		{
-			path: "/modifyPassword/:path",
-			name: "modifyPassword",
-			component: () => import("@/views/account/ModifyPasswordView.vue"),
+			path: '/modifyPassword/:path',
+			name: 'modifyPassword',
+			component: () => import('@/views/account/ModifyPasswordView.vue'),
 		},
 		{
-			path: "/findPassword",
-			name: "findPassword",
-			component: () => import("@/views/account/FindPasswordView.vue"),
+			path: '/findPassword',
+			name: 'findPassword',
+			component: () => import('@/views/account/FindPasswordView.vue'),
 		},
 		{
-			path: "/board",
-			name: "board",
-			component: () => import("@/views/BoardView.vue"),
+			path: '/board',
+			name: 'board',
+			component: () => import('@/views/BoardView.vue'),
 		},
 		{
-			path: "/create",
-			name: "createbooth",
-			component: () => import("@/views/booth/BoothCreateView.vue"),
+			path: '/create',
+			name: 'createbooth',
+			component: () => import('@/views/booth/BoothCreateView.vue'),
 		},
 		{
-			path: "/booth",
-			component: () => import("@/views/booth/BoothShootView.vue"),
+			path: '/booth',
+			component: () => import('@/views/booth/BoothShootView.vue'),
 			children: [
 				{
-					path: "bg",
-					name: "background",
-					component: () =>
-						import("@/components/booth/BoothSelectBackComp.vue"),
+					path: 'bg',
+					name: 'background',
+					component: () => import('@/components/booth/BoothSelectBackComp.vue'),
 					props: true,
 				},
 				{
-					path: "photo",
-					name: "showphoto",
-					component: () =>
-						import("@/components/booth/BoothShowPhotoComp.vue"),
+					path: 'photo',
+					name: 'showphoto',
+					component: () => import('@/components/booth/BoothShowPhotoComp.vue'),
 					props: true,
 				},
 			],
 			props: true,
 		},
 		{
-			path: "/boothCode",
-			name: "boothCode",
-			component: () => import("@/views/booth/BoothCodeView.vue"),
+			path: '/boothCode',
+			name: 'boothCode',
+			component: () => import('@/views/booth/BoothCodeView.vue'),
 		},
 		{
-			path: "/selectTemp",
-			name: "selectTemp",
-			component: () => import("@/views/booth/BoothTemplateView.vue"),
+			path: '/selectTemp',
+			name: 'selectTemp',
+			component: () => import('@/views/booth/BoothTemplateView.vue'),
 		},
 		{
-			path: "/insertImg/:templateKey",
-			name: "insertImg",
-			component: () => import("@/views/booth/BoothInsertView.vue"),
+			path: '/insertImg/:templateKey',
+			name: 'insertImg',
+			component: () => import('@/views/booth/BoothInsertView.vue'),
 			props: (route) => ({
 				templateKey: route.params.templateKey,
-				photos: route.params.photos
-					? JSON.parse(decodeURIComponent(route.params.photos))
-					: [],
+				photos: route.params.photos ? JSON.parse(decodeURIComponent(route.params.photos)) : [],
 			}),
 		},
 	],
+});
+
+router.beforeEach((to, from) => {
+	if (
+		!localStorage.getItem('accessToken') &&
+		to.name !== 'main' &&
+		to.name !== 'login' &&
+		to.name !== 'signupEmail' &&
+		to.name !== 'findPassword'
+	) {
+		return { name: 'login', replace: true };
+	}
 });
 
 export default router;
