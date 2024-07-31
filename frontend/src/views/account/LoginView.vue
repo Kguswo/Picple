@@ -15,8 +15,6 @@ const userStore = useUserStore();
 const router = useRouter();
 const route = useRoute();
 
-const { userInfo } = storeToRefs(userStore);
-
 const email = ref({ type: "email", label: "이메일", value: VueCookie.get("saveId") });
 const password = ref({ type: "password", label: "비밀번호", value: "" });
 const emailField = ref(null);
@@ -41,8 +39,7 @@ const login = async () => {
     window.location.href = `/login?errorMessage=${JSON.stringify(setFormMessage("아이디 또는 비밀번호를 틀렸습니다.", true))}`;
     return;
   }
-  userInfo.value.email = email.value.value;
-  userInfo.value.nickname = data.result.nickname;
+  userStore.setUserInfo(email.value.value, data.ref.nickname);
   localStorage.setItem("accessToken", data.result.accessToken);
   router.push({ name: "main" });
 };

@@ -14,8 +14,7 @@ const navigateTo = (name) => {
 
 const logout = () => {
     localStorage.removeItem("accessToken");
-    userInfo.value.email = "";
-    userInfo.value.nickname = "";
+    userStore.resetUserInfo();
     window.location.href = "/";
 }
 </script>
