@@ -5,19 +5,18 @@ import { validateEmailPattern, setFormMessage } from '@/common/validation';
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import Swal from 'sweetalert2';
+import { sendCertNumberApi, verifyCertNumber } from '@/api/userApi';
 import { useUserStore } from '@/stores/userStore';
 import { storeToRefs } from 'pinia';
-import { sendCertNumberApi } from '@/api/userApi';
 
 const props = defineProps({
 	path: String,
-	params: Object,
 });
 
 const router = useRouter();
 const userStore = useUserStore();
 
-const { userEmail } = storeToRefs(userStore);
+const { verifiedEmail } = storeToRefs(userStore);
 
 const email = ref({ type: 'email', label: '이메일', value: '' });
 const certNumber = ref({ type: 'text', label: '인증번호', value: '' });
@@ -34,14 +33,14 @@ const sendCertNumber = async (e) => {
 	}
 	emailField.value.message = { text: `인증번호를 전송하였습니다.`, isError: false };
 	isSend.value = true;
-	// todo: 인증번호 전송 / 제한시간 표시
+
 	const data = await sendCertNumberApi(email.value.value);
-	console.log(data);
-	if (!data.isSuccess) {
-		await Swal.fire({ icon: 'error', title: '이메일 인증번호 전송에 실패하였습니다.', width: 600 });
+	if (!data.isSuccess && (data.code === 3002 || data.code === 3003)) {
+		await Swal.fire({ icon: 'error', title: `${data.message}`, width: 600 });
 		router.go(0);
 		return;
 	}
+	// todo: 제한시간 표시
 };
 
 const certifyEmail = async () => {
@@ -49,7 +48,7 @@ const certifyEmail = async () => {
 		? setFormMessage(`이메일 인증이 필요합니다.`, true)
 		: setFormMessage(``, false);
 	certNumberField.value.message = !certNumber.value.value
-		? setFormMessage(`인증번호가 일치하지 않습니다.`, true)
+		? setFormMessage(`인증번호를 입력해주세요.`, true)
 		: setFormMessage(``, false);
 	if (emailField.value.message.text) {
 		emailField.value.focusInput();
@@ -59,18 +58,22 @@ const certifyEmail = async () => {
 		certNumberField.value.focusInput();
 		return;
 	}
-	// todo: 인증번호 일치 여부 / 제한시간 검사
-	// todo: 이메일 중복 검사 (중복된 이메일이면 이메일 필드 block 해제, 중복 아니면 다음으로 이동)
+	// todo: 제한시간 검사
+	const data = await verifyCertNumber(email.value.value, certNumber.value.value);
+	if (!data.isSuccess && (data.code === 3005 || data.code === 3006)) {
+		await Swal.fire({ icon: 'error', title: `${data.message}`, width: 600 });
+		return;
+	}
+	verifiedEmail.value = email.value.value;
 	await Swal.fire({ icon: 'success', title: '이메일 인증에 성공했습니다.', width: 600 });
-	userEmail.value = email.value.value;
-	router.push({ path: props.path, params: props.params, state: email.value.value });
+	router.push({ path: props.path });
 };
 </script>
 
 <template>
 	<form
 		class="form-content"
-		@keyup.enter="certifyEmail"
+		@keyup.enter.prevent="certifyEmail"
 	>
 		<FormInputComp
 			:inputParams="email"
@@ -79,8 +82,9 @@ const certifyEmail = async () => {
 		>
 			<FormButtonComp
 				size="small"
-				@keyup.enter="sendCertNumber"
 				@click="sendCertNumber"
+				@keyup.enter.prevent="sendCertNumber"
+				@keydown.enter.prevent
 				>인증</FormButtonComp
 			>
 		</FormInputComp>

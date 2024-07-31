@@ -1,3 +1,4 @@
+import { useUserStore } from '@/stores/userStore';
 import { createRouter, createWebHistory } from 'vue-router';
 
 const router = createRouter({
@@ -95,12 +96,18 @@ const router = createRouter({
 });
 
 router.beforeEach((to, from) => {
+	const userStore = useUserStore();
+	if (!userStore.verifiedEmail && (to.name === 'signup' || to.fullPath === 'modifyPassword/find')) {
+		return { name: 'login', replace: true };
+	}
 	if (
 		!localStorage.getItem('accessToken') &&
 		to.name !== 'main' &&
 		to.name !== 'login' &&
+		to.name !== 'signup' &&
 		to.name !== 'signupEmail' &&
-		to.name !== 'findPassword'
+		to.name !== 'findPassword' &&
+		to.fullPath === 'modifyPassword/find'
 	) {
 		return { name: 'login', replace: true };
 	}
