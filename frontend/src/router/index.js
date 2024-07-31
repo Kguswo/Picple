@@ -97,7 +97,12 @@ const router = createRouter({
 
 router.beforeEach((to, from) => {
 	const userStore = useUserStore();
-	if (!userStore.verifiedEmail && (to.name === 'signup' || to.fullPath === 'modifyPassword/find')) {
+
+	if (
+		!localStorage.getItem('accessToken') &&
+		!userStore.verifiedEmail &&
+		(to.name === 'signup' || to.fullPath === '/modifyPassword/find')
+	) {
 		return { name: 'login', replace: true };
 	}
 	if (
@@ -107,9 +112,19 @@ router.beforeEach((to, from) => {
 		to.name !== 'signup' &&
 		to.name !== 'signupEmail' &&
 		to.name !== 'findPassword' &&
-		to.fullPath === 'modifyPassword/find'
+		to.fullPath !== '/modifyPassword/find'
 	) {
 		return { name: 'login', replace: true };
+	}
+	if (
+		localStorage.getItem('accessToken') &&
+		(to.name === 'login' ||
+			to.name === 'signup' ||
+			to.name === 'signupEmail' ||
+			to.name === 'findPassword' ||
+			to.fullPath === '/modifyPassword/find')
+	) {
+		return from;
 	}
 });
 
