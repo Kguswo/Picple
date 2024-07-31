@@ -41,4 +41,17 @@ const sendCertNumberApi = async (email) => {
 	}
 };
 
-export { loginApi, signupApi, sendCertNumberApi };
+// 이메일 인증번호 확인
+const verifyCertNumber = async (email, certNumber) => {
+	try {
+		const response = await instance.post(`${usersBaseUrl}/mailcheck`, {
+			email,
+			authNumber: certNumber,
+		});
+		return response.data;
+	} catch (error) {
+		return error;
+	}
+};
+
+export { loginApi, signupApi, sendCertNumberApi, verifyCertNumber };
