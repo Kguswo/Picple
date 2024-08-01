@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.ssafy.picple.config.baseResponse.BaseException;
-import com.ssafy.picple.config.baseResponse.BaseResponseStatus;
 import com.ssafy.picple.domain.board.entity.Board;
 import com.ssafy.picple.domain.board.repository.BoardRepository;
 import com.ssafy.picple.domain.board.service.BoardService;
@@ -68,7 +67,7 @@ public class CalendarServiceImpl implements CalendarService {
 	@Transactional
 	public void updateContent(Long calendarId, Long userId, String content) throws BaseException {
 		Calendar calendar = calendarRepository.findById(calendarId)
-				.orElseThrow(() -> new IllegalArgumentException(BaseResponseStatus.GET_CALENDAR_EMPTY.getMessage()));
+				.orElseThrow(() -> new BaseException(GET_CALENDAR_EMPTY));
 
 		User user = calendar.getUser();
 		Photo photo = calendar.getPhoto();
@@ -98,7 +97,7 @@ public class CalendarServiceImpl implements CalendarService {
 	@Transactional
 	public void sharePhoto(Long calendarId, Long userId) throws BaseException {
 		Calendar calendar = calendarRepository.findById(calendarId)
-				.orElseThrow(() -> new BaseException(BaseResponseStatus.GET_CALENDAR_EMPTY));
+				.orElseThrow(() -> new BaseException(GET_CALENDAR_EMPTY));
 
 		Photo photo = calendar.getPhoto();
 		User user = calendar.getUser();
@@ -111,7 +110,7 @@ public class CalendarServiceImpl implements CalendarService {
 		if (selectedPhoto != null) {
 			// 선택된 사진이 이미 공유된 경우 예외처리
 			if (selectedPhoto.isShared()) {
-				throw new BaseException(BaseResponseStatus.ALREADY_SHARED);
+				throw new BaseException(ALREADY_SHARED);
 			} else {
 				selectedPhoto.setIsShared(true);
 				photoRepository.save(selectedPhoto);
@@ -134,7 +133,7 @@ public class CalendarServiceImpl implements CalendarService {
 	@Transactional
 	public void deleteCalendar(Long calendarId, Long userId) throws BaseException {
 		Calendar calendar = calendarRepository.findById(calendarId)
-				.orElseThrow(() -> new BaseException(BaseResponseStatus.GET_CALENDAR_EMPTY));
+				.orElseThrow(() -> new BaseException(GET_CALENDAR_EMPTY));
 
 		calendarRepository.delete(calendar);
 
