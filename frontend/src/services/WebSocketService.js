@@ -155,7 +155,7 @@ class WebSocketService {
     booth_created: this.handleBoothCreated,
     participant_joined: this.handleParticipantJoined,
     participant_left: this.handleParticipantLeft,
-    // 추가 메시지 타입에 대한 핸들러
+    background_changed: this.handleBackgroundChanged,
   };
 
   handleMessage(message) {
@@ -173,6 +173,12 @@ class WebSocketService {
 
   handleParticipantLeft(message) {
     this.participants = this.participants.filter((p) => p.id !== message.participantId);
+  }
+
+  handleBackgroundChanged(message) {
+    if (this.handlers["background_changed"]) {
+      this.handlers["background_changed"](message);
+    }
   }
 }
 
