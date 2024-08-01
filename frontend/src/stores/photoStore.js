@@ -1,6 +1,6 @@
-import { defineStore } from "pinia";
+import { defineStore } from 'pinia';
 
-export const usePhotoStore = defineStore("photo", () => {
+export const usePhotoStore = defineStore('photo', () => {
 	const photoList = ref([]);
 
 	const setPhotoList = (photos) => {

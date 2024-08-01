@@ -3,6 +3,7 @@ import { ref } from 'vue';
 import BoardModalComp from '@/components/board/BoardModalComp.vue';
 import { boardDeleteApi, boardLikeApi } from '@/api/boardApi';
 import Swal from 'sweetalert2';
+import router from '@/router';
 
 const props = defineProps({
 	board: Object,
@@ -38,9 +39,6 @@ const deleteBoard = async () => {
 		title: '정말 게시글을 삭제하시겠습니까?',
 		confirmButtonText: `Continue&nbsp;<i class="fa fa-arrow-right"></i>`,
 		showCancelButton: true,
-		inputValidator: (result) => {
-			return !result && '회원탈퇴는 동의가 필요합니다.';
-		},
 	});
 	if (accept) {
 		const data = await boardDeleteApi(props.board.id);
@@ -53,7 +51,7 @@ const deleteBoard = async () => {
 			return;
 		}
 		await Swal.fire({ icon: 'success', title: '게시글이 삭제되었습니다.', width: 600 });
-		window.location.href = '/board';
+		router.go(0);
 	}
 };
 </script>

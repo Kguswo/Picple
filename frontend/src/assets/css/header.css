@@ -1,5 +1,5 @@
 * {
-	font-family: "PFStardust";
+	font-family: 'PFStardust';
 }
 
 header {
@@ -64,7 +64,7 @@ header {
 	align-items: center;
 
 	&:after {
-		content: "";
+		content: '';
 		position: absolute;
 		top: 0;
 		left: 50%;
@@ -79,7 +79,7 @@ header {
 	}
 
 	&:before {
-		content: "";
+		content: '';
 		position: absolute;
 		top: 0;
 		left: 50%;
@@ -98,19 +98,3 @@ header {
 	display: block;
 	text-align: center;
 }
-
-/* .dropdown-content:after {
-	content: '';
-	position: absolute;
-	top: 0;
-	left: 50%;
-	width: 0;
-	height: 0;
-	border: 16px solid transparent;
-	border-bottom-color: #b5b5b5;
-	border-top: 0;
-	border-right: 0;
-	margin-left: -8px;
-	margin-top: -16px;
-
-} */

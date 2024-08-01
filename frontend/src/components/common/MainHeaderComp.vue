@@ -78,5 +78,5 @@ const logout = async () => {
 </template>
 
 <style scoped>
-@import url('@/assets/css/header.css');
+@import '@/assets/css/header.css';
 </style>
