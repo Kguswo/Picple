@@ -1,6 +1,7 @@
 package com.ssafy.picple.domain.user.service;
 
 import com.ssafy.picple.config.baseResponse.BaseException;
+import com.ssafy.picple.config.baseResponse.BaseResponseStatus;
 import com.ssafy.picple.domain.user.dto.request.LoginRequest;
 import com.ssafy.picple.domain.user.dto.request.ModifyPasswordRequest;
 import com.ssafy.picple.domain.user.dto.response.ModifyConfirmResponse;
@@ -132,6 +133,23 @@ public class UserServiceImpl implements UserService {
             user.setPasswordEncoding(encodePassword(newPassword));
             userRepository.save(user);
             return new ModifyConfirmResponse(user.getEmail(), user.getNickname());
+        } catch (Exception e) {
+            throw new BaseException(ERROR_MODIFY_PASSWORD);
+        }
+    }
+
+    @Override
+    @Transactional
+    public BaseResponseStatus resetPassword(String email, String password) throws BaseException {
+        if (password.isEmpty() || password.isEmpty()) {
+            throw new BaseException(EMPTY_REQUEST_PASSWORD);
+        }
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new BaseException(NOT_FOUND_USER));
+        try {
+            user.setPasswordEncoding(encodePassword(password));
+            userRepository.save(user);
+            return BaseResponseStatus.SUCCESS;
         } catch (Exception e) {
             throw new BaseException(ERROR_MODIFY_PASSWORD);
         }

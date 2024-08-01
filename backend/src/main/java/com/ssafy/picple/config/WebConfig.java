@@ -19,7 +19,7 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addInterceptor(jwtInterceptor)
                 .addPathPatterns("/**")
                 .excludePathPatterns("/users/login", "/users/sign-up", "/users/mail", "/users/mailcheck",
-                        "/users/test-email");
+                        "/users/test-email", "/users/reset-password");
     }
 
     @Override
