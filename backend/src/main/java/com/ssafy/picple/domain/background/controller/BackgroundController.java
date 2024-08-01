@@ -22,6 +22,7 @@ import com.ssafy.picple.domain.background.dto.response.BackgroundResponseDto;
 import com.ssafy.picple.domain.background.dto.response.InsertBackgroundResponse;
 import com.ssafy.picple.domain.background.dto.response.ModifyBackgroundTitleResponse;
 import com.ssafy.picple.domain.background.service.BackgroundService;
+import com.ssafy.picple.domain.background.service.OpenAIService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -31,6 +32,7 @@ import lombok.RequiredArgsConstructor;
 public class BackgroundController {
 
 	private final BackgroundService backgroundService;
+	private final OpenAIService openAIService;
 
 	@GetMapping
 	public BaseResponse<List<BackgroundResponseDto>> getDefaultBackgrounds() throws BaseException {
