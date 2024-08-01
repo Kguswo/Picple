@@ -3,6 +3,7 @@ package com.ssafy.picple.domain.calendar.service;
 import static com.ssafy.picple.config.baseResponse.BaseResponseStatus.*;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -39,6 +40,24 @@ public class CalendarServiceImpl implements CalendarService {
 	@Override
 	public Long getPhotoCounts(Long userId, LocalDate createdAt) {
 		return calendarRepository.countByUserIdAndDate(userId, createdAt);
+	}
+
+	// 캘린더 달력(년월)별 사진 개수 조회
+	@Override
+	public List<Long> getMonthlyPhotoCounts(Long userId, LocalDate monthlyStartDate, LocalDate monthlyEndDate) {
+
+		// 월별 날짜 리스트 생성
+		// datesUntil 메서드로 monthlyStartDate부터 monthlyEndDate-1 까지의 Stream 생성 -> 이후 리스트로
+		List<LocalDate> monthlyDates = monthlyStartDate.datesUntil(monthlyEndDate.plusDays(1))
+				.collect(Collectors.toList());
+
+		// 사진 개수 저장할 리스트
+		List<Long> monthlyPhotoCounts = new ArrayList<>();
+		for (LocalDate date : monthlyDates) {
+			Long count = calendarRepository.countByUserIdAndDate(userId, date);
+			monthlyPhotoCounts.add(count);
+		}
+		return monthlyPhotoCounts;
 	}
 
 	// 캘린더 일별 정보 조회
