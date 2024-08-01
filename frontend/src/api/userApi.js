@@ -30,7 +30,7 @@ const signupApi = async (email, password, nickname) => {
 };
 
 // 이메일 인증번호 전송
-const sendCertNumberApi = async (email) => {
+const sendAuthNumberApi = async (email) => {
 	try {
 		const response = await instance.post(`${usersBaseUrl}/mail`, {
 			email,
@@ -42,7 +42,7 @@ const sendCertNumberApi = async (email) => {
 };
 
 // 이메일 인증번호 확인
-const verifyCertNumberApi = async (email, authNumber) => {
+const verifyAuthNumberApi = async (email, authNumber) => {
 	try {
 		const response = await instance.post(`${usersBaseUrl}/mailcheck`, {
 			email,
@@ -102,8 +102,8 @@ const deleteAccountApi = async () => {
 export {
 	loginApi,
 	signupApi,
-	sendCertNumberApi,
-	verifyCertNumberApi,
+	sendAuthNumberApi,
+	verifyAuthNumberApi,
 	modifyAccountApi,
 	modifyPasswordApi,
 	deleteAccountApi,

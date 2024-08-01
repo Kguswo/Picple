@@ -2,47 +2,45 @@
 import FormComp from '@/components/form/FormComp.vue';
 import FormInputComp from '@/components/form/FormInputComp.vue';
 import FormButtonComp from '@/components/form/FormButtonComp.vue';
-import { ref } from 'vue';
 import {
 	validatePasswordPattern,
 	validateNicknamePattern,
 	validatePasswordConfirm,
 	setFormMessage,
-} from '@/common/validation';
+} from '@/composables/validation';
 import { useRouter } from 'vue-router';
 import Swal from 'sweetalert2';
 import { signupApi } from '@/api/userApi';
 import { useUserStore } from '@/stores/userStore';
 import { storeToRefs } from 'pinia';
+import { useFormStore } from '@/stores/formStore';
 
 const router = useRouter();
 const userStore = useUserStore();
+const formStore = useFormStore();
 
 const { verifiedEmail } = storeToRefs(userStore);
-
-const nickname = ref({ type: 'text', label: '닉네임', value: '' });
-const password = ref({ type: 'password', label: '비밀번호', value: '' });
-const passwordConfirm = ref({ type: 'password', label: '비밀번호 확인', value: '' });
-const nicknameField = ref(null);
-const passwordField = ref(null);
-const passwordConfirmField = ref(null);
+const { nickname, password, passwordConfirm, nicknameField, passwordField, passwordConfirmField } =
+	storeToRefs(formStore);
+formStore.initForm([nickname, password, passwordConfirm], [nicknameField, passwordField, passwordConfirmField]);
 
 const signup = async () => {
 	nicknameField.value.message = validateNicknamePattern(nickname.value.value);
 	passwordField.value.message = validatePasswordPattern(password.value.value);
 	passwordConfirmField.value.message = validatePasswordConfirm(password.value.value, passwordConfirm.value.value);
-	if (nicknameField.value.message.text) {
-		nicknameField.value.focusInput();
+
+	if (formStore.focusInputField(nicknameField)) {
 		return;
 	}
-	if (passwordField.value.message.text) {
-		passwordField.value.focusInput();
+
+	if (formStore.focusInputField(passwordField)) {
 		return;
 	}
-	if (passwordConfirmField.value.message.text) {
-		passwordConfirmField.value.focusInput();
+
+	if (formStore.focusInputField(passwordConfirmField)) {
 		return;
 	}
+
 	const data = await signupApi(userStore.verifiedEmail, password.value.value, nickname.value.value);
 	if (!data.isSuccess && data.code === 3003) {
 		nicknameField.value.message = setFormMessage(data.message, true);

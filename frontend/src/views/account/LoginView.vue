@@ -2,34 +2,37 @@
 import FormComp from '@/components/form/FormComp.vue';
 import FormInputComp from '@/components/form/FormInputComp.vue';
 import FormButtonComp from '@/components/form/FormButtonComp.vue';
-import { validateEmailPattern, validatePasswordPattern } from '@/common/validation';
+import { validateEmailPattern, validatePasswordPattern } from '@/composables/validation';
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import VueCookie from 'vue-cookies';
 import { useUserStore } from '@/stores/userStore';
 import { loginApi } from '@/api/userApi';
 import Swal from 'sweetalert2';
+import { useFormStore } from '@/stores/formStore';
+import { storeToRefs } from 'pinia';
 
 const userStore = useUserStore();
+const formStore = useFormStore();
 const router = useRouter();
 
-const email = ref({ type: 'email', label: '이메일', value: VueCookie.get('saveId') });
-const password = ref({ type: 'password', label: '비밀번호', value: '' });
-const emailField = ref(null);
-const passwordField = ref(null);
+const { email, password, emailField, passwordField } = storeToRefs(formStore);
+formStore.initForm([email, password], [emailField, passwordField]);
+email.value.value = VueCookie.get('saveId');
+
 const isChecked = VueCookie.get('saveId') ? ref(true) : ref(false);
 
 const login = async () => {
 	emailField.value.message = validateEmailPattern(email.value.value);
 	passwordField.value.message = validatePasswordPattern(password.value.value);
-	if (emailField.value.message.text) {
-		emailField.value.focusInput();
+	if (formStore.focusInputField(emailField)) {
 		return;
 	}
-	if (passwordField.value.message.text) {
-		passwordField.value.focusInput();
+
+	if (formStore.focusInputField(passwordField)) {
 		return;
 	}
+
 	setCookie('saveId', email.value.value, '1d', isChecked.value);
 	const data = await loginApi(email.value.value, password.value.value);
 	if (!data.isSuccess) {
