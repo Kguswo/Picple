@@ -63,6 +63,7 @@ public class BackgroundController {
 		return new BaseResponse<>(imageUrl);
 	}
 
+	// 수정 필요
 	@PostMapping("/local/{userId}")
 	public BaseResponse<InsertBackgroundResponse> insertLocalBackground(
 			@PathVariable Long userId,
