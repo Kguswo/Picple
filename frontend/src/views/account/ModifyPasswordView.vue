@@ -3,23 +3,25 @@ import FormComp from '@/components/form/FormComp.vue';
 import FormInputComp from '@/components/form/FormInputComp.vue';
 import FormButtonComp from '@/components/form/FormButtonComp.vue';
 import { useRoute, useRouter } from 'vue-router';
-import { validatePasswordPattern, validatePasswordConfirm, setFormMessage } from '@/common/validation';
-import { ref } from 'vue';
+import { validatePasswordPattern, validatePasswordConfirm, setFormMessage } from '@/composables/validation';
 import Swal from 'sweetalert2';
 import { modifyPasswordApi } from '@/api/userApi';
+import { useFormStore } from '@/stores/formStore';
+import { storeToRefs } from 'pinia';
 
 const route = useRoute();
 const router = useRouter();
+const formStore = useFormStore();
 
-const currentPassword = ref({ type: 'password', label: '현재 비밀번호', value: '' });
-const newPassword = ref({ type: 'password', label: '새 비밀번호', value: '' });
-const newPasswordConfirm = ref({ type: 'password', label: '새 비밀번호 확인', value: '' });
-const currentPasswordField = ref(null);
-const newPasswordField = ref(null);
-const newPasswordConfirmField = ref(null);
+const { oldPassword, newPassword, newPasswordConfirm, oldPasswordField, newPasswordField, newPasswordConfirmField } =
+	storeToRefs(formStore);
+formStore.initForm(
+	[oldPassword, newPassword, newPasswordConfirm],
+	[oldPasswordField, newPasswordField, newPasswordConfirmField],
+);
 
 const modifyPassword = async () => {
-	currentPasswordField.value.message = !currentPassword.value.value
+	oldPasswordField.value.message = !oldPassword.value.value
 		? setFormMessage('기존 비밀번호를 입력하세요.', true)
 		: setFormMessage('', false);
 	newPasswordField.value.message = validatePasswordPattern(newPassword.value.value);
@@ -28,22 +30,22 @@ const modifyPassword = async () => {
 		newPasswordConfirm.value.value,
 	);
 
-	if (currentPasswordField.value?.message.text) {
-		currentPasswordField.value.focusInput();
+	if (oldPasswordField.value && formStore.focusInputField(oldPasswordField)) {
 		return;
 	}
-	if (newPasswordField.value.message.text) {
-		newPasswordField.value.focusInput();
+
+	if (formStore.focusInputField(newPasswordField)) {
 		return;
 	}
-	if (newPasswordConfirmField.value.message.text) {
-		newPasswordConfirmField.value.focusInput();
+
+	if (formStore.focusInputField(newPasswordConfirmField)) {
 		return;
 	}
-	const data = await modifyPasswordApi(currentPassword.value.value, newPassword.value.value);
+
+	const data = await modifyPasswordApi(oldPassword.value.value, newPassword.value.value);
 	if (!data.isSuccess && data.code === 3019) {
-		currentPasswordField.value.message = setFormMessage(data.message, true);
-		currentPasswordField.value.focusInput();
+		oldPasswordField.value.message = setFormMessage(data.message, true);
+		oldPasswordField.value.focusInput();
 		return;
 	}
 	await Swal.fire({ icon: 'success', title: '비밀번호가 변경되었습니다.', width: 600 });
@@ -58,8 +60,8 @@ const modifyPassword = async () => {
 			@keyup.enter="modifyPassword"
 		>
 			<FormInputComp
-				:inputParams="currentPassword"
-				ref="currentPasswordField"
+				:inputParams="oldPassword"
+				ref="oldPasswordField"
 				v-if="route.params.path === 'modify'"
 			/>
 			<FormInputComp

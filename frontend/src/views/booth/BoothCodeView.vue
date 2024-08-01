@@ -3,26 +3,28 @@ import FormComp from '@/components/form/FormComp.vue';
 import FormInputComp from '@/components/form/FormInputComp.vue';
 import FormButtonComp from '@/components/form/FormButtonComp.vue';
 import { useRouter } from 'vue-router';
-import { ref } from 'vue';
 import Swal from 'sweetalert2';
-import { setFormMessage } from '@/common/validation';
+import { setFormMessage } from '@/composables/validation';
+import { useFormStore } from '@/stores/formStore';
+import { storeToRefs } from 'pinia';
 
 const router = useRouter();
+const formStore = useFormStore();
 
-const boothCode = ref({ type: 'text', label: '부스 코드', value: '' });
-const boothCodeField = ref(null);
+const { boothCode, boothCodeField } = storeToRefs(formStore);
+formStore.initForm([boothCode], [boothCodeField]);
 
-const certifyBoothCode = async () => {
+const verifyBoothCode = async () => {
 	boothCodeField.value.message = !boothCode.value.value
 		? setFormMessage('부스 코드가 일치하지 않습니다.', true)
 		: setFormMessage('', false);
-	if (boothCodeField.value.message.text) {
-		boothCodeField.value.focusInput();
+
+	if (formStore.focusInputField(boothCodeField)) {
 		return;
 	}
+
 	// todo: 부스 코드 검사 api 연결
 	await Swal.fire({ icon: 'success', title: '부스 코드가 인증되었습니다.', width: 600 });
-	router.push({});
 };
 
 const cancel = () => {
@@ -35,7 +37,7 @@ const cancel = () => {
 		<form
 			class="form-content"
 			@submit.prevent
-			@keyup.enter="certifyBoothCode"
+			@keyup.enter="verifyBoothCode"
 		>
 			<FormInputComp
 				:inputParams="boothCode"
@@ -44,7 +46,7 @@ const cancel = () => {
 
 			<FormButtonComp
 				size="big"
-				@click="certifyBoothCode"
+				@click="verifyBoothCode"
 				>확인</FormButtonComp
 			>
 			<button
