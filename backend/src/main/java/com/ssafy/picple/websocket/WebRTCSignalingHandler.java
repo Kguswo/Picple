@@ -22,7 +22,7 @@ public class WebRTCSignalingHandler extends TextWebSocketHandler {
     public void afterConnectionEstablished(WebSocketSession session) {
         String sessionId = session.getId();
         sessions.put(sessionId, session);
-        System.out.println("WebSocket 연결 성공: " + sessionId);
+        System.out.println("WebRTC 연결 성공: " + sessionId);
     }
 
     @Override
@@ -55,7 +55,17 @@ public class WebRTCSignalingHandler extends TextWebSocketHandler {
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
         handleLeaveBooth(session);
         sessions.remove(session.getId());
-        System.out.println("WebSocket 연결 종료: " + session.getId());
+        System.out.println("WebRTC 연결 종료: " + session.getId() + " 상태: " + status);
+        if (!status.equals(CloseStatus.NORMAL)) {
+            System.err.println("비정상 종료 발생. 상태: " + status);
+        }
+    }
+
+    @Override
+    public void handleTransportError(WebSocketSession session, Throwable exception) {
+        System.err.println("WebRTC 전송 에러: " + session.getId() + " 에러: " + exception.getMessage());
+        exception.printStackTrace();
+        handleLeaveBooth(session);
     }
 
     private void handleJoinBooth(WebSocketSession session, String boothId) throws IOException {
@@ -67,11 +77,16 @@ public class WebRTCSignalingHandler extends TextWebSocketHandler {
             if (entry.getValue().equals(boothId) && !entry.getKey().equals(sessionId)) {
                 WebSocketSession peerSession = sessions.get(entry.getKey());
                 if (peerSession != null && peerSession.isOpen()) {
-                    SignalMessage joinMessage = new SignalMessage("new-peer", boothId, sessionId, null);
-                    peerSession.sendMessage(new TextMessage(objectMapper.writeValueAsString(joinMessage)));
+                    try {
+                        SignalMessage joinMessage = new SignalMessage("new-peer", boothId, sessionId, null);
+                        peerSession.sendMessage(new TextMessage(objectMapper.writeValueAsString(joinMessage)));
+                    } catch (IOException e) {
+                        System.err.println("Error sending new-peer message: " + e.getMessage());
+                    }
                 }
             }
         }
+        System.out.println("Booth join 완료: " + sessionId + " -> " + boothId);
     }
 
     private void handleLeaveBooth(WebSocketSession session) {
@@ -94,6 +109,7 @@ public class WebRTCSignalingHandler extends TextWebSocketHandler {
                 }
             }
         }
+        System.out.println("Booth leave 완료: " + sessionId + " -> " + boothId);
     }
 
     private void forwardMessage(String boothId, String senderSessionId, String message) throws IOException {
@@ -101,9 +117,14 @@ public class WebRTCSignalingHandler extends TextWebSocketHandler {
             if (entry.getValue().equals(boothId) && !entry.getKey().equals(senderSessionId)) {
                 WebSocketSession peerSession = sessions.get(entry.getKey());
                 if (peerSession != null && peerSession.isOpen()) {
-                    peerSession.sendMessage(new TextMessage(message));
+                    try {
+                        peerSession.sendMessage(new TextMessage(message));
+                    } catch (IOException e) {
+                        System.err.println("Error forwarding message: " + e.getMessage());
+                    }
                 }
             }
         }
+        System.out.println("Message forwarded from: " + senderSessionId + " to booth: " + boothId);
     }
 }
