@@ -52,6 +52,10 @@ public enum BaseResponseStatus {
 	DELETE_BACKGROUND_ERROR(false, 3203, "배경 사진 삭제에 실패하였습니다."),
 	AI_BACKGROUND_GENERATION_ERROR(false, 3204, "AI 배경 사진 생성에 실패하였습니다."),
 	LOCAL_BACKGROUND_UPLOAD_ERROR(false, 3205, "로컬 배경 사진 추가에 실패하였습니다."),
+	AI_RESPONSE_JSON_PARSING_ERROR(false, 3206, "JSON을 처리할 수 없습니다."),
+	AI_CLIENT_ERROR(false, 3207, ""),
+	AI_SERVER_ERROR(false, 3208, ""),
+
 
 	/**
 	 * 4000 : Database, Server
