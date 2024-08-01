@@ -5,36 +5,30 @@ const patternWhiteSpace = /\s/;
 
 const validateEmailPattern = (email) => {
 	if (!patternEmail.test(email) || patternWhiteSpace.test(email)) {
-		return setFormMessage("이메일 형식이 올바르지 않습니다.", true);
+		return setFormMessage('이메일 형식이 올바르지 않습니다.', true);
 	}
-	return setFormMessage("", false);
+	return setFormMessage('', false);
 };
 
 const validatePasswordPattern = (password) => {
 	if (!patternPassword.test(password) || patternWhiteSpace.test(password)) {
-		return setFormMessage(
-			"비밀번호는 8~64자의 영문 대/소문자, 숫자, 특수문자만 가능합니다.",
-			true
-		);
+		return setFormMessage('비밀번호는 8~64자의 영문 대/소문자, 숫자, 특수문자만 가능합니다.', true);
 	}
-	return setFormMessage("", false);
+	return setFormMessage('', false);
 };
 
 const validateNicknamePattern = (nickname) => {
 	if (!patternNickname.test(nickname) || patternWhiteSpace.test(nickname)) {
-		return setFormMessage(
-			"닉네임은 2~8자의 한글, 영문, 숫자만 가능합니다.",
-			true
-		);
+		return setFormMessage('닉네임은 2~8자의 한글, 영문, 숫자만 가능합니다.', true);
 	}
-	return setFormMessage("", false);
+	return setFormMessage('', false);
 };
 
 const validatePasswordConfirm = (password, passwordConfirm) => {
 	if (!passwordConfirm || password !== passwordConfirm) {
-		return setFormMessage("비밀번호가 일치하지 않습니다.", true);
+		return setFormMessage('비밀번호가 일치하지 않습니다.', true);
 	}
-	return setFormMessage("", false);
+	return setFormMessage('', false);
 };
 
 const setFormMessage = (text, isError) => {
