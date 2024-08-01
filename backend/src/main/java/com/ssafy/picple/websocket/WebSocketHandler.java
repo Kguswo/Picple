@@ -10,6 +10,7 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -58,6 +59,21 @@ public class WebSocketHandler extends TextWebSocketHandler {
         }
     }
 
+    private void handleChangeBackground(WebSocketSession session, String boothId, String backgroundImage) throws IOException {
+        Map<String, Object> message = new HashMap<>();
+        message.put("type", "background_changed");
+        message.put("backgroundImage", backgroundImage);
+
+        String messageJson = objectMapper.writeValueAsString(message);
+        TextMessage textMessage = new TextMessage(messageJson);
+
+        for (WebSocketSession s : sessions.values()) {
+            if (!s.getId().equals(session.getId())) {  // 변경을 요청한 세션 제외
+                s.sendMessage(textMessage);
+            }
+        }
+    }
+
     @Override
     public void afterConnectionEstablished(WebSocketSession session) {
         String sessionId = session.getId();
@@ -79,8 +95,13 @@ public class WebSocketHandler extends TextWebSocketHandler {
                     handleCreateBooth(session);
                     break;
                 case "join_booth":
-                    String boothId = (String) jsonMessage.get("boothId");
-                    handleJoinBooth(session, boothId);
+                    String joinBoothId = (String) jsonMessage.get("boothId");
+                    handleJoinBooth(session, joinBoothId);
+                    break;
+                case "change_background":
+                    String changeBackgroundBoothId = (String) jsonMessage.get("boothId");
+                    String backgroundImage = (String) jsonMessage.get("backgroundImage");
+                    handleChangeBackground(session, changeBackgroundBoothId, backgroundImage);
                     break;
                 default:
                     System.out.println("Unknown message type: " + messageType);
