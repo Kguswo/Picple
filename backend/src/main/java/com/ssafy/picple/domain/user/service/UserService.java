@@ -1,6 +1,7 @@
 package com.ssafy.picple.domain.user.service;
 
 import com.ssafy.picple.config.baseResponse.BaseException;
+import com.ssafy.picple.config.baseResponse.BaseResponseStatus;
 import com.ssafy.picple.domain.user.dto.request.LoginRequest;
 import com.ssafy.picple.domain.user.dto.request.ModifyPasswordRequest;
 import com.ssafy.picple.domain.user.dto.response.ModifyConfirmResponse;
@@ -17,6 +18,7 @@ public interface UserService {
     // 회원 정보 수정
     ModifyConfirmResponse modifyUserNickname(Long userId, String nickname) throws BaseException;
     ModifyConfirmResponse modifyUserPassword(Long userId, ModifyPasswordRequest modifyPasswordRequest) throws BaseException;
+    BaseResponseStatus resetPassword(String email, String password) throws BaseException;
     // 회원 탈퇴
     String deleteUser(Long userId) throws BaseException;
 }

@@ -116,7 +116,19 @@ public class UserController {
         return new BaseResponse<>(userService.modifyUserPassword(userId, modifyPasswordRequest));
     }
 
-
+    /**
+     * Password 재설정 (비밀번호 찾기)
+     * @param resetPasswordRequest
+     * @return
+     * @throws BaseException
+     */
+    @PostMapping("/reset-password")
+    public BaseResponse<BaseResponseStatus> resetPassword(@RequestBody ResetPasswordRequest resetPasswordRequest) throws BaseException {
+        return new BaseResponse<>(userService.resetPassword(
+                resetPasswordRequest.getEmail(),
+                resetPasswordRequest.getPassword()
+        ));
+    }
 
     /**
      * 로그아웃
