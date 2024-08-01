@@ -70,8 +70,8 @@ const formatDate = (dateString) => {
 			</div>
 			<div class="modal-img">
 				<img
-					src="@/assets/img/tempImg.png"
-					alt=""
+					:src="board.photoUrl"
+					alt="사진없음"
 				/>
 				<div class="modal-text">
 					<span class="modal-date">작성일 {{ formatDate(board.createdAt) }}</span>
