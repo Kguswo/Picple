@@ -54,15 +54,13 @@ public class BackgroundController {
 	}
 
 	@PostMapping("/ai/{userId}")
-	public BaseResponse<InsertBackgroundResponse> insertAiBackground(
+	public BaseResponse<String> createAiBackground(
 			@PathVariable Long userId,
 			@RequestBody InsertAIBackgroundRequest request) throws BaseException {
-		try {
-			backgroundService.insertAIBackground(userId, request.getPrompt());
-			return new BaseResponse<>(SUCCESS);
-		} catch (Exception e) {
-			throw new BaseException(AI_BACKGROUND_GENERATION_ERROR);
-		}
+
+		String imageUrl = openAIService.generateAndUploadBackgroundImage(userId, request.getPrompt()).toString();
+
+		return new BaseResponse<>(imageUrl);
 	}
 
 	@PostMapping("/local/{userId}")
