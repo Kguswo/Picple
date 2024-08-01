@@ -134,6 +134,7 @@ const sortByHit = async () => {
 
 	color: black;
 	font-size: 50px;
+	text-shadow: 5px 5px #0000004d;
 }
 
 .board-area {
