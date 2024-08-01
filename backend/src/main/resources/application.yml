@@ -2,21 +2,77 @@ spring:
   application:
     name: Picple
 
-#  datasource:
-#    url:
-#    username:
-#    password:
-#    driver-class-name:
+  datasource:
+    url: jdbc:mysql://localhost:3306/picple
+    username: ssafy
+    password: ssafy
+    driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
     hibernate:
-      ddl-auto: update # create: ?? ? ?? ??? ??, ?? ??? ?? ?? / update: ?? ? ?? ??? ??, ??? ?? ????
+      ddl-auto: update
     properties:
       hibernate:
         show_sql: true
         format_sql: true
-#        default_batch_fetch_size: 100
+  #        default_batch_fetch_size: 100
+
+  # Email
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: kodd11021@gmail.com
+    password: empgnjucwnbxeogx
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+    auth-code-expiration-millis: 1800000  # 30 * 60 * 1000 == 30?
+
+  # Redis
+  data:
+    redis:
+      host: localhost
+      port: 6379
 
 logging.level:
   org.hibernate.SQL: debug
-# org.hibernate.type: trace # ??? ? Hibernate? SQL ?? ????? ???? ??? ?? ??? ??
+# org.hibernate.type:
+
+jwt:
+  salt: ssafy-screte-key-20240404-ssafy-screte-key-20240404-ssafy-screte-key-20240404
+  # 시간 일부러 길게 잡은 것임 (test)
+  access-token:
+    expiretime: 8640000000
+  refresh-token:
+    expiretime: 8640000000
+
+password:
+  encoding:
+    key: Q1K0R2T9J3D8G4N7S5D6M!L@V#O$T%M^D&N*J(E)M_Z+L
+
+  # Multipart
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+# AWS
+cloud:
+  aws:
+    credentials:
+      accessKey: AKIAW3MEDSMKSPNODO4P
+      secretKey: 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
+    region:
+      static: ap-northeast-2
+    stack:
+      auto: false
+    s3:
+      bucket: picple

@@ -40,6 +40,24 @@ public class WebSocketHandler extends TextWebSocketHandler {
         }
     }
 
+    private void handleJoinBooth(WebSocketSession session, String boothId) throws IOException {
+        try {
+            boolean joined = boothService.joinBooth(boothId);
+            Map<String, Object> response = new ConcurrentHashMap<>();
+            response.put("type", "joined_booth");
+            response.put("boothId", boothId);
+            response.put("success", joined);
+            session.sendMessage(new TextMessage(objectMapper.writeValueAsString(response)));
+            System.out.println("부스 참여 " + (joined ? "성공" : "실패") + ": " + boothId);
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new ConcurrentHashMap<>();
+            errorResponse.put("type", "error");
+            errorResponse.put("message", "Failed to join booth: " + e.getMessage());
+            session.sendMessage(new TextMessage(objectMapper.writeValueAsString(errorResponse)));
+            System.err.println("부스 참여 실패: " + e.getMessage());
+        }
+    }
+
     @Override
     public void afterConnectionEstablished(WebSocketSession session) {
         String sessionId = session.getId();
@@ -59,6 +77,10 @@ public class WebSocketHandler extends TextWebSocketHandler {
             switch (messageType) {
                 case "create_booth":
                     handleCreateBooth(session);
+                    break;
+                case "join_booth":
+                    String boothId = (String) jsonMessage.get("boothId");
+                    handleJoinBooth(session, boothId);
                     break;
                 default:
                     System.out.println("Unknown message type: " + messageType);
