@@ -1,148 +1,172 @@
 <script setup>
-import { ref } from "vue";
+import { ref } from 'vue';
 
 const props = defineProps({
-    board: Object,
-    isOpen: Boolean
-})
+	board: Object,
+	isOpen: Boolean,
+});
 
-const emit = defineEmits(["close", "delete"]);
+const emit = defineEmits(['close', 'delete']);
 
 const isDropdownOpen = ref(false);
 
 const closeModal = () => {
-    isDropdownOpen.value = false;
-    emit("close");
-}
+	isDropdownOpen.value = false;
+	emit('close');
+};
 
 const toggleDropdown = () => {
-    isDropdownOpen.value = !isDropdownOpen.value;
-}
+	isDropdownOpen.value = !isDropdownOpen.value;
+};
 
 const deleteBoard = () => {
-    emit("delete");
-}
+	emit('delete');
+};
 
 const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    const year = date.getFullYear();
-    const month = date.getMonth() + 1;
-    const day = date.getDate();
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
+	const date = new Date(dateString);
+	const year = date.getFullYear();
+	const month = date.getMonth() + 1;
+	const day = date.getDate();
+	const hours = String(date.getHours()).padStart(2, '0');
+	const minutes = String(date.getMinutes()).padStart(2, '0');
 
-    return `${year}년 ${month}월 ${day}일 ${hours}:${minutes}`
-}
+	return `${year}년 ${month}월 ${day}일 ${hours}:${minutes}`;
+};
 </script>
 
 <template>
-    <div class="modal" v-if="isOpen">
-        <div class="modal-content">
-            <div class="close-box">
-                <span class="close" @click="closeModal">&times;</span>
-                <svg class="dropdown-icon" xmlns="@/assets/icon/three-dots-vertical.svg" width="20" height="20"
-                    fill="black" viewBox="0 0 16 16" @click="toggleDropdown">
-                    <path
-                        d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0" />
-                </svg>
-                <button v-if="isDropdownOpen" class="dropdown-menu" @click="deleteBoard">삭제하기</button>
-            </div>
-            <div class="modal-img">
-                <img src="@/assets/img/tempImg.png" alt="">
-                <div class="modal-text">
-                    <span class="modal-date">작성일 {{ formatDate(board.createdAt) }}</span>
-                </div>
-            </div>
-        </div>
-    </div>
+	<div
+		class="modal"
+		v-if="isOpen"
+	>
+		<div class="modal-content">
+			<div class="close-box">
+				<span
+					class="close"
+					@click="closeModal"
+					>&times;</span
+				>
+				<svg
+					class="dropdown-icon"
+					xmlns="@/assets/icon/three-dots-vertical.svg"
+					width="20"
+					height="20"
+					fill="black"
+					viewBox="0 0 16 16"
+					@click="toggleDropdown"
+				>
+					<path
+						d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0"
+					/>
+				</svg>
+				<button
+					v-if="isDropdownOpen"
+					class="dropdown-menu"
+					@click="deleteBoard"
+				>
+					삭제하기
+				</button>
+			</div>
+			<div class="modal-img">
+				<img
+					src="@/assets/img/tempImg.png"
+					alt=""
+				/>
+				<div class="modal-text">
+					<span class="modal-date">작성일 {{ formatDate(board.createdAt) }}</span>
+				</div>
+			</div>
+		</div>
+	</div>
 </template>
 
 <style scoped>
 .modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background: rgba(0, 0, 0, 0.5);
+	display: flex;
+	justify-content: center;
+	align-items: center;
 }
 
 .modal-content {
-    padding: 20px;
-    background-color: #fefefe;
-    margin: 10vh auto;
-    border: 1px solid #888;
-    width: 40%;
-    max-width: 60%;
-    height: 60%;
-    max-height: 80vh;
-    overflow-y: auto;
-    border-radius: 10px;
+	padding: 20px;
+	background-color: #fefefe;
+	margin: 10vh auto;
+	border: 1px solid #888;
+	width: 40%;
+	max-width: 60%;
+	height: 60%;
+	max-height: 80vh;
+	overflow-y: auto;
+	border-radius: 10px;
 }
 
 .dropdown-icon {
-    cursor: pointer;
+	cursor: pointer;
 }
 
 .dropdown-menu {
-    position: absolute;
-    background: white;
-    color: red;
-    border: 2px solid black;
-    padding: 10px;
-    margin-top: 30px;
-    border-radius: 4px;
+	position: absolute;
+	background: white;
+	color: red;
+	border: 2px solid black;
+	padding: 10px;
+	margin-top: 30px;
+	border-radius: 4px;
 }
 
 .close-box {
-    padding-top: 0px;
-    padding-bottom: 0px;
-    height: 8%;
+	padding-top: 0px;
+	padding-bottom: 0px;
+	height: 8%;
 }
 
 .close {
-    color: #aaa;
-    float: right;
-    font-size: 28px;
-    line-height: 28px;
-    font-weight: bold;
-    height: 28px;
+	color: #aaa;
+	float: right;
+	font-size: 28px;
+	line-height: 28px;
+	font-weight: bold;
+	height: 28px;
 }
 
 .close:hover,
 .close:focus {
-    color: black;
-    text-decoration: none;
-    cursor: pointer;
+	color: black;
+	text-decoration: none;
+	cursor: pointer;
 }
 
 .modal-img {
-    height: 90%;
-    display: flex;
-    align-items: center;
-    text-align: center;
-    justify-content: center;
-    flex-wrap: wrap;
+	height: 90%;
+	display: flex;
+	align-items: center;
+	text-align: center;
+	justify-content: center;
+	flex-wrap: wrap;
 
-    img {
-        height: 90%;
-        width: 95%;
-    }
+	img {
+		height: 90%;
+		width: 95%;
+	}
 
-    .modal-text {
-        width: 90%;
-        text-align: right;
+	.modal-text {
+		width: 90%;
+		text-align: right;
 
-        .modal-date {
-            font-size: 15px;
-        }
-    }
+		.modal-date {
+			font-size: 15px;
+		}
+	}
 }
 
 .button-delete {
-    background-color: none;
+	background-color: none;
 }
 </style>

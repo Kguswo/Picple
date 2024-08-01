@@ -2,27 +2,23 @@
 	margin: 0;
 	padding: 0;
 
-	/* font */
-	font-family: "DNFBitBitv2", sans-serif;
+	font-family: 'DNFBitBitv2', sans-serif;
 
-	/* cursor */
-	cursor: url("@/assets/img/app/pointer.png") 5 5, auto;
+	cursor: url('@/assets/img/app/pointer.png') 5 5, auto;
 }
 
 /* 1. 던파 비트비트체 v2 */
 @font-face {
-	font-family: "DNFBitBitv2";
+	font-family: 'DNFBitBitv2';
 	font-style: normal;
 	font-weight: 400;
-	src: url("//cdn.df.nexon.com/img/common/font/DNFBitBitv2.otf")
-		format("opentype");
+	src: url('//cdn.df.nexon.com/img/common/font/DNFBitBitv2.otf') format('opentype');
 }
 
 /* 2. PF스타더스트체 */
 @font-face {
-	font-family: "PFStardust";
-	src: url("https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/PFStardust.woff")
-		format("woff");
+	font-family: 'PFStardust';
+	src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/PFStardust.woff') format('woff');
 	font-weight: normal;
 	font-style: normal;
 }
