@@ -1,203 +1,160 @@
 <script setup>
 import { ref } from 'vue';
-const item = [
-    {
-        id: 1,
-        content: '작성자: 김수완무거북이와두루미'
-    },
-    {
-        id: 2,
-        content: 'Hi'
-    }
-    ,
-    {
-        id: 3,
-        content: 'Hi'
-    }
-    ,
-    {
-        id: 4,
-        content: 'Hi'
-    }
-    ,
-    {
-        id: 5,
-        content: 'Hi'
-    }
-    ,
-    {
-        id: 6,
-        content: 'Hi'
-    }
-    ,
-    {
-        id: 7,
-        content: 'Hi'
-    }
-    ,
-    {
-        id: 8,
-        content: 'Hi'
-    }
+import BoardModalComp from '@/components/board/BoardModalComp.vue';
+import { boardDeleteApi, boardLikeApi } from '@/api/boardApi';
+import Swal from 'sweetalert2';
+import router from '@/router';
 
-];
+const props = defineProps({
+	board: Object,
+});
 
-const showModal = ref(false);
-const currentItem = ref(null);
+const isModalOpen = ref(false);
 
-const picZoom = (i) => {
-    showModal.value = true;
-    currentItem.value = i;
+const openModal = () => {
+	isModalOpen.value = true;
 };
 
 const closeModal = () => {
-    showModal.value = false;
-    currentItem.value = null;
+	isModalOpen.value = false;
+};
+
+const toggleLike = async () => {
+	const data = await boardLikeApi(props.board.id);
+	if (!data.isSuccess) {
+		await Swal.fire({ icon: 'error', title: '좋아요 누르기에 실패하였습니다.', width: 600 });
+		return;
+	}
+	if (props.board.liked) {
+		--props.board.hit;
+		props.board.liked = false;
+	} else {
+		++props.board.hit;
+		props.board.liked = true;
+	}
+};
+
+const deleteBoard = async () => {
+	const { value: accept } = await Swal.fire({
+		title: '정말 게시글을 삭제하시겠습니까?',
+		confirmButtonText: `Continue&nbsp;<i class="fa fa-arrow-right"></i>`,
+		showCancelButton: true,
+	});
+	if (accept) {
+		const data = await boardDeleteApi(props.board.id);
+		if (data.code === 2000) {
+			await Swal.fire({ icon: 'error', title: '게시글 삭제는 작성자만 할 수 있습니다.', width: 600 });
+			return;
+		}
+		if (!data.isSuccess) {
+			await Swal.fire({ icon: 'error', title: '게시글 삭제에 실패하였습니다.', width: 600 });
+			return;
+		}
+		await Swal.fire({ icon: 'success', title: '게시글이 삭제되었습니다.', width: 600 });
+		router.go(0);
+	}
 };
 </script>
 
 <template>
-    <div class="photo-card" v-for="i in item" :key="i.id" @click="picZoom">
-        <div class="photo">
-        </div>
-        <div class="content">
-            <div class="like">
-                <img src="@/assets/icon/heart.png" alt="">
-                {{ i.id }}
-            </div>
+	<div class="photo-card">
+		<div
+			class="photo"
+			@click="openModal"
+		></div>
+		<div class="content">
+			<div class="like">
+				<svg
+					v-if="board.liked"
+					xmlns="@/assets/icon/hear-fill.svg"
+					class="heart"
+					width="20"
+					height="20"
+					fill="red"
+					viewBox="0 0 16 16"
+					@click="toggleLike"
+				>
+					<path
+						fill-rule="evenodd"
+						d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314"
+					/>
+				</svg>
+				<svg
+					v-else
+					xmlns="@/assets/icon/hear.svg"
+					width="20"
+					height="20"
+					fill="red"
+					class="heart"
+					viewBox="0 0 16 16"
+					@click="toggleLike"
+				>
+					<path
+						d="m8 2.748-.717-.737C5.6.281 2.514.878 1.4 3.053c-.523 1.023-.641 2.5.314 4.385.92 1.815 2.834 3.989 6.286 6.357 3.452-2.368 5.365-4.542 6.286-6.357.955-1.886.838-3.362.314-4.385C13.486.878 10.4.28 8.717 2.01zM8 15C-7.333 4.868 3.279-3.04 7.824 1.143q.09.083.176.171a3 3 0 0 1 .176-.17C12.72-3.042 23.333 4.867 8 15"
+					/>
+				</svg>
+				<span class="like-cnt">{{ board.hit }}</span>
+			</div>
+		</div>
+	</div>
 
-        </div>
-    </div>
-
-    <div class="modal" v-if="showModal">
-        <div class="modal-content">
-            <div class="close-box">
-                <span class="close" @click="closeModal">&times;</span>
-            </div>
-            <div class="modal-img">
-                <img src="@/assets/img/tempImg.png" alt="">
-                <div class="modal-text">
-                    <span class="modal-like">Like. 22</span>
-                    <span class="modal-date">Date. 2024.07.19</span>
-                </div>
-            </div>
-        </div>
-    </div>
+	<div @keyup.esc="closeModal">
+		<BoardModalComp
+			:isOpen="isModalOpen"
+			:board="board"
+			@close="closeModal"
+			@delete="deleteBoard"
+		/>
+	</div>
 </template>
 
 <style scoped>
-* {
-    font-family: 'PFStardust';
-    font-weight: lighter;
-}
-
 .photo-card {
-    margin: 5px;
-    height: 80%;
-    width: 23%;
-    border: 2px solid gray;
-    background-color: white;
-    box-shadow: 5px 5px 5px black;
+	margin: 5px;
+	height: 80%;
+	width: 23%;
+	border: 2px solid gray;
+	background-color: white;
+	box-shadow: 5px 5px 5px black;
 
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+
+	* {
+		font-family: 'PFStardust';
+		font-weight: lighter;
+	}
 }
 
 .photo {
-    margin-top: 5px;
-    height: 70%;
-    width: 90%;
-    border: 2px solid gray;
-    background-color: rgba(192, 192, 192, 0.722)
+	margin-top: 10px;
+	height: 80%;
+	width: 90%;
+	border: 2px solid gray;
+	background-color: rgba(192, 192, 192, 0.722);
 }
 
 .content {
-    display: flex;
-    align-items: center;
-    justify-content: end;
-    width: 90%;
+	display: flex;
+	align-items: center;
+	justify-content: end;
+	width: 90%;
+	height: 20%;
 
-    img {
-        height: 20px;
-        width: 20px;
-        margin-right: 5px;
-    }
+	.like {
+		display: flex;
+		align-items: center;
+		justify-content: center;
 
-    .like {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-}
+		svg {
+			margin-right: 7px;
+		}
 
-.modal {
-    display: block;
-    position: fixed;
-    z-index: 1;
-    left: 0;
-    top: 15%;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgba(0, 0, 0, 0.4);
-}
-
-.modal-content {
-    background-color: #fefefe;
-    margin: 10vh auto;
-    padding: 20px;
-    border: 1px solid #888;
-    width: 40%;
-    max-width: 60%;
-    height: 60%;
-    max-height: 80vh;
-    overflow-y: auto;
-    border-radius: 10px;
-}
-
-.close-box {
-    padding-top: 0px;
-    padding-bottom: 0px;
-    height: 8%;
-}
-
-.close {
-    color: #aaa;
-    float: right;
-    font-size: 28px;
-    line-height: 28px;
-    font-weight: bold;
-    height: 28px;
-}
-
-.close:hover,
-.close:focus {
-    color: black;
-    text-decoration: none;
-    cursor: pointer;
-}
-
-.modal-img {
-    height: 90%;
-    display: flex;
-    align-items: center;
-    text-align: center;
-    justify-content: center;
-    flex-wrap: wrap;
-
-    img {
-        height: 90%;
-        width: 95%;
-    }
-
-    .modal-text {
-        height: 10%;
-        width: 90%;
-        display: flex;
-        justify-content: space-between;
-        text-align: center;
-    }
+		.like-cnt {
+			font-size: 20px;
+		}
+	}
 }
 </style>

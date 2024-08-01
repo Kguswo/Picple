@@ -1,17 +1,44 @@
-import { defineStore } from "pinia";
-import { ref } from "vue";
+import { defineStore } from 'pinia';
+import { ref } from 'vue';
 
-export const useUserStore = defineStore("userStore", () => {
-	const userInfo = ref({
-		userId: null,
-		email: null,
-		nickname: null,
-	}); // 로그인한 유저의 정보
+export const useUserStore = defineStore(
+	'userStore',
+	() => {
+		const user = ref({
+			email: '',
+			nickname: '',
+		});
 
-	const userEmail = ref(null); // 이메일 인증 페이지에서 인증한 이메일
+		const verifiedEmail = ref('');
 
-	return {
-		userInfo,
-		userEmail,
-	};
-});
+		const setUser = (email, nickname) => {
+			user.value.email = email;
+			user.value.nickname = nickname;
+		};
+
+		const resetUser = () => {
+			user.value.email = '';
+			user.value.nickname = '';
+			localStorage.removeItem('accessToken');
+			localStorage.removeItem('user');
+		};
+
+		const changeNickname = (nickname) => {
+			user.value.nickname = nickname;
+		};
+
+		return {
+			user,
+			verifiedEmail,
+			setUser,
+			resetUser,
+			changeNickname,
+		};
+	},
+	{
+		persist: {
+			key: 'user',
+			paths: ['user'],
+		},
+	},
+);
