@@ -1,10 +1,11 @@
 <script setup>
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { useUserStore } from '@/stores/userStore';
 import { logoutApi } from '@/api/userApi';
 import Swal from 'sweetalert2';
 
 const router = useRouter();
+const route = useRoute();
 const userStore = useUserStore();
 
 const user = userStore.user;
@@ -20,7 +21,11 @@ const logout = async () => {
 		return;
 	}
 	userStore.resetUser();
-	router.push({ name: 'main' });
+	if (route.name !== 'main') {
+		router.push({ name: 'main' });
+		return;
+	}
+	router.go(0);
 };
 </script>
 
