@@ -2,10 +2,13 @@
 import WhiteBoardComp from "@/components/common/WhiteBoardComp.vue";
 import BoothBack from "@/components/booth/BoothBackComp.vue";
 
+import { useBoothStore } from "@/stores/boothStore";
 import { usePhotoStore } from "@/stores/photoStore";
+
 import { RouterView, useRouter } from "vue-router";
 import { ref, onMounted, onUnmounted, nextTick, computed, watch } from "vue";
 import { useDraggable } from "@vueuse/core";
+import { provide } from "vue";
 
 import WebSocketService from "@/services/WebSocketService";
 import WebRTCService from "@/services/WebRTCService";
@@ -20,6 +23,7 @@ import microOff from "@/assets/icon/micro_off.png";
 
 const router = useRouter();
 const photoStore = usePhotoStore();
+const boothStore = useBoothStore();
 
 const participants = ref([]);
 
@@ -32,7 +36,7 @@ const canvasElement = ref(null);
 let mediaStream = null;
 let selfieSegmentationInstance = null;
 
-let isMirrored = ref(true); // 초기값을 true로 변경
+let isMirrored = ref(true);
 let isvideoOn = ref(true);
 let isMicroOn = ref(true);
 const remainPicCnt = ref(10);
@@ -229,53 +233,41 @@ const processFrame = async () => {
     requestAnimationFrame(processFrame);
 };
 
-onMounted(async () => {
-    console.log("shootView Mounted!");
-    const startTime = Date.now();
-
-    try {
-        mediaStream = await navigator.mediaDevices.getUserMedia({
-            video: { width: 640, height: 480 },
-            audio: true,
-        });
-
-        if (videoElement.value) {
-            videoElement.value.srcObject = mediaStream;
-            videoElement.value.onloadedmetadata = async () => {
-                console.log("Video metadata loaded");
-                videoWidth.value = videoElement.value.videoWidth / 3;
-                videoHeight.value = videoElement.value.videoHeight / 3;
-                await loadSelfieSegmentation();
-                videoElement.value.play();
-                requestAnimationFrame(processFrame);
-
-                // 비디오와 캔버스를 반전 상태로 설정
-                videoElement.value.style.transform = "scaleX(-1)";
-                canvasElement.value.style.transform = "scaleX(-1)";
-            };
-        } else {
-            console.error("Video element not found");
-        }
-    } catch (error) {
-        console.error("Error accessing webcam:", error);
+const initializeWebSocketAndMedia = async () => {
+    if (!WebSocketService.isConnected()) {
+        await WebSocketService.connect("ws://localhost:8080/ws");
     }
 
-    updateVideoStyle();
-    watch([videoPosition, videoScale, videoRotation], updateVideoStyle);
+    mediaStream = await navigator.mediaDevices.getUserMedia({
+        video: { width: 640, height: 480 },
+        audio: true,
+    });
 
-    // 최소 2초 동안 로딩 화면 표시
-    const elapsedTime = Date.now() - startTime;
-    const remainingTime = Math.max(1000 - elapsedTime, 0);
+    if (videoElement.value) {
+        videoElement.value.srcObject = mediaStream;
+        videoElement.value.onloadedmetadata = async () => {
+            console.log("Video metadata loaded");
+            videoWidth.value = videoElement.value.videoWidth / 3;
+            videoHeight.value = videoElement.value.videoHeight / 3;
+            await loadSelfieSegmentation();
+            videoElement.value.play();
+            requestAnimationFrame(processFrame);
 
-    setTimeout(() => {
-        isLoading.value = false;
-    }, remainingTime);
+            videoElement.value.style.transform = "scaleX(-1)";
+            canvasElement.value.style.transform = "scaleX(-1)";
+        };
+    } else {
+        console.error("Video element not found");
+    }
+};
 
-    WebSocketService.connect();
-    participants.value = WebSocketService.participants.value;
-
+const initializeWebRTC = async () => {
     await WebRTCService.initializeLocalStream();
-    videoElement.value.srcObject = WebRTCService.localStream;
+    if (videoElement.value) {
+        videoElement.value.srcObject = WebRTCService.localStream;
+    } else {
+        console.error("Video element not found during WebRTC initialization");
+    }
 
     WebRTCService.onRemoteStream = (participantId, stream) => {
         const participant = participants.value.find(
@@ -285,18 +277,66 @@ onMounted(async () => {
             participant.stream = stream;
         }
     };
+};
+
+const setupEventListeners = () => {
+    WebSocketService.on("participant_joined", (message) => {
+        boothStore.setParticipants([
+            ...boothStore.participants,
+            message.participant,
+        ]);
+    });
+
+    WebSocketService.on("participant_left", (message) => {
+        boothStore.setParticipants(
+            boothStore.participants.filter(
+                (p) => p.id !== message.participantId
+            )
+        );
+    });
+};
+
+onMounted(async () => {
+    console.log("shootView Mounted!");
+    console.log("Video element:", videoElement.value);
+    console.log("Canvas element:", canvasElement.value);
+    const startTime = Date.now();
+
+    try {
+        await initializeWebSocketAndMedia();
+        await initializeWebRTC();
+        setupEventListeners();
+
+        updateVideoStyle();
+        watch([videoPosition, videoScale, videoRotation], updateVideoStyle);
+
+        participants.value = WebSocketService.participants || [];
+        boothStore.setParticipants(participants.value);
+
+        const elapsedTime = Date.now() - startTime;
+        const remainingTime = Math.max(1000 - elapsedTime, 0);
+
+        setTimeout(() => {
+            isLoading.value = false;
+        }, remainingTime);
+    } catch (error) {
+        console.error("Error in component initialization:", error);
+    }
 });
 
 onUnmounted(() => {
     console.log("shootView unMounted!");
     isProcessing.value = false;
     if (mediaStream) {
-        mediaStream.getTracks().forEach((track) => {
-            track.stop();
-        });
+        mediaStream.getTracks().forEach((track) => track.stop());
     }
 
     WebRTCService.closeAllConnections();
+    WebRTCService.disconnect();
+
+    WebSocketService.off("participant_joined");
+    WebSocketService.off("participant_left");
+    WebSocketService.close();
 });
 
 const toggleMirror = () => {
@@ -329,12 +369,7 @@ const toggleMicro = () => {
     });
 };
 
-const bgImage = ref("https://via.placeholder.com/400");
-
-const changeImage = (image) => {
-    console.log("이미지 변경 클릭", image);
-    bgImage.value = image;
-};
+const bgImage = computed(() => boothStore.bgImage);
 
 const captureArea = ref(null);
 const countdown = ref(0);
@@ -359,6 +394,11 @@ const startCountdown = () => {
             }
         }
     }, 1000);
+};
+
+// changeImage 함수를 먼저 선언
+const changeImage = (image) => {
+    boothStore.setBgImage(image);
 };
 
 const takePhoto = async () => {
@@ -392,6 +432,31 @@ const takePhoto = async () => {
             icon: "warning",
         });
     };
+};
+
+const exitphoto = async () => {
+    console.log("촬영종료");
+    console.log("저장할 이미지 리스트:", images.value);
+
+    const { value: result } = await Swal.fire({
+        title: "촬영 끝내기",
+        text: "촬영을 종료하고 저장을 위해 나가시겠습니까?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "확인",
+        cancelButtonText: "취소",
+    });
+
+    if (result) {
+        photoStore.setPhotoList(images.value);
+        console.log(
+            "Pinia store에 저장된 이미지 리스트:",
+            photoStore.photoList
+        );
+        router.push("/selectTemp");
+    } else {
+        Swal.fire("취소", "촬영을 계속합니다!", "error");
+    }
 };
 
 const capturePhoto = async () => {
@@ -444,7 +509,8 @@ const capturePhoto = async () => {
         tempCtx.restore();
 
         const imageData = tempCanvas.toDataURL("image/png");
-        images.value.push({ src: imageData, visible: true });
+        boothStore.addImage({ src: imageData, visible: true });
+
         remainPicCnt.value = 10 - images.value.length;
 
         if (images.value.length === 10) {
@@ -463,31 +529,6 @@ const capturePhoto = async () => {
         if (videoElement.value) {
             videoElement.value.play();
         }
-    }
-};
-
-const exitphoto = async () => {
-    console.log("촬영종료");
-    console.log("저장할 이미지 리스트:", images.value);
-
-    const { value: result } = await Swal.fire({
-        title: "촬영 끝내기",
-        text: "촬영을 종료하고 저장을 위해 나가시겠습니까?",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonText: "확인",
-        cancelButtonText: "취소",
-    });
-
-    if (result) {
-        photoStore.setPhotoList(images.value);
-        console.log(
-            "Pinia store에 저장된 이미지 리스트:",
-            photoStore.photoList
-        );
-        router.push("/selectTemp");
-    } else {
-        Swal.fire("취소", "촬영을 계속합니다!", "error");
     }
 };
 
@@ -519,6 +560,15 @@ const toggleControls = () => {
 const handleControlClick = (event) => {
     event.stopPropagation();
 };
+
+const boothActions = computed(() => ({
+    changeImage,
+    takePhoto,
+    exitphoto,
+    images: images.value,
+}));
+
+provide("boothActions", boothActions);
 </script>
 
 <template>
@@ -559,26 +609,76 @@ const handleControlClick = (event) => {
                         >
                             <!-- 로컬 비디오 -->
                             <div class="video-item">
+                                <canvas
+                                    ref="canvasElement"
+                                    :width="videoWidth"
+                                    :height="videoHeight"
+                                ></canvas>
                                 <video
                                     ref="videoElement"
                                     autoplay
                                     muted
+                                    :width="videoWidth"
+                                    :height="videoHeight"
+                                    style="display: none"
                                 ></video>
+                                <div :style="centerIndicatorStyle"></div>
                                 <p>You</p>
                             </div>
+
                             <!-- 원격 참가자 비디오 -->
                             <div
                                 v-for="participant in participants"
                                 :key="participant.id"
                                 class="video-item"
                             >
+                                <canvas
+                                    :ref="'canvas-' + participant.id"
+                                    :width="videoWidth"
+                                    :height="videoHeight"
+                                ></canvas>
                                 <video
                                     :ref="'video-' + participant.id"
                                     autoplay
                                     :srcObject="participant.stream"
+                                    :width="videoWidth"
+                                    :height="videoHeight"
+                                    style="display: none"
                                 ></video>
+                                <div :style="centerIndicatorStyle"></div>
                                 <p>{{ participant.name }}</p>
                             </div>
+                        </div>
+                        <div
+                            v-if="showControls"
+                            class="controls"
+                            @click="handleControlClick"
+                        >
+                            <button
+                                class="close-controls"
+                                @click="toggleControls"
+                            >
+                                X
+                            </button>
+                            <label>
+                                Rotate
+                                <input
+                                    type="range"
+                                    v-model="videoRotation"
+                                    min="0"
+                                    max="360"
+                                />
+                            </label>
+                            <label>
+                                Scale
+                                <input
+                                    type="range"
+                                    v-model="videoScale"
+                                    min="0.5"
+                                    max="2"
+                                    step="0.01"
+                                />
+                            </label>
                         </div>
                     </div>
 
@@ -638,52 +738,7 @@ const handleControlClick = (event) => {
         </div>
     </WhiteBoardComp>
 </template>
+
 <style scoped>
 @import url("@/assets/css/shootView.css");
-
-.controls {
-    position: absolute;
-    bottom: 10px;
-    left: 10px;
-    width: 150px;
-    background-color: rgba(255, 255, 255, 0.8);
-    border-radius: 10px;
-    padding: 10px;
-    z-index: 10;
-}
-
-.controls label {
-    display: block;
-    margin-bottom: 5px;
-}
-
-.close-controls {
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    background: none;
-    border: none;
-    cursor: pointer;
-}
-
-.loading-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: #8551ff;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 9999;
-    filter: hue-rotate(320deg) saturate(10%) brightness(85%) contrast(100%);
-}
-
-.loading-overlay img {
-    width: 10vw; /* 뷰포트 너비의 15% */
-    height: 9vw; /* 뷰포트 너비의 15% */
-    max-width: 200px; /* 최대 크기 제한 */
-    max-height: 180px; /* 최대 크기 제한 */
-}
 </style>

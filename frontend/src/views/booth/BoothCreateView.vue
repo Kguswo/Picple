@@ -45,16 +45,14 @@ onMounted(async () => {
             audio: true,
         });
         videoElement.value.srcObject = mediaStream;
-        // 비디오 요소에 거울모드 적용
         videoElement.value.style.transform = "scaleX(-1)";
 
-        await WebSocketService.connect("ws://localhost:8080/signal");
+        await WebSocketService.connect("ws://localhost:8080/ws");
     } catch (error) {
         console.error("Error accessing webcam:", error);
         console.error("Failed to connect to WebSocket:", error);
     }
 
-    // 최소 1.5초 동안 로딩 화면 표시
     const elapsedTime = Date.now() - startTime;
     const remainingTime = Math.max(1000 - elapsedTime, 0);
 
@@ -138,15 +136,13 @@ const createBooth = () => {
 const handleCreateBooth = async () => {
     try {
         if (!WebSocketService.isConnected()) {
-            await WebSocketService.connect("ws://localhost:8080/signal");
+            await WebSocketService.connect("ws://localhost:8080/ws");
         }
         const boothId = await WebSocketService.createBooth();
         console.log("Created booth with ID:", boothId);
-        // 여기서 부스 생성 후의 로직을 추가하세요 (예: 부스 화면으로 이동)
-        router.push({ name: "boothShoot", params: { boothId } });
+        router.push(`/booth/${boothId}`);
     } catch (error) {
         console.error("Failed to create booth:", error);
-        // 에러 처리 로직 추가
     }
 };
 </script>

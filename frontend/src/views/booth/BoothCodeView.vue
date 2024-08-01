@@ -4,9 +4,8 @@ import FormInputComp from "@/components/form/FormInputComp.vue";
 import FormButtonComp from "@/components/form/FormButtonComp.vue";
 import { useRouter } from "vue-router";
 import { validateJoinBooth } from "@/stores/validation";
-import { ref } from "vue";
-
 import { ref, onMounted } from "vue";
+
 import WebSocketService from "@/services/WebSocketService";
 
 const router = useRouter();

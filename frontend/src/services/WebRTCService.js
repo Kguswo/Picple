@@ -100,6 +100,11 @@ class WebRTCService {
             this.localStream.getTracks().forEach((track) => track.stop());
         }
     }
+
+    disconnect() {
+        this.closeAllConnections();
+        this.localStream = null;
+    }
 }
 
 export default new WebRTCService();
