@@ -14,7 +14,9 @@ import WebSocketService from "@/services/WebSocketService";
 import WebRTCService from "@/services/WebRTCService";
 
 import Swal from "sweetalert2";
-import * as selfieSegmentation from "@mediapipe/selfie_segmentation";
+
+import { Camera } from "@mediapipe/camera_utils";
+import { SelfieSegmentation } from "@mediapipe/selfie_segmentation";
 
 import videoOn from "@/assets/icon/video_on.png";
 import videoOff from "@/assets/icon/video_off.png";
@@ -56,6 +58,9 @@ const isDragging = ref(false);
 const isFocused = ref(false);
 
 const isLoading = ref(true);
+
+let camera = null;
+let selfieSegmentation = null;
 
 const videoStyle = computed(() => ({
     position: "absolute",
@@ -217,20 +222,35 @@ const onResults = (results) => {
     canvasCtx.restore();
 };
 
-const processFrame = async () => {
-    if (
-        !isProcessing.value ||
-        !videoElement.value ||
-        !selfieSegmentationInstance
-    )
-        return;
+const initializeSelfieSegmentation = async () => {
+    console.log("Initializing Selfie Segmentation");
+    selfieSegmentation = new SelfieSegmentation({
+        locateFile: (file) => {
+            return `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file}`;
+        },
+    });
 
-    try {
-        await selfieSegmentationInstance.send({ image: videoElement.value });
-    } catch (error) {
-        console.error("Error processing frame:", error);
+    selfieSegmentation.setOptions({
+        modelSelection: 1,
+        selfieMode: false,
+    });
+
+    selfieSegmentation.onResults(onResults);
+
+    if (videoElement.value) {
+        camera = new Camera(videoElement.value, {
+            onFrame: async () => {
+                if (selfieSegmentation) {
+                    await selfieSegmentation.send({
+                        image: videoElement.value,
+                    });
+                }
+            },
+            width: 640,
+            height: 480,
+        });
+        camera.start();
     }
-    requestAnimationFrame(processFrame);
 };
 
 const initializeWebSocketAndMedia = async () => {
@@ -305,6 +325,7 @@ onMounted(async () => {
     try {
         await initializeWebSocketAndMedia();
         await initializeWebRTC();
+        await initializeSelfieSegmentation();
         setupEventListeners();
 
         updateVideoStyle();
@@ -327,6 +348,14 @@ onMounted(async () => {
 onUnmounted(() => {
     console.log("shootView unMounted!");
     isProcessing.value = false;
+
+    if (camera) {
+        camera.stop();
+    }
+    if (selfieSegmentation) {
+        selfieSegmentation.close();
+    }
+
     if (mediaStream) {
         mediaStream.getTracks().forEach((track) => track.stop());
     }
