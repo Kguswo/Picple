@@ -1,14 +1,23 @@
-import './assets/main.css'
+import '@/assets/css/main.css';
 
-import { createApp } from 'vue'
-import { createPinia } from 'pinia'
+import VCalendar from 'v-calendar';
+import 'v-calendar/style.css';
 
-import App from './App.vue'
-import router from './router'
+import { createApp } from 'vue';
+import { createPinia } from 'pinia';
+import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
 
-const app = createApp(App)
+import App from '@/App.vue';
+import router from '@/router';
 
-app.use(createPinia())
-app.use(router)
+import VueSweetalert2 from 'vue-sweetalert2';
+import 'sweetalert2/dist/sweetalert2.min.css';
 
-app.mount('#app')
+const app = createApp(App);
+
+app.use(VueSweetalert2);
+app.use(createPinia().use(piniaPluginPersistedstate));
+app.use(router);
+app.use(VCalendar, {});
+
+app.mount('#app');
