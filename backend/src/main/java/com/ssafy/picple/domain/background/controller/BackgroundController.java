@@ -67,7 +67,7 @@ public class BackgroundController {
 
 	// 수정 필요
 	@PostMapping("/local/{userId}")
-	public BaseResponse<InsertBackgroundResponse> insertLocalBackground(
+	public BaseResponse<InsertBackgroundResponse> createLocalBackground(
 			@PathVariable Long userId,
 			@RequestParam("file") MultipartFile file) throws BaseException {
 		try {
