@@ -15,4 +15,40 @@ instance.interceptors.request.use(
 	(error) => Promise.reject(error),
 );
 
-export default instance;
+const axiosGet = async (url) => {
+	try {
+		const response = await instance.get(url);
+		return response.data;
+	} catch (error) {
+		return error;
+	}
+};
+
+const axiosPost = async (url, data) => {
+	try {
+		const response = await instance.post(url, data);
+		return response.data;
+	} catch (error) {
+		return error;
+	}
+};
+
+const axiosPatch = async (url, data) => {
+	try {
+		const response = await instance.patch(url, data);
+		return response.data;
+	} catch (error) {
+		return error;
+	}
+};
+
+const axiosDelete = async (url) => {
+	try {
+		const response = await instance.delete(url);
+		return response.data;
+	} catch (error) {
+		return error;
+	}
+};
+
+export { instance, axiosGet, axiosPost, axiosPatch, axiosDelete };
