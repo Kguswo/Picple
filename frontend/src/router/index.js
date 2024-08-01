@@ -26,8 +26,7 @@ const router = createRouter({
 			path: '/signup',
 			name: 'signup',
 			component: () => import('@/views/account/SignupView.vue'),
-			meta: { authEmailRequired: true },
-			meta: { notAuthRequired: true },
+			meta: { emailRequired: true, notAuthRequired: true },
 		},
 		{
 			path: '/signup/email',
@@ -42,7 +41,7 @@ const router = createRouter({
 			meta: { authRequired: true },
 		},
 		{
-			path: '/modifyPassword',
+			path: '/modifyPassword/:path',
 			name: 'modifyPassword',
 			component: () => import('@/views/account/ModifyPasswordView.vue'),
 			meta: { authRequired: true },
@@ -115,7 +114,7 @@ const router = createRouter({
 router.beforeEach(async (to, from) => {
 	const userStore = useUserStore();
 
-	if (to.meta.authEmailRequired && !userStore.verifiedEmail) {
+	if (to.meta.emailRequired && !userStore.verifiedEmail) {
 		await Swal.fire({ icon: 'error', title: '이메일 인증이 필요합니다.', width: 600 });
 		return { name: 'login', replace: true };
 	}
