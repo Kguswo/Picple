@@ -3,29 +3,29 @@ import FormComp from '@/components/form/FormComp.vue';
 import FormInputComp from '@/components/form/FormInputComp.vue';
 import FormButtonComp from '@/components/form/FormButtonComp.vue';
 import { useRouter } from 'vue-router';
-import { validateNicknamePattern, setFormMessage } from '@/common/validation';
-import { ref } from 'vue';
+import { validateNicknamePattern, setFormMessage } from '@/composables/validation';
 import Swal from 'sweetalert2';
 import { useUserStore } from '@/stores/userStore';
 import { storeToRefs } from 'pinia';
 import { deleteAccountApi, modifyAccountApi } from '@/api/userApi';
+import { useFormStore } from '@/stores/formStore';
 
 const router = useRouter();
 const userStore = useUserStore();
-const { user } = storeToRefs(userStore);
+const formStore = useFormStore();
 
-const nickname = ref({ type: 'text', label: '닉네임', value: user.value.nickname });
-const nicknameField = ref(null);
+const { user } = storeToRefs(userStore);
+const { nickname, nicknameField } = storeToRefs(formStore);
+formStore.initForm([nickname], [nicknameField]);
+nickname.value.value = user.value.nickname;
 
 const modifyAccount = async () => {
 	nicknameField.value.message = validateNicknamePattern(nickname.value.value);
-	if (nicknameField.value.message.text) {
-		nicknameField.value.focusInput();
-		return;
-	}
 	if (nickname.value.value === user.value.nickname) {
 		nicknameField.value.message = setFormMessage('기존 닉네임과 동일합니다.', true);
-		nicknameField.value.focusInput();
+	}
+
+	if (formStore.focusInputField(nicknameField)) {
 		return;
 	}
 

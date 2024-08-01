@@ -8,7 +8,6 @@ const props = defineProps({
 	inputParams: Object,
 	isSend: Boolean,
 });
-
 const message = ref(null);
 
 const inputField = ref(null);
