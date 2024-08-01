@@ -1,5 +1,5 @@
 <script setup>
-import mainHeader from '@/components/common/MainHeaderComp.vue';
+import MainHeaderComp from '@/components/common/MainHeaderComp.vue';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
@@ -11,7 +11,7 @@ const navigateTo = (name) => {
 
 <template>
 	<div class="page">
-		<mainHeader></mainHeader>
+		<MainHeaderComp />
 		<div class="container main-container">
 			<div class="logo-container">
 				<img
@@ -20,17 +20,16 @@ const navigateTo = (name) => {
 				/>
 			</div>
 
-			<div class="cardBox">
+			<div class="card-box">
 				<div class="card-area">
 					<div
 						class="card"
 						@click="navigateTo('createbooth')"
 					>
 						<div class="front">
-							<div class="imageincard">
+							<div class="image-in-card">
 								<img
 									src="@/assets/img/mainView/camera.jpg"
-									class="card-img-top"
 									alt="..."
 								/>
 							</div>
@@ -48,10 +47,9 @@ const navigateTo = (name) => {
 						@click="navigateTo('boothCode')"
 					>
 						<div class="front">
-							<div class="imageincard">
+							<div class="image-in-card">
 								<img
 									src="@/assets/img/mainView/noimage.png"
-									class="card-img-top"
 									alt="..."
 								/>
 							</div>
@@ -69,10 +67,9 @@ const navigateTo = (name) => {
 						@click="navigateTo('board')"
 					>
 						<div class="front">
-							<div class="imageincard">
+							<div class="image-in-card">
 								<img
 									src="@/assets/img/mainView/board.jpg"
-									class="card-img-top"
 									alt="..."
 								/>
 							</div>
@@ -90,10 +87,9 @@ const navigateTo = (name) => {
 				>
 					<div class="card">
 						<div class="front">
-							<div class="imageincard">
+							<div class="image-in-card">
 								<img
 									src="@/assets/img/mainView/calender.jpg"
-									class="card-img-top"
 									alt="..."
 								/>
 							</div>
