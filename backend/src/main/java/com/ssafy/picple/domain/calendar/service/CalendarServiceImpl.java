@@ -67,7 +67,7 @@ public class CalendarServiceImpl implements CalendarService {
 	@Transactional
 	public void updateContent(Long calendarId, Long userId, String content) throws BaseException {
 		Calendar calendar = calendarRepository.findById(calendarId)
-				.orElseThrow(() -> new IllegalArgumentException(GET_CALENDAR_EMPTY.getMessage()));
+				.orElseThrow(() -> new BaseException(GET_CALENDAR_EMPTY));
 
 		User user = calendar.getUser();
 		Photo photo = calendar.getPhoto();

@@ -1,5 +1,7 @@
 package com.ssafy.picple.domain.photo.service;
 
+import static com.ssafy.picple.config.baseResponse.BaseResponseStatus.*;
+
 import java.io.IOException;
 
 import org.springframework.stereotype.Service;
@@ -8,7 +10,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.ssafy.picple.AwsS3.S3FileUploadService;
 import com.ssafy.picple.config.baseResponse.BaseException;
-import com.ssafy.picple.config.baseResponse.BaseResponseStatus;
 import com.ssafy.picple.domain.calendar.entity.Calendar;
 import com.ssafy.picple.domain.calendar.repository.CalendarRepository;
 import com.ssafy.picple.domain.photo.entity.Photo;
@@ -36,7 +37,7 @@ public class PhotoServiceImpl implements PhotoService {
 	public Photo insertPhoto(Long userId, MultipartFile file) throws BaseException, IOException {
 
 		User user = userRepository.findById(userId)
-				.orElseThrow(() -> new BaseException(BaseResponseStatus.GET_USER_EMPTY));
+				.orElseThrow(() -> new BaseException(GET_USER_EMPTY));
 
 		// 사진을 S3에 업로드 후 photoUrl 가져오기
 		String photoUrl = s3FileUploadService.uploadFile(file);
