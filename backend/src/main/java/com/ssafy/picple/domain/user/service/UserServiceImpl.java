@@ -62,6 +62,12 @@ public class UserServiceImpl implements UserService {
         return new LoginResponse(jwtUtil.createAccessToken(user.getId()), user.getNickname());
     }
 
+    /**
+     * 유저 정보 가져오기
+     * @param userId
+     * @return
+     * @throws BaseException
+     */
     @Override
     public UserInfoResponse getUserInfo(Long userId) throws BaseException {
         User user = userRepository.findById(userId)
