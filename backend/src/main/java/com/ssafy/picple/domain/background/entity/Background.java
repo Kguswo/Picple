@@ -37,8 +37,11 @@ public class Background extends BaseTimeEntity {
 	private String backgroundUrl;
 
 	@Builder
-	public Background(String backgroundTitle) {
+	public Background(String backgroundTitle, String backgroundUrl) {
 		this.backgroundTitle = backgroundTitle;
+		this.isDefault = false;
+		this.isDeleted = false;
+		this.backgroundUrl = backgroundUrl;
 	}
 
 	public void modifyTitle(String newTitle) {
