@@ -16,6 +16,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ssafy.picple.config.baseResponse.BaseException;
 import com.ssafy.picple.domain.background.dto.response.openai.AIBackgroundResponse;
+import com.ssafy.picple.util.S3Service;
 
 import reactor.core.publisher.Mono;
 

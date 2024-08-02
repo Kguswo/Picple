@@ -1,4 +1,4 @@
-package com.ssafy.picple.domain.background.service;
+package com.ssafy.picple.util;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -19,7 +19,7 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class S3Service {
-	
+
 	// Base64, URL 중 우리가 쓰는 것으로 선택
 
 	private final AmazonS3 amazonS3;
