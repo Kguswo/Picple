@@ -1,4 +1,4 @@
-package com.ssafy.picple.domain.background.dto.response;
+package com.ssafy.picple.domain.background.dto.response.openai;
 
 import lombok.Data;
 
