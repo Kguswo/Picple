@@ -7,9 +7,9 @@ import lombok.experimental.SuperBuilder;
 
 @Getter
 @SuperBuilder
-public class InsertBackgroundResponse extends BackgroundResponseDto {
-	public static InsertBackgroundResponse insertBackgroundResponse(Background background) {
-		return InsertBackgroundResponse.builder()
+public class CreateBackgroundResponse extends BackgroundResponseDto {
+	public static CreateBackgroundResponse insertBackgroundResponse(Background background) {
+		return CreateBackgroundResponse.builder()
 				.id(background.getId())
 				.backgroundTitle(background.getBackgroundTitle())
 				.build();

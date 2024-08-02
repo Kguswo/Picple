@@ -7,6 +7,6 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class InsertAIBackgroundRequest {
+public class CreateAIBackgroundRequest {
 	private String prompt;
 }
