@@ -13,6 +13,11 @@ import com.ssafy.picple.config.baseResponse.BaseException;
 import com.ssafy.picple.domain.background.dto.response.BackgroundResponseDto;
 import com.ssafy.picple.domain.background.entity.Background;
 import com.ssafy.picple.domain.background.repository.BackgroundRepository;
+import com.ssafy.picple.domain.backgrounduser.entity.BackgroundUser;
+import com.ssafy.picple.domain.backgrounduser.repository.BackgroundUserRepository;
+import com.ssafy.picple.domain.user.entity.User;
+import com.ssafy.picple.domain.user.repository.UserRepository;
+import com.ssafy.picple.util.S3Service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +26,11 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class BackgroundServiceImpl implements BackgroundService {
 
-	final BackgroundRepository backgroundRepository;
+	private final OpenAIService openAIService;
+	private final S3Service s3Service;
+	private final BackgroundRepository backgroundRepository;
+	private final UserRepository userRepository;
+	private final BackgroundUserRepository backgroundUserRepository;
 
 	@Override
 	public List<BackgroundResponseDto> getDefaultBackgrounds() throws BaseException {
@@ -45,15 +54,38 @@ public class BackgroundServiceImpl implements BackgroundService {
 		}
 	}
 
-	// 수정 필요
+	// 테스트 필요
 	@Override
 	@Transactional
 	public void createAIBackground(Long userId, String prompt) throws BaseException {
 		try {
-			// TODO: AI API를 사용하여 prompt에 적힌 이미지 생성
-			Background background = new Background("temp");
+			// 프롬프트를 통해 AI API를 사용하여 사진 생성
+			String[] result = openAIService.createBackground(prompt);
+			String base64Image = result[0];
+			String fileName = result[1];
+
+			// S3에 업로드
+			s3Service.uploadBase64ImageToS3(base64Image, fileName);
+
+			// 데이터베이스에 저장
+			Background background = Background.builder()
+					.backgroundTitle(fileName)
+					.backgroundUrl(base64Image)
+					.build();
 			backgroundRepository.save(background);
+
+			// Background와 User의 관계 저장
+			User user = userRepository.findById(userId)
+					.orElseThrow(() -> new BaseException(NOT_FOUND_USER));
+
+			BackgroundUser backgroundUser = BackgroundUser.builder()
+					.background(background)
+					.user(user)
+					.build();
+			backgroundUserRepository.save(backgroundUser);
+
 		} catch (Exception e) {
+			// 예외 처리
 			throw new BaseException(AI_BACKGROUND_GENERATION_ERROR);
 		}
 	}
@@ -64,7 +96,7 @@ public class BackgroundServiceImpl implements BackgroundService {
 	public void createLocalBackground(Long userId, MultipartFile file) throws BaseException {
 		try {
 			// TODO: 파일 업로드 로직 구현
-			Background background = new Background("temp");
+			Background background = new Background("temp_title", "temp_url");
 			backgroundRepository.save(background);
 		} catch (Exception e) {
 			throw new BaseException(LOCAL_BACKGROUND_UPLOAD_ERROR);
