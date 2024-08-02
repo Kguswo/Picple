@@ -16,10 +16,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.ssafy.picple.config.baseResponse.BaseException;
 import com.ssafy.picple.config.baseResponse.BaseResponse;
+import com.ssafy.picple.domain.background.dto.request.CreateAIBackgroundRequest;
 import com.ssafy.picple.domain.background.dto.request.DeleteBackgroundRequest;
-import com.ssafy.picple.domain.background.dto.request.InsertAIBackgroundRequest;
 import com.ssafy.picple.domain.background.dto.response.BackgroundResponseDto;
-import com.ssafy.picple.domain.background.dto.response.InsertBackgroundResponse;
+import com.ssafy.picple.domain.background.dto.response.CreateBackgroundResponse;
 import com.ssafy.picple.domain.background.dto.response.ModifyBackgroundTitleResponse;
 import com.ssafy.picple.domain.background.service.BackgroundService;
 import com.ssafy.picple.domain.background.service.OpenAIService;
@@ -57,7 +57,7 @@ public class BackgroundController {
 
 	@PostMapping("/ai/{userId}")
 	public BaseResponse<String[]> createAiBackground(
-			@RequestBody InsertAIBackgroundRequest request) throws BaseException {
+			@RequestBody CreateAIBackgroundRequest request) throws BaseException {
 
 		String[] imageUrl = openAIService.createBackground(request.getPrompt());
 
@@ -66,7 +66,7 @@ public class BackgroundController {
 
 	// 수정 필요
 	@PostMapping("/local/{userId}")
-	public BaseResponse<InsertBackgroundResponse> createLocalBackground(
+	public BaseResponse<CreateBackgroundResponse> createLocalBackground(
 			@PathVariable Long userId,
 			@RequestParam("file") MultipartFile file) throws BaseException {
 		try {
