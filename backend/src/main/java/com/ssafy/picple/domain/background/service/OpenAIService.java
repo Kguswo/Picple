@@ -49,13 +49,15 @@ public class OpenAIService {
 				.uri("/images/generations")
 				.contentType(MediaType.APPLICATION_JSON)
 				// TODO: 여러 줄 할 때 따옴표 3개로 하는 방식으로도 시도해보기
-				.bodyValue("{\n" +
-						"  \"model\": \"dall-e-3\",\n" +
-						"  \"prompt\": \"" + prompt + ", 8비트 스타일로 배경 사진을 그려줘\",\n" +
-						"  \"n\": 1,\n" +
-						"  \"size\": \"1024x1024\",\n" +
-						"  \"response_format\": \"b64_json\"\n" +
-						"}")
+				.bodyValue("""
+						{
+						  "model": "dall-e-3",
+						  "prompt": "%s, 8비트 스타일로 배경 사진을 그려줘",
+						  "n": 1,
+						  "size": "1024x1024",
+						  "response_format": "b64_json"
+						}
+						""".formatted(prompt))
 				.retrieve()
 				.onStatus(HttpStatus.INTERNAL_SERVER_ERROR::equals,
 						response -> response.bodyToMono(String.class).map(Exception::new))
