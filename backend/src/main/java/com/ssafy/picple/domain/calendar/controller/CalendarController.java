@@ -53,6 +53,29 @@ public class CalendarController {
 	}
 
 	/**
+	 * 캘린더 월별 사진 개수 조회
+	 *
+	 * @param request
+	 * @param monthlyStartDate
+	 * @param monthlyEndDate
+	 * @return
+	 */
+	@GetMapping("/monthly-counts")
+	public BaseResponse<List<Long>> getMonthlyPhotoCounts(HttpServletRequest request,
+			@RequestParam("monthlyStartDate") String monthlyStartDate,
+			@RequestParam("monthlyEndDate") String monthlyEndDate) {
+		Long userId = (Long)request.getAttribute("userId");
+		// 문자열 파싱 후 -> LocalDate
+		LocalDate startDate = LocalDate.parse(monthlyStartDate, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+		LocalDate endDate = LocalDate.parse(monthlyEndDate, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
+		// 월별 사진 개수 조회
+		List<Long> counts = calendarService.getMonthlyPhotoCounts(userId, startDate, endDate);
+		return new BaseResponse<>(counts);
+
+	}
+
+	/**
 	 * 캘린더 일별 정보 조회
 	 *
 	 * @param request
