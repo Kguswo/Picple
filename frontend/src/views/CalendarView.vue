@@ -42,7 +42,6 @@ const showModal = ref(false);
 const selectedDate = ref('');
 
 const openModal = (date) => {
-	console.log('Date clicked:', date);
 	if (typeof date === 'string') {
 		date = new Date(date);
 	} else if (date instanceof Object && date.hasOwnProperty('date')) {
@@ -65,7 +64,7 @@ const formatDate = (date) => {
 	return format(date, 'M월 d일, EEEE', { locale: ko });
 };
 
-updateAttributes(); // 초기 로드 시 attributes 설정
+updateAttributes();
 </script>
 
 <template>

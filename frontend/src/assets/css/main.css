@@ -7,7 +7,6 @@
 	cursor: url('@/assets/img/app/pointer.png') 5 5, auto;
 }
 
-/* 1. 던파 비트비트체 v2 */
 @font-face {
 	font-family: 'DNFBitBitv2';
 	font-style: normal;
@@ -15,7 +14,6 @@
 	src: url('//cdn.df.nexon.com/img/common/font/DNFBitBitv2.otf') format('opentype');
 }
 
-/* 2. PF스타더스트체 */
 @font-face {
 	font-family: 'PFStardust';
 	src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/PFStardust.woff') format('woff');
