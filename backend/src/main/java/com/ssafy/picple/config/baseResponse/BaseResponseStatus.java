@@ -46,8 +46,7 @@ public enum BaseResponseStatus {
 	ALREADY_LIKED(false, 3102, "이미 좋아요 한 상태입니다."),
 	ALREADY_UNLIKED(false, 3102, "이미 좋아요 한 상태입니다."),
 
-    // 3200 ~~ 3299 : 염규영
-	GET_USER_EMPTY(false, 3201, "등록된 유저가 없습니다."),
+	// 3200 ~~ 3299 : 염규영
 	INVALID_BACKGROUND_ID(false, 3202, "올바르지 않은 배경화면 ID입니다."),
 	DELETE_BACKGROUND_ERROR(false, 3203, "배경 사진 삭제에 실패하였습니다."),
 	AI_BACKGROUND_GENERATION_ERROR(false, 3204, "AI 배경 사진 생성에 실패하였습니다."),
