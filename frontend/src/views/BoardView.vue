@@ -11,7 +11,7 @@ const isLikeClicked = ref(false);
 const isTimeClicked = ref(false);
 
 onMounted(async () => {
-	const data = await boardSortApi('createdAt'); // 기본은 최신순 정렬
+	const data = await boardSortApi('createdAt');
 	if (!data.isSuccess) {
 		await Swal.fire({ icon: 'error', title: '게시글을 불러오지 못했습니다.', width: 600 });
 		return;

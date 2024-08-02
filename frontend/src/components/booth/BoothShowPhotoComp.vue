@@ -1,9 +1,5 @@
 <script setup>
-import { ref, defineProps, onMounted } from 'vue';
-
-onMounted(() => {
-	console.log('BoothShowPhoto 호출됨');
-});
+import { ref, defineProps } from 'vue';
 
 const props = defineProps({
 	images: Array,

@@ -33,16 +33,13 @@ const templateImages = {
 };
 
 const photos = photoStore.photoList;
-console.log('BoothTemplateView에서 불러온 이미지 리스트:', photos);
 
 const selectTemplate = (template) => {
-	console.log(`템플릿 선택됨: ${template.key}`);
 	selectedTemplate.value = template.key;
 	selectedImage.value = null;
 };
 
 const selectImage = (image) => {
-	console.log(`이미지 선택됨: ${image}`);
 	selectedImage.value = image;
 };
 
@@ -89,8 +86,6 @@ const extractInfoFromFilename = (filename) => {
 const goToNext = () => {
 	if (selectedImage.value) {
 		const imageInfo = extractInfoFromFilename(selectedImage.value);
-		console.log(`다음 화면으로 이동: 템플릿: ${selectedTemplate.value}, 이미지: ${selectedImage.value}`);
-		console.log('다음 화면으로 이동할 때 이미지 리스트:', photos);
 		router.push({
 			name: 'insertImg',
 			params: {

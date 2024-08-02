@@ -10,11 +10,9 @@ import microOff from '@/assets/icon/micro_off.png';
 import { useRouter } from 'vue-router';
 import { ref, onMounted, onUnmounted } from 'vue';
 
-// 비디오 표현을 위한 변수
 const videoElement = ref(null);
 let mediaStream = null;
 
-// 화면 표시에 있어 사용되는 변수
 let isMirrored = false;
 let isvideoOn = ref(true);
 let isMicroOn = ref(true);
@@ -26,13 +24,10 @@ const navigateTo = (name) => {
 };
 
 onMounted(async () => {
-	console.log('Create Booth 페이지 호출되었습니다');
 	try {
 		mediaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
 		videoElement.value.srcObject = mediaStream;
-	} catch (error) {
-		console.error('Error accessing webcam:', error);
-	}
+	} catch (error) {}
 });
 
 onUnmounted(() => {
@@ -43,46 +38,36 @@ onUnmounted(() => {
 	}
 });
 
-// 거울모드 여부
 const toggleMirror = () => {
 	isMirrored = !isMirrored;
 	videoElement.value.style.transform = isMirrored ? 'scaleX(-1)' : 'scaleX(1)';
 };
 
-//카메라의 온오프
 const toggleCamera = () => {
 	isvideoOn.value = !isvideoOn.value;
-	console.log('비디오 온');
 
 	if (isvideoOn.value) {
 		mediaStream.getVideoTracks().forEach((track) => {
-			track.enabled = true; // 비디오 트랙 활성화
+			track.enabled = true;
 		});
 		videoElement.value.srcObject = mediaStream;
 	} else {
-		console.log('비디오 오프');
-
 		mediaStream.getVideoTracks().forEach((track) => {
-			track.enabled = false; // 비디오 트랙 비활성화
+			track.enabled = false;
 		});
 		videoElement.value.srcObject = mediaStream;
 	}
 };
 
-//마이크의 온오프
 const toggleMicro = () => {
 	isMicroOn.value = !isMicroOn.value;
 	if (isMicroOn.value) {
-		console.log('마이크 온');
-
 		mediaStream.getAudioTracks().forEach((track) => {
-			track.enabled = true; // 오디오 트랙을 활성화
+			track.enabled = true;
 		});
 	} else {
-		console.log('마이크 오프');
-
 		mediaStream.getAudioTracks().forEach((track) => {
-			track.enabled = false; // 오디오  트랙을 비활성화
+			track.enabled = false;
 		});
 	}
 };
@@ -102,7 +87,6 @@ const toggleMicro = () => {
 			<BoothBack class="booth-create">
 				<div class="create-content">
 					<div class="mycam-box">
-						<!-- v-if로 하면 카메라가 나오지 않아 v-show로 미리 렌더링 -->
 						<div v-show="isvideoOn">
 							<video
 								ref="videoElement"

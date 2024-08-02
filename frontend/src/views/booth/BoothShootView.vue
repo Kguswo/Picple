@@ -30,7 +30,6 @@ const remainPicCnt = ref(10);
 const images = ref([]);
 
 onMounted(async () => {
-	console.log('shootView Mounted!');
 	try {
 		mediaStream = await navigator.mediaDevices.getUserMedia({
 			video: true,
@@ -38,13 +37,10 @@ onMounted(async () => {
 		});
 
 		videoElement.value.srcObject = mediaStream;
-	} catch (error) {
-		console.error('Error accessing webcam:', error);
-	}
+	} catch (error) {}
 });
 
 onUnmounted(() => {
-	console.log('shootView unMounted!');
 	if (mediaStream) {
 		mediaStream.getTracks().forEach((track) => {
 			track.stop();
@@ -59,7 +55,6 @@ const toggleMirror = () => {
 
 const toggleCamera = () => {
 	isvideoOn.value = !isvideoOn.value;
-	console.log('비디오 온/오프:', isvideoOn.value);
 
 	mediaStream.getVideoTracks().forEach((track) => {
 		track.enabled = isvideoOn.value;
@@ -69,7 +64,6 @@ const toggleCamera = () => {
 
 const toggleMicro = () => {
 	isMicroOn.value = !isMicroOn.value;
-	console.log('마이크 온/오프:', isMicroOn.value);
 
 	mediaStream.getAudioTracks().forEach((track) => {
 		track.enabled = isMicroOn.value;
@@ -79,7 +73,6 @@ const toggleMicro = () => {
 const bgImage = ref('https://via.placeholder.com/400');
 
 const changeImage = (image) => {
-	console.log('이미지 변경 클릭', image);
 	bgImage.value = image;
 };
 
@@ -103,7 +96,6 @@ const startCountdown = () => {
 };
 
 const takePhoto = async () => {
-	console.log('사진 찍기');
 	const img = new Image();
 	img.crossOrigin = 'Anonymous';
 	img.src = bgImage.value;
@@ -126,7 +118,6 @@ const takePhoto = async () => {
 	};
 
 	img.onerror = async (error) => {
-		console.error('배경 로딩 에러 발생: ', error);
 		await Swal.fire({
 			title: '@배경 오류 발생@',
 			text: '해당 사진은 배경으로 사용할 수 없습니다!',
@@ -136,7 +127,6 @@ const takePhoto = async () => {
 };
 
 const capturePhoto = async () => {
-	console.log('사진 캡처 시작');
 	await nextTick();
 	cameraaudio.play();
 	html2canvas(captureArea.value, { useCORS: true, allowTaint: false })
@@ -155,15 +145,10 @@ const capturePhoto = async () => {
 				}
 			}
 		})
-		.catch((error) => {
-			console.error('이미지 캡쳐 에러 발생: ', error);
-		});
+		.catch((error) => {});
 };
 
 const exitphoto = async () => {
-	console.log('촬영종료');
-	console.log('저장할 이미지 리스트:', images.value);
-
 	const { value: result } = await Swal.fire({
 		title: '촬영 끝내기',
 		text: '촬영을 종료하고 저장을 위해 나가시겠습니까?',
@@ -175,7 +160,6 @@ const exitphoto = async () => {
 
 	if (result) {
 		photoStore.setPhotoList(images.value);
-		console.log('Pinia store에 저장된 이미지 리스트:', photoStore.photoList);
 		router.push('/selectTemp');
 	} else {
 		Swal.fire('취소', '촬영을 계속합니다!', 'error');
