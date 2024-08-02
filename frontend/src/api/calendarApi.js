@@ -2,8 +2,13 @@ import { instance, axiosGet, axiosPost, axiosDelete } from '@/api/baseApi';
 
 const calendarsBaseUrl = instance.defaults.baseURL + '/calendars';
 
-const calendarMonthlyCountApi = async (startDate, endDate) => {
-	return await axiosGet(`${calendarsBaseUrl}/monthly-counts?monthlyStartDate=${startDate}&monthlyEndDate=${endDate}`);
+const calendarMonthlyCountApi = async (year, month, endDate) => {
+	return await axiosGet(
+		`${calendarsBaseUrl}/monthly-counts?monthlyStartDate=${year}-${String(month).padStart(
+			2,
+			'0',
+		)}-01&monthlyEndDate=${year}-${String(month).padStart(2, '0')}-${String(endDate).padStart(2, '0')}`,
+	);
 };
 
 const calendarDailyListApi = async (createdAt) => {
