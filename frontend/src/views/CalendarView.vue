@@ -2,12 +2,37 @@
 import Page from '@/components/common/PageComp.vue';
 import WhiteBoardComp from '@/components/common/WhiteBoardComp.vue';
 import ListModal from '@/components/calendar/ListModalComp.vue';
-import { ref } from 'vue';
-import { allPhotos } from '@/composables/calendarModal';
+import { onMounted, ref } from 'vue';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
+import { calendarMonthlyCountApi } from '@/api/calendarApi';
+import Swal from 'sweetalert2';
 
+const monthlyCount = ref([]);
 const attributes = ref([]);
+const isModalOpen = ref(false);
+const selectedDate = ref('');
+
+onMounted(async () => {
+	await getMonthlyCount();
+});
+
+const getMonthlyCount = async () => {
+	const now = new Date();
+	const year = now.getFullYear();
+	const month = now.getMonth() + 1;
+	const endDate = new Date(year, month, 0).getDate();
+
+	const data = await calendarMonthlyCountApi(year, month, endDate);
+	if (!data) {
+		return;
+	}
+	if (!data.isSuccess) {
+		await Swal.fire({ icon: 'error', title: `${data.message}`, width: 600 });
+		return;
+	}
+	monthlyCount.value = data.result;
+};
 
 const updateAttributes = () => {
 	const datesWithPhotos = {};
@@ -38,33 +63,32 @@ const getRandomColor = () => {
 	return colors[Math.floor(Math.random() * colors.length)];
 };
 
-const showModal = ref(false);
-const selectedDate = ref('');
-
-const openModal = (date) => {
+const changeToModalDate = (date) => {
 	if (typeof date === 'string') {
 		date = new Date(date);
 	} else if (date instanceof Object && date.hasOwnProperty('date')) {
 		date = new Date(date.date);
 	}
-
 	const year = date.getFullYear();
 	const month = date.getMonth() + 1;
 	const day = date.getDate();
+	return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+};
 
-	selectedDate.value = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-	showModal.value = true;
+const openModal = (date) => {
+	selectedDate.value = changeToModalDate(date);
+	isModalOpen.value = true;
 };
 
 const closeModal = () => {
-	showModal.value = false;
+	isModalOpen.value = false;
 };
 
 const formatDate = (date) => {
 	return format(date, 'M월 d일, EEEE', { locale: ko });
 };
 
-updateAttributes();
+// updateAttributes();
 </script>
 
 <template>
@@ -100,11 +124,11 @@ updateAttributes();
 				</div>
 			</div>
 		</WhiteBoardComp>
-		<ListModal
-			:visible="showModal"
+		<!-- <ListModal
+			:visible="isModalOpen"
 			:selectedDate="selectedDate"
 			@close="closeModal"
-		/>
+		/> -->
 	</Page>
 </template>
 

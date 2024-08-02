@@ -34,9 +34,13 @@ const login = async () => {
 	}
 
 	setCookie('saveId', email.value.value, '1d', isChecked.value);
+
 	const data = await loginApi(email.value.value, password.value.value);
+	if (!data) {
+		return;
+	}
 	if (!data.isSuccess) {
-		await Swal.fire({ icon: 'error', title: '아이디 또는 비밀번호를 틀렸습니다.', width: 600 });
+		await Swal.fire({ icon: 'error', title: `${data.message}`, width: 600 });
 		router.go(0);
 		return;
 	}

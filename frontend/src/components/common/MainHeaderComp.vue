@@ -16,6 +16,9 @@ const navigateTo = (name) => {
 
 const logout = async () => {
 	const data = await logoutApi();
+	if (!data) {
+		return;
+	}
 	if (!data.isSuccess) {
 		await Swal.fire({ icon: 'error', title: `${data.message}`, width: 600 });
 		return;

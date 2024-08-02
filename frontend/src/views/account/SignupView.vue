@@ -42,6 +42,9 @@ const signup = async () => {
 	}
 
 	const data = await signupApi(userStore.verifiedEmail, password.value.value, nickname.value.value);
+	if (!data) {
+		return;
+	}
 	if (!data.isSuccess && data.code === 3003) {
 		nicknameField.value.message = setFormMessage(data.message, true);
 		nicknameField.value.focusInput();

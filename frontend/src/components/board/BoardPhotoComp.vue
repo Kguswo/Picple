@@ -21,8 +21,11 @@ const closeModal = () => {
 
 const toggleLike = async () => {
 	const data = await boardLikeApi(props.board.id);
+	if (!data) {
+		return;
+	}
 	if (!data.isSuccess) {
-		await Swal.fire({ icon: 'error', title: '좋아요 누르기에 실패하였습니다.', width: 600 });
+		await Swal.fire({ icon: 'error', title: `${data.message}`, width: 600 });
 		return;
 	}
 	if (props.board.liked) {
@@ -42,12 +45,11 @@ const deleteBoard = async () => {
 	});
 	if (accept) {
 		const data = await boardDeleteApi(props.board.id);
-		if (data.code === 2000) {
-			await Swal.fire({ icon: 'error', title: '게시글 삭제는 작성자만 할 수 있습니다.', width: 600 });
+		if (!data) {
 			return;
 		}
 		if (!data.isSuccess) {
-			await Swal.fire({ icon: 'error', title: '게시글 삭제에 실패하였습니다.', width: 600 });
+			await Swal.fire({ icon: 'error', title: `${data.message}`, width: 600 });
 			return;
 		}
 		await Swal.fire({ icon: 'success', title: '게시글이 삭제되었습니다.', width: 600 });

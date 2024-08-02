@@ -12,8 +12,11 @@ const isTimeClicked = ref(false);
 
 onMounted(async () => {
 	const data = await boardSortApi('createdAt');
+	if (!data) {
+		return;
+	}
 	if (!data.isSuccess) {
-		await Swal.fire({ icon: 'error', title: '게시글을 불러오지 못했습니다.', width: 600 });
+		await Swal.fire({ icon: 'error', title: `${data.message}`, width: 600 });
 		return;
 	}
 	boardList.value = data.result;
@@ -26,8 +29,11 @@ const searchByNickname = async () => {
 		return;
 	}
 	const data = await boardSearchApi(nickname.value);
+	if (!data) {
+		return;
+	}
 	if (!data.isSuccess) {
-		await Swal.fire({ icon: 'error', title: '검색 조회에 실패하였습니다.', width: 600 });
+		await Swal.fire({ icon: 'error', title: `${data.message}`, width: 600 });
 		return;
 	}
 	boardList.value = data.result;
@@ -35,8 +41,11 @@ const searchByNickname = async () => {
 
 const sortByCreatedAt = async () => {
 	const data = await boardSortApi('createdAt');
+	if (!data) {
+		return;
+	}
 	if (!data.isSuccess) {
-		await Swal.fire({ icon: 'error', title: '최신순 정렬에 실패하였습니다.', width: 600 });
+		await Swal.fire({ icon: 'error', title: `${data.message}`, width: 600 });
 		return;
 	}
 	boardList.value = data.result;
@@ -46,8 +55,11 @@ const sortByCreatedAt = async () => {
 
 const sortByHit = async () => {
 	const data = await boardSortApi('hit');
+	if (!data) {
+		return;
+	}
 	if (!data.isSuccess) {
-		await Swal.fire({ icon: 'error', title: '좋아요순 정렬에 실패하였습니다.', width: 600 });
+		await Swal.fire({ icon: 'error', title: `${data.message}`, width: 600 });
 		return;
 	}
 	boardList.value = data.result;
