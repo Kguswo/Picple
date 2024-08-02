@@ -60,7 +60,7 @@ public class CalendarController {
 	 * @param monthlyEndDate
 	 * @return
 	 */
-	@GetMapping("/monthly_counts")
+	@GetMapping("/monthly-counts")
 	public BaseResponse<List<Long>> getMonthlyPhotoCounts(HttpServletRequest request,
 			@RequestParam("monthlyStartDate") String monthlyStartDate,
 			@RequestParam("monthlyEndDate") String monthlyEndDate) {
