@@ -35,7 +35,10 @@ const sendAuthNumber = async (e) => {
 	isSend.value = true;
 
 	const data = await sendAuthNumberApi(email.value.value);
-	if (!data.isSuccess && (data.code === 3002 || data.code === 3003)) {
+	if (!data) {
+		return;
+	}
+	if (!data.isSuccess) {
 		await Swal.fire({ icon: 'error', title: `${data.message}`, width: 600 });
 		router.go(0);
 		return;
@@ -60,7 +63,10 @@ const verifyEmail = async () => {
 	}
 	// todo: 제한시간 검사
 	const data = await verifyAuthNumberApi(email.value.value, authNumber.value.value);
-	if (!data.isSuccess && (data.code === 3005 || data.code === 3006)) {
+	if (!data) {
+		return;
+	}
+	if (!data.isSuccess) {
 		await Swal.fire({ icon: 'error', title: `${data.message}`, width: 600 });
 		return;
 	}

@@ -30,6 +30,9 @@ const modifyAccount = async () => {
 	}
 
 	const data = await modifyAccountApi(nickname.value.value);
+	if (!data) {
+		return;
+	}
 	if (!data.isSuccess && data.code === 3003) {
 		nicknameField.value.message = setFormMessage(data.message, true);
 		nicknameField.value.focusInput();
@@ -58,6 +61,9 @@ const deleteAccount = async () => {
 	});
 	if (accept) {
 		const data = await deleteAccountApi();
+		if (!data) {
+			return;
+		}
 		if (!data.isSuccess) {
 			await Swal.fire({ icon: 'error', title: `${data.message}`, width: 600 });
 			return;
