@@ -71,7 +71,7 @@ public class BackgroundController {
 			@PathVariable Long userId,
 			@RequestParam("file") MultipartFile file) throws BaseException {
 		try {
-			backgroundService.insertLocalBackground(userId, file);
+			backgroundService.createLocalBackground(userId, file);
 			return new BaseResponse<>(SUCCESS);
 		} catch (Exception e) {
 			throw new BaseException(LOCAL_BACKGROUND_UPLOAD_ERROR);

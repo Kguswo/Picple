@@ -48,7 +48,7 @@ public class BackgroundServiceImpl implements BackgroundService {
 	// 수정 필요
 	@Override
 	@Transactional
-	public void insertAIBackground(Long userId, String prompt) throws BaseException {
+	public void createAIBackground(Long userId, String prompt) throws BaseException {
 		try {
 			// TODO: AI API를 사용하여 prompt에 적힌 이미지 생성
 			Background background = new Background("temp");
@@ -61,7 +61,7 @@ public class BackgroundServiceImpl implements BackgroundService {
 	// 수정 필요
 	@Override
 	@Transactional
-	public void insertLocalBackground(Long userId, MultipartFile file) throws BaseException {
+	public void createLocalBackground(Long userId, MultipartFile file) throws BaseException {
 		try {
 			// TODO: 파일 업로드 로직 구현
 			Background background = new Background("temp");
