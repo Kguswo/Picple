@@ -2,7 +2,6 @@ package com.ssafy.picple.domain.background.service;
 
 import static com.ssafy.picple.config.baseResponse.BaseResponseStatus.*;
 
-import java.io.IOException;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -38,17 +37,44 @@ public class OpenAIService {
 	}
 
 	/**
-	 * 프롬프트로 DALL-E에게 8비트로 된 배경 이미지를 요청 후,
-	 * AWS S3에 저장한 URL을 반환하는 메서드
+	 * 프롬프트로 DALL-E에게 8비트로 된 배경 사진 생성을 요청,
+	 * Base64와 PNG로 된 사진 이름을 반환하는 메서드
 	 *
 	 * @param prompt 8비트 배경 이미지 생성을 위해 입력 받은 프롬프트
+	 * @return 생성된 이미지의 S3 URL을 포함하는 문자열을 반환
 	 * @throws BaseException 예외 발생 시
 	 */
-	public String generateAndUploadBackgroundImage(Long userId, String prompt) throws BaseException {
+	public String[] createBackground(String prompt) throws BaseException {
+		try {
+			Mono<String> result = requestImageGeneration(prompt);
+
+			String base64Image = parseBackgroundImageResponse(result);
+			String fileName = generateFileName(); // 포맷을 PNG로 가정
+
+			return new String[] {base64Image, fileName};
+		} catch (Exception e) {
+			// 기타 모든 예외 처리
+			throw new BaseException(AI_BACKGROUND_GENERATION_ERROR);
+		}
+	}
+
+	/**
+	 * 요청된 프롬프트를 통해 DALL-E 모델로 커스텀 배경 사진을 생성하고
+	 * 생성된 사진의 Base64 인코딩 문자열을 반환하는 메서드
+	 *
+	 * @param prompt 배경 사진 생성을 위해 사용. 프롬프트가 빈 경우 예외 발생
+	 * @return 생성된 사진의 Base64 인코딩 문자열을 포함하는 Mono 객체 반환
+	 * @throws BaseException 예외 발생 시
+	 */
+	public Mono<String> requestImageGeneration(String prompt) throws BaseException {
+
+		// I/O 관련 오류 처리
+		if (prompt.isEmpty())
+			throw new BaseException(REQUEST_ERROR);
+
 		Mono<String> result = this.webClient.post()
 				.uri("/images/generations")
 				.contentType(MediaType.APPLICATION_JSON)
-				// TODO: 여러 줄 할 때 따옴표 3개로 하는 방식으로도 시도해보기
 				.bodyValue("""
 						{
 						  "model": "dall-e-3",
@@ -65,32 +91,39 @@ public class OpenAIService {
 						response -> response.bodyToMono(String.class).map(Exception::new))
 				.bodyToMono(String.class);
 
-		// block() 부분 문제 해결 필요
-		String responseBody = result.block();
+		return result;
+	}
+
+	/**
+	 * OpenAI API 응답을 파싱하는 메서드
+	 *
+	 * @param result OpenAI API의 응답 본문
+	 * @return Base64로 인코딩된 이미지 데이터
+	 * @throws BaseException 예외 발생 시
+	 */
+	private String parseBackgroundImageResponse(Mono<String> result) throws BaseException {
 		try {
-			// JSON 파싱 및 처리
+			// block() 부분 문제 해결 필요
+			String responseBody = result.block();
 			ObjectMapper mapper = new ObjectMapper();
 			AIBackgroundResponse openAIResponse = mapper.readValue(responseBody, AIBackgroundResponse.class);
-
-			String base64Image = openAIResponse.getData().get(0).getBase64Json();
-			String fileName = "backgrounds/8bit/" + UUID.randomUUID() + ".png"; // 이미지 포맷을 PNG로 가정
-
-			// Base64 인코딩된 이미지를 S3에 업로드
-			s3Service.uploadBase64ImageToS3(base64Image, fileName);
-
-			return base64Image;
-
+			return openAIResponse.getData().get(0).getBase64Json();
 		} catch (JsonProcessingException e) {
 			// JSON 파싱 오류 처리
 			throw new BaseException(AI_RESPONSE_JSON_PARSING_ERROR);
-
-		} catch (IOException e) {
-			// I/O 관련 오류 처리
-			throw new BaseException(REQUEST_ERROR);
-
 		} catch (Exception e) {
 			// 기타 모든 예외 처리
 			throw new BaseException(AI_BACKGROUND_GENERATION_ERROR);
 		}
 	}
+
+	/**
+	 * 파일 이름 생성 메서드
+	 *
+	 * @return 생성된 파일 이름
+	 */
+	private String generateFileName() {
+		return "backgrounds/8bit/" + UUID.randomUUID() + ".png"; // 이미지 포맷을 PNG로 가정
+	}
+
 }
