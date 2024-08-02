@@ -3,13 +3,14 @@ package com.ssafy.picple.domain.user.controller;
 import com.ssafy.picple.config.baseResponse.BaseException;
 import com.ssafy.picple.config.baseResponse.BaseResponse;
 import com.ssafy.picple.config.baseResponse.BaseResponseStatus;
-import com.ssafy.picple.domain.user.dto.request.EmailCheckRequest;
-import com.ssafy.picple.domain.user.dto.request.EmailRequest;
-import com.ssafy.picple.domain.user.dto.request.LoginRequest;
-import com.ssafy.picple.domain.user.dto.response.Token;
+import com.ssafy.picple.domain.user.dto.request.*;
+import com.ssafy.picple.domain.user.dto.response.ModifyConfirmResponse;
+import com.ssafy.picple.domain.user.dto.response.LoginResponse;
+import com.ssafy.picple.domain.user.dto.response.UserInfoResponse;
 import com.ssafy.picple.domain.user.entity.User;
 import com.ssafy.picple.domain.user.service.EmailService;
 import com.ssafy.picple.domain.user.service.UserService;
+import com.ssafy.picple.util.JWTUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -19,11 +20,12 @@ import static com.ssafy.picple.config.baseResponse.BaseResponseStatus.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/user")
+@RequestMapping("/users")
 public class UserController {
 
     private final UserService userService;
     private final EmailService emailService;
+    private final JWTUtil jwtUtil;
 
     /**
      * 로그인
@@ -32,7 +34,7 @@ public class UserController {
      * @throws BaseException
      */
     @PostMapping("/login")
-    public BaseResponse<Token> login(@RequestBody LoginRequest loginRequest) throws BaseException {
+    public BaseResponse<LoginResponse> login(@RequestBody LoginRequest loginRequest) throws BaseException {
         return new BaseResponse<>(userService.login(loginRequest));
     }
 
@@ -47,13 +49,18 @@ public class UserController {
         if (userService.signUp(user) != null) {
             return new BaseResponse<>(SUCCESS);
         } else {
-            System.out.println("여기서 에러 발생");
             return new BaseResponse<>(FAILED_USER_SIGNUP);
         }
     }
 
+    @GetMapping("/info")
+    public BaseResponse<UserInfoResponse> getUserInfo(HttpServletRequest request) throws BaseException {
+        Long userId = (Long) request.getAttribute("userId");
+        return new BaseResponse<>(userService.getUserInfo(userId));
+    }
+
     /**
-     * email 전송 (수정 필요)
+     * email 전송 (수정 필요 - PORT(587)가 열려있지 않음)
      * @param emailDto
      * @return
      * @throws BaseException
@@ -82,6 +89,60 @@ public class UserController {
     }
 
     /**
+     * 닉네임 수정
+     * @param request
+     * @param modifyNicknameRequest
+     * @return
+     * @throws BaseException
+     */
+    @PatchMapping("/modify/nickname")
+    public BaseResponse<ModifyConfirmResponse> modifyUserNickname(HttpServletRequest request,
+                                                   @RequestBody ModifyNicknameRequest modifyNicknameRequest) throws BaseException {
+        Long userId = (Long) request.getAttribute("userId");
+        return new BaseResponse<>(userService.modifyUserNickname(userId, modifyNicknameRequest.getNickname()));
+    }
+
+    /**
+     * 비밀번호 변경
+     * @param request
+     * @param modifyPasswordRequest
+     * @return
+     * @throws BaseException
+     */
+    @PatchMapping("/modify/password")
+    public BaseResponse<ModifyConfirmResponse> modifyUserPassword(HttpServletRequest request,
+                                                                  @RequestBody ModifyPasswordRequest modifyPasswordRequest) throws BaseException {
+        Long userId = (Long) request.getAttribute("userId");
+        return new BaseResponse<>(userService.modifyUserPassword(userId, modifyPasswordRequest));
+    }
+
+    /**
+     * Password 재설정 (비밀번호 찾기)
+     * @param resetPasswordRequest
+     * @return
+     * @throws BaseException
+     */
+    @PostMapping("/reset-password")
+    public BaseResponse<BaseResponseStatus> resetPassword(@RequestBody ResetPasswordRequest resetPasswordRequest) throws BaseException {
+        return new BaseResponse<>(userService.resetPassword(
+                resetPasswordRequest.getEmail(),
+                resetPasswordRequest.getPassword()
+        ));
+    }
+
+    /**
+     * 로그아웃
+     * @param request
+     * @return
+     * @throws BaseException
+     */
+    @PostMapping("/logout")
+    public BaseResponse<BaseResponseStatus> logout(HttpServletRequest request) throws BaseException {
+        jwtUtil.logout(request.getHeader("X-ACCESS-TOKEN"));
+        return new BaseResponse<>(SUCCESS);
+    }
+
+    /**
      * 회원 탈퇴
      * @param
      * @return
@@ -99,7 +160,7 @@ public class UserController {
      * @return
      * @throws BaseException
      */
-    @PostMapping("/testEmail")
+    @PostMapping("/test-email")
     public BaseResponse<?> checkEmailTemp(@RequestBody @Valid EmailRequest emailRequest) throws BaseException {
         if (emailRequest.getEmail() == null || emailRequest.getEmail().trim().isEmpty()) {
             throw new BaseException(USER_EMAIL_EMPTY);
