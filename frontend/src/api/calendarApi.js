@@ -1,9 +1,9 @@
-import { instance, axiosGet, axiosPost, axiosDelete } from '@/api/baseApi';
+import { instance } from '@/api/baseApi';
 
 const calendarsBaseUrl = instance.defaults.baseURL + '/calendars';
 
-const calendarMonthlyCountApi = async (year, month, endDate) => {
-	return await axiosGet(
+const calendarMonthlyCountApi = (year, month, endDate) => {
+	return instance.get(
 		`${calendarsBaseUrl}/monthly-counts?monthlyStartDate=${year}-${String(month).padStart(
 			2,
 			'0',
@@ -11,20 +11,20 @@ const calendarMonthlyCountApi = async (year, month, endDate) => {
 	);
 };
 
-const calendarDailyListApi = async (createdAt) => {
-	return await axiosGet(`${calendarsBaseUrl}/daily?createdAt=${createdAt}`);
+const calendarDailyListApi = (createdAt) => {
+	return instance.get(`${calendarsBaseUrl}/daily?createdAt=${createdAt}`);
 };
 
-const calendarShareApi = async (calendarId) => {
-	return await axiosPost(`${calendarsBaseUrl}/share/${calendarId}`);
+const calendarShareApi = (calendarId) => {
+	return instance.post(`${calendarsBaseUrl}/share/${calendarId}`);
 };
 
-const calendarContentApi = async (calendarId, content) => {
-	return await axiosPost(`${calendarsBaseUrl}/${calendarId}?content=${content}`);
+const calendarContentApi = (calendarId, content) => {
+	return instance.post(`${calendarsBaseUrl}/${calendarId}?content=${content}`);
 };
 
-const calendarDeleteApi = async (calendarId) => {
-	return await axiosDelete(`${calendarsBaseUrl}/${calendarId}`);
+const calendarDeleteApi = (calendarId) => {
+	return instance.delete(`${calendarsBaseUrl}/${calendarId}`);
 };
 
 export { calendarMonthlyCountApi, calendarDailyListApi, calendarShareApi, calendarContentApi, calendarDeleteApi };

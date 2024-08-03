@@ -6,7 +6,6 @@ import { onMounted, ref } from 'vue';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { calendarMonthlyCountApi } from '@/api/calendarApi';
-import Swal from 'sweetalert2';
 
 const monthlyCount = ref([]);
 const attributes = ref([]);
@@ -23,15 +22,13 @@ const getMonthlyCount = async () => {
 	const month = now.getMonth() + 1;
 	const endDate = new Date(year, month, 0).getDate();
 
-	const data = await calendarMonthlyCountApi(year, month, endDate);
-	if (!data) {
-		return;
-	}
-	if (!data.isSuccess) {
-		await Swal.fire({ icon: 'error', title: `${data.message}`, width: 600 });
-		return;
-	}
-	monthlyCount.value = data.result;
+	try {
+		const data = await calendarMonthlyCountApi(year, month, endDate);
+		if (!data) {
+			return;
+		}
+		monthlyCount.value = data.result;
+	} catch (error) {}
 };
 
 const updateAttributes = () => {

@@ -29,22 +29,15 @@ const modifyAccount = async () => {
 		return;
 	}
 
-	const data = await modifyAccountApi(nickname.value.value);
-	if (!data) {
-		return;
-	}
-	if (!data.isSuccess && data.code === 3003) {
-		nicknameField.value.message = setFormMessage(data.message, true);
-		nicknameField.value.focusInput();
-		return;
-	}
-	if (!data.isSuccess) {
-		await Swal.fire({ icon: 'error', title: `${data.message}`, width: 600 });
-		return;
-	}
-	userStore.changeNickname(nickname.value.value);
-	await Swal.fire({ icon: 'success', title: '닉네임이 변경되었습니다.', width: 600 });
-	router.push({ name: 'main' });
+	try {
+		const data = await modifyAccountApi(nickname.value.value);
+		if (!data) {
+			return;
+		}
+		userStore.changeNickname(nickname.value.value);
+		await Swal.fire({ icon: 'success', title: '닉네임이 변경되었습니다.', width: 600 });
+		router.push({ name: 'main' });
+	} catch (error) {}
 };
 
 const deleteAccount = async () => {

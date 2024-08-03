@@ -1,41 +1,41 @@
-import { instance, axiosPost, axiosPatch, axiosDelete } from '@/api/baseApi';
+import { instance } from '@/api/baseApi';
 
 const usersBaseUrl = instance.defaults.baseURL + '/users';
 
-const loginApi = async (email, password) => {
-	return await axiosPost(`${usersBaseUrl}/login`, { email, password });
+const loginApi = (email, password) => {
+	return instance.post(`${usersBaseUrl}/login`, { email, password });
 };
 
-const signupApi = async (email, password, nickname) => {
-	return await axiosPost(`${usersBaseUrl}/sign-up`, {
+const signupApi = (email, password, nickname) => {
+	return instance.post(`${usersBaseUrl}/sign-up`, {
 		email,
 		password,
 		nickname,
 	});
 };
 
-const sendAuthNumberApi = async (email) => {
-	return await axiosPost(`${usersBaseUrl}/mail`, { email });
+const sendAuthNumberApi = (email) => {
+	return instance.post(`${usersBaseUrl}/mail`, { email });
 };
 
-const verifyAuthNumberApi = async (email, authNumber) => {
-	return await axiosPost(`${usersBaseUrl}/mailcheck`, { email, authNumber });
+const verifyAuthNumberApi = (email, authNumber) => {
+	return instance.post(`${usersBaseUrl}/mailcheck`, { email, authNumber });
 };
 
-const modifyAccountApi = async (nickname) => {
-	return await axiosPatch(`${usersBaseUrl}/modify/nickname`, { nickname });
+const modifyAccountApi = (nickname) => {
+	return instance.patch(`${usersBaseUrl}/modify/nickname`, { nickname });
 };
 
-const modifyPasswordApi = async (oldPassword, newPassword) => {
-	return await axiosPatch(`${usersBaseUrl}/modify/password`, { oldPassword, newPassword });
+const modifyPasswordApi = (oldPassword, newPassword) => {
+	return instance.patch(`${usersBaseUrl}/modify/password`, { oldPassword, newPassword });
 };
 
-const logoutApi = async () => {
-	return await axiosPost(`${usersBaseUrl}/logout`);
+const logoutApi = () => {
+	return instance.post(`${usersBaseUrl}/logout`);
 };
 
-const deleteAccountApi = async () => {
-	return await axiosDelete(`${usersBaseUrl}`);
+const deleteAccountApi = () => {
+	return instance.delete(`${usersBaseUrl}`);
 };
 
 export {
