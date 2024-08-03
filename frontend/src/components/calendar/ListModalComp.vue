@@ -1,6 +1,7 @@
 <script setup>
-import { defineProps, defineEmits, watch } from 'vue';
+import { defineProps, defineEmits, watch, ref } from 'vue';
 import useCalendarModal from '@/composables/calendarModal';
+import { calendarDailyListApi } from '@/api/calendarApi';
 
 const props = defineProps({
 	visible: Boolean,
@@ -9,10 +10,29 @@ const props = defineProps({
 
 const emits = defineEmits(['close']);
 
+const dailyList = ref([]);
+
+const getDailyList = async () => {
+	try {
+		const data = await calendarDailyListApi(props.selectedDate);
+		if (!data) {
+			return;
+		}
+		dailyList.value = data.result;
+	} catch (error) {}
+};
+
+watch(
+	() => props.selectedDate,
+	() => getDailyList(),
+);
+
+const close = () => {
+	emits('close');
+};
+
 const {
-	photos,
 	currentPhotoExpanded,
-	close,
 	prevPhoto,
 	nextPhoto,
 	getPrevPhoto,
@@ -20,17 +40,7 @@ const {
 	getNextPhoto,
 	toggleCurrentPhoto,
 	getPhotoClass,
-	updatePhotos,
-} = useCalendarModal(props, emits);
-
-watch(
-	() => props.selectedDate,
-	(newDate) => {
-		if (newDate) {
-			updatePhotos(newDate);
-		}
-	},
-);
+} = useCalendarModal(dailyList);
 </script>
 
 <template>
@@ -59,12 +69,12 @@ watch(
 			</div>
 			<div class="modal-body">
 				<div
-					v-if="photos.length > 0"
+					v-if="dailyList.length > 0"
 					class="photo-container"
 				>
 					<div
 						class="photo prev-photo"
-						v-if="photos.length > 2"
+						v-if="dailyList.length > 2"
 						:class="getPhotoClass(getPrevPhoto())"
 					>
 						<div
@@ -72,7 +82,7 @@ watch(
 							:class="getPhotoClass(getPrevPhoto())"
 						>
 							<img
-								:src="getPrevPhoto().src"
+								:src="getPrevPhoto().photoUrl"
 								alt="Previous Photo"
 							/>
 						</div>
@@ -87,7 +97,7 @@ watch(
 							:class="getPhotoClass(getCurrentPhoto())"
 						>
 							<img
-								:src="getCurrentPhoto().src"
+								:src="getCurrentPhoto().photoUrl"
 								alt="Current Photo"
 							/>
 							<button
@@ -103,7 +113,7 @@ watch(
 					</div>
 					<div
 						class="photo next-photo"
-						v-if="photos.length > 1"
+						v-if="dailyList.length > 1"
 						:class="getPhotoClass(getNextPhoto())"
 					>
 						<div
@@ -111,7 +121,7 @@ watch(
 							:class="getPhotoClass(getNextPhoto())"
 						>
 							<img
-								:src="getNextPhoto().src"
+								:src="getNextPhoto().photoUrl"
 								alt="Next Photo"
 							/>
 						</div>
@@ -141,9 +151,9 @@ watch(
 				</div>
 				<div
 					v-else
-					class="no-photos"
+					class="no-dailyList"
 				>
-					해당 날짜엔 이미지가 없습니다.
+					해당 날짜에는 사진이 없습니다.
 				</div>
 			</div>
 		</div>
@@ -153,7 +163,7 @@ watch(
 <style scoped>
 @import '@/assets/css/calendarModal.css';
 
-.no-photos {
+.no-dailyList {
 	display: flex;
 	justify-content: center;
 	align-items: center;
