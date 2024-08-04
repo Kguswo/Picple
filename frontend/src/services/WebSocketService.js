@@ -180,6 +180,13 @@ class WebSocketService {
       this.handlers["background_changed"](message);
     }
   }
+
+  handleBoothCreated(message) {
+    this.boothId = message.boothId.slice(0, 10);
+    if (this.handlers["booth_created"]) {
+      this.handlers["booth_created"](message);
+    }
+  }
 }
 
 export default new WebSocketService();
