@@ -1,6 +1,6 @@
 <script setup>
 import { defineProps, defineEmits, watch, ref } from 'vue';
-import { calendarContentApi, calendarDailyListApi } from '@/api/calendarApi';
+import { calendarContentApi, calendarDailyListApi, calendarDeleteApi, calendarShareApi } from '@/api/calendarApi';
 import Swal from 'sweetalert2';
 
 const props = defineProps({
@@ -15,9 +15,10 @@ const currentIndex = ref(0);
 const descriptionField = ref(null);
 const description = ref('');
 const currentPhoto = ref(null);
+const isDropdownOpen = ref(false);
 
 watch(
-	() => props.selectedDate,
+	() => props.visible,
 	() => getDailyList(),
 );
 
@@ -59,7 +60,32 @@ const nextPhoto = () => {
 	currentIndex.value = (currentIndex.value + 1) % dailyList.value.length;
 };
 
+const toggleDropdown = () => {
+	isDropdownOpen.value = !isDropdownOpen.value;
+};
+
+const downloadPhoto = () => {};
+
+const sharePhoto = async () => {
+	try {
+		const data = await calendarShareApi(currentPhoto.value.id);
+		if (!data) {
+			return;
+		}
+	} catch (error) {}
+};
+
+const deletePhoto = async () => {
+	try {
+		const data = await calendarDeleteApi(currentPhoto.value.id);
+		if (!data) {
+			return;
+		}
+	} catch (error) {}
+};
+
 const closeModal = () => {
+	isDropdownOpen.value = false;
 	emit('close');
 };
 </script>
@@ -71,14 +97,52 @@ const closeModal = () => {
 	>
 		<div class="modal-content">
 			<div class="modal-header">
-				<div class="header-title">
-					{{ selectedDate }}
-				</div>
 				<span
 					class="close"
 					@click="closeModal"
 					>&times;</span
 				>
+				<div class="header-title">
+					{{ selectedDate }}
+				</div>
+				<div class="dropdown">
+					<svg
+						class="dropdown-icon"
+						xmlns="@/assets/icon/three-dots-vertical.svg"
+						width="30"
+						height="30"
+						fill="black"
+						viewBox="0 0 16 16"
+						@click="toggleDropdown"
+					>
+						<path
+							d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0"
+						/>
+					</svg>
+					<div
+						class="dropdown-content"
+						:class="{ 'dropdown-show': isDropdownOpen }"
+					>
+						<button
+							class="navbar-button"
+							@click="downloadPhoto"
+						>
+							다운로드
+						</button>
+						<button
+							class="navbar-button"
+							@click="sharePhoto"
+						>
+							게시판에 공유하기
+						</button>
+						<button
+							class="navbar-button"
+							@click="deletePhoto"
+						>
+							삭제하기
+						</button>
+					</div>
+				</div>
 			</div>
 			<div class="modal-body">
 				<div
@@ -86,7 +150,7 @@ const closeModal = () => {
 					class="photo-container"
 				>
 					<button
-						class="nav-button prev-button"
+						class="nav-button"
 						@click="prevPhoto"
 					>
 						<img
@@ -94,7 +158,7 @@ const closeModal = () => {
 							alt="Previous"
 						/>
 					</button>
-					<div class="current-photo">
+					<div class="modal-img">
 						<img
 							:src="currentPhoto.photoUrl"
 							alt="사진"
@@ -120,7 +184,7 @@ const closeModal = () => {
 						</form>
 					</div>
 					<button
-						class="nav-button next-button"
+						class="nav-button"
 						@click="nextPhoto"
 					>
 						<img
@@ -141,36 +205,7 @@ const closeModal = () => {
 </template>
 
 <style scoped>
-.modal {
-	position: fixed;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
-	background: rgba(0, 0, 0, 0.5);
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	z-index: 500;
-}
-
-.modal-content {
-	padding: 20px;
-	background-color: #fefefe;
-	margin: 10vh auto;
-	border: 1px solid #888;
-	width: 50%;
-	height: 80%;
-	border-radius: 10px;
-}
-
-.modal-header {
-	height: 10%;
-	padding-bottom: 10px;
-	border-bottom: 4px solid black;
-	display: flex;
-	align-items: center;
-}
+@import '@/assets/css/modal.css';
 
 .header-title {
 	width: 100%;
@@ -179,68 +214,26 @@ const closeModal = () => {
 	text-align: center;
 }
 
-.close {
-	color: #aaa;
-	float: right;
-	font-size: 40px;
-	line-height: 28px;
-	font-weight: bold;
-	height: 28px;
-}
-
-.close:hover,
-.close:focus {
-	color: black;
-	text-decoration: none;
-	cursor: pointer;
-}
-
-.modal-body {
-	height: 90%;
-}
-
-.photo-container {
+.description-container {
 	width: 100%;
-	height: 100%;
+	margin-top: 20px;
+	position: relative;
 	display: flex;
+	justify-content: center;
 	align-items: center;
-	justify-content: space-between;
 }
 
-.current-photo {
-	height: 90%;
-	display: flex;
-	align-items: center;
-	text-align: center;
-	justify-content: center;
-	flex-wrap: wrap;
+.description {
+	width: 100%;
+	padding: 10px;
+	border: none;
+	border-bottom: 1px solid black;
+	resize: none;
+}
 
-	img {
-		height: 90%;
-		width: 95%;
-	}
-
-	.description-container {
-		width: 100%;
-		margin-top: 20px;
-		position: relative;
-		display: flex;
-		justify-content: center;
-		align-items: center;
-	}
-
-	.description {
-		width: calc(100% - 30px); /* 아이콘 공간을 위해 조정 */
-		padding: 10px;
-		border: none;
-		border-bottom: 1px solid black;
-		resize: none;
-	}
-
-	.description:focus {
-		outline: none;
-		border-bottom: 2px solid black;
-	}
+.description:focus {
+	outline: none;
+	border-bottom: 2px solid black;
 }
 
 .nav-button {
@@ -249,7 +242,7 @@ const closeModal = () => {
 	border: none;
 
 	img {
-		height: 50px;
+		height: 40px;
 		cursor: pointer;
 
 		&:active {
