@@ -6,7 +6,7 @@ import { onMounted, ref } from 'vue';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { calendarMonthlyCountApi } from '@/api/calendarApi';
-import { formatDate } from '@/composables/calendarModal';
+import { formatDate } from '@/composables/date';
 
 const monthlyCount = ref({});
 const attributes = ref([]);

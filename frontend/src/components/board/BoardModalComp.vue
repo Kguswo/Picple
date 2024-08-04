@@ -99,11 +99,8 @@ const formatDate = (dateString) => {
 	background-color: #fefefe;
 	margin: 10vh auto;
 	border: 1px solid #888;
-	width: 40%;
-	max-width: 60%;
-	height: 60%;
-	max-height: 80vh;
-	overflow-y: auto;
+	width: 50%;
+	height: 80%;
 	border-radius: 10px;
 }
 
@@ -130,7 +127,7 @@ const formatDate = (dateString) => {
 .close {
 	color: #aaa;
 	float: right;
-	font-size: 28px;
+	font-size: 40px;
 	line-height: 28px;
 	font-weight: bold;
 	height: 28px;

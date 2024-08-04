@@ -109,7 +109,7 @@ const deleteBoard = async () => {
 <style scoped>
 .photo-card {
 	margin: 5px;
-	height: 80%;
+	height: 70%;
 	width: 23%;
 	border: 2px solid gray;
 	background-color: white;
