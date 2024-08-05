@@ -1,14 +1,29 @@
 <script setup>
-import { ref } from 'vue';
+import { onMounted, ref } from 'vue';
 
 const props = defineProps({
 	board: Object,
-	isOpen: Boolean,
 });
 
 const emit = defineEmits(['close', 'delete']);
 
 const isDropdownOpen = ref(false);
+const modalDiv = ref(null);
+
+onMounted(() => {
+	modalDiv.value.focus();
+});
+
+const handleKeyup = (event) => {
+	if (event.key === 'Escape') {
+		closeModal();
+		return;
+	}
+};
+
+const deleteBoard = () => {
+	emit('delete');
+};
 
 const closeModal = () => {
 	isDropdownOpen.value = false;
@@ -17,10 +32,6 @@ const closeModal = () => {
 
 const toggleDropdown = () => {
 	isDropdownOpen.value = !isDropdownOpen.value;
-};
-
-const deleteBoard = () => {
-	emit('delete');
 };
 
 const formatDate = (dateString) => {
@@ -38,7 +49,9 @@ const formatDate = (dateString) => {
 <template>
 	<div
 		class="modal"
-		v-if="isOpen"
+		ref="modalDiv"
+		@keyup="handleKeyup"
+		tabindex="0"
 	>
 		<div class="modal-content">
 			<div class="modal-header">
@@ -49,6 +62,8 @@ const formatDate = (dateString) => {
 				>
 				<div class="dropdown">
 					<svg
+						@blur.stop="isDropdownOpen = false"
+						@keyup.stop="isDropdownOpen = false"
 						class="dropdown-icon"
 						xmlns="@/assets/icon/three-dots-vertical.svg"
 						width="30"

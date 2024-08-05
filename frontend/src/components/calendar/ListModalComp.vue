@@ -2,6 +2,7 @@
 import { defineProps, defineEmits, watch, ref, onMounted } from 'vue';
 import { calendarContentApi, calendarDailyListApi, calendarDeleteApi, calendarShareApi } from '@/api/calendarApi';
 import Swal from 'sweetalert2';
+import axios from 'axios';
 
 const props = defineProps({
 	selectedDate: String,
@@ -15,13 +16,13 @@ const descriptionField = ref(null);
 const description = ref('');
 const currentPhoto = ref(null);
 const isDropdownOpen = ref(false);
-const modalBody = ref(null);
 const leftButton = ref(null);
 const rightButton = ref(null);
+const modalDiv = ref(null);
 
 onMounted(() => {
 	getDailyList();
-	modalBody.value.focus();
+	modalDiv.value.focus();
 });
 
 watch(currentIndex, () => getCurrentPhoto());
@@ -78,29 +79,28 @@ const toggleDropdown = () => {
 	isDropdownOpen.value = !isDropdownOpen.value;
 };
 
-const downloadPhoto = () => {};
-
-const sharePhoto = async () => {
+const downloadPhoto = async () => {
 	try {
-		const { value: accept } = await Swal.fire({
-			title: '사진을 게시판에 공유하시겠습니까?',
-			confirmButtonText: `Continue&nbsp;<i class="fa fa-arrow-right"></i>`,
-			showCancelButton: true,
-			width: 700,
-		});
-		if (accept) {
-			const data = await calendarShareApi(currentPhoto.value.id);
-			if (!data) {
-				return;
-			}
-			await Swal.fire({
-				icon: 'success',
-				title: '공유가 완료되었습니다.',
-				width: 600,
-			});
-		}
-	} catch (error) {}
+		const response = await axios.get(
+			'https://picple.s3.ap-northeast-2.amazonaws.com/%ED%86%A0%ED%86%A0%EB%A1%9C.jpg',
+			{
+				responseType: 'blob',
+			},
+		);
+		const url = window.URL.createObjectURL(new Blob([response.data]));
+		const link = document.createElement('a');
+		link.href = url;
+		link.setAttribute('download', '다운로드.jpg');
+		document.body.appendChild(link);
+		link.click();
+		document.body.removeChild(link);
+		window.URL.revokeObjectURL(url);
+	} catch (error) {
+		console.log(error);
+	}
 };
+
+const sharePhoto = async () => {};
 
 const deletePhoto = async () => {
 	try {
@@ -128,7 +128,6 @@ const deletePhoto = async () => {
 };
 
 const handleKeyup = (event) => {
-	event.stopPropagation();
 	if (dailyList.value.length === 0) {
 		return;
 	}
@@ -140,6 +139,10 @@ const handleKeyup = (event) => {
 		rightButton.value.click();
 		return;
 	}
+	if (event.key === 'Escape') {
+		closeModal();
+		return;
+	}
 };
 
 const closeModal = () => {
@@ -149,7 +152,12 @@ const closeModal = () => {
 </script>
 
 <template>
-	<div class="modal">
+	<div
+		class="modal"
+		ref="modalDiv"
+		@keyup="handleKeyup"
+		tabindex="0"
+	>
 		<div class="modal-content">
 			<div class="modal-header">
 				<span
@@ -160,15 +168,19 @@ const closeModal = () => {
 				<div class="header-title">
 					{{ selectedDate }}
 				</div>
-				<div class="dropdown">
+				<div
+					class="dropdown"
+					@click="toggleDropdown"
+				>
 					<svg
+						@blur.stop="isDropdownOpen = false"
+						@keyup.stop="isDropdownOpen = false"
 						class="dropdown-icon"
 						xmlns="@/assets/icon/three-dots-vertical.svg"
 						width="30"
 						height="30"
 						fill="black"
 						viewBox="0 0 16 16"
-						@click="toggleDropdown"
 					>
 						<path
 							d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0"
@@ -199,12 +211,7 @@ const closeModal = () => {
 					</div>
 				</div>
 			</div>
-			<div
-				class="modal-body"
-				@keyup="handleKeyup"
-				ref="modalBody"
-				tabindex="0"
-			>
+			<div class="modal-body">
 				<div
 					v-if="dailyList.length > 0"
 					class="photo-container"
@@ -332,9 +339,5 @@ const closeModal = () => {
 	height: 100%;
 	font-size: 1.5rem;
 	color: red;
-}
-
-.modal-body:focus {
-	outline: none;
 }
 </style>

@@ -4,7 +4,13 @@
 
 	font-family: 'DNFBitBitv2', sans-serif;
 
-	cursor: url('@/assets/img/app/pointer.png') 5 5, auto;
+	cursor:
+		url('@/assets/img/app/pointer.png') 5 5,
+		auto;
+
+	*:focus {
+		outline: none;
+	}
 }
 
 @font-face {
