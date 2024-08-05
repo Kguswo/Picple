@@ -5,12 +5,8 @@ import ListModal from '@/components/calendar/ListModalComp.vue';
 import { onMounted, ref } from 'vue';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
-import { calendarDeleteApi, calendarMonthlyCountApi } from '@/api/calendarApi';
+import { calendarMonthlyCountApi } from '@/api/calendarApi';
 import { formatDate } from '@/composables/date';
-import Swal from 'sweetalert2';
-import { useRouter } from 'vue-router';
-
-const router = useRouter();
 
 const monthlyCount = ref({});
 const attributes = ref([]);
@@ -85,29 +81,6 @@ const closeModal = () => {
 	isModalOpen.value = false;
 };
 
-const deletePhoto = async (calendarId) => {
-	try {
-		const { value: accept } = await Swal.fire({
-			title: '사진을 정말 삭제하시겠습니까?',
-			confirmButtonText: `Continue&nbsp;<i class="fa fa-arrow-right"></i>`,
-			showCancelButton: true,
-			width: 700,
-		});
-		if (accept) {
-			const data = await calendarDeleteApi(calendarId);
-			if (!data) {
-				return;
-			}
-			await Swal.fire({
-				icon: 'success',
-				title: '삭제가 완료되었습니다.',
-				width: 600,
-			});
-			router.go(0);
-		}
-	} catch (error) {}
-};
-
 const formatDatePopOver = (date) => {
 	return format(date, 'M월 d일, EEEE', { locale: ko });
 };
@@ -151,7 +124,6 @@ const formatDatePopOver = (date) => {
 			:visible="isModalOpen"
 			:selectedDate="selectedDate"
 			@close="closeModal"
-			@delete="deletePhoto"
 		/>
 	</Page>
 </template>

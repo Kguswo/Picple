@@ -8,7 +8,7 @@ const props = defineProps({
 	selectedDate: String,
 });
 
-const emit = defineEmits(['close', 'delete']);
+const emit = defineEmits(['close']);
 
 const dailyList = ref([]);
 const currentIndex = ref(0);
@@ -52,16 +52,24 @@ const saveContent = async () => {
 };
 
 const getCurrentPhoto = () => {
-	currentPhoto.value = dailyList.value[currentIndex.value];
-	description.value = currentPhoto.value.content;
+	if (dailyList.value.length > 0) {
+		currentPhoto.value = dailyList.value[currentIndex.value];
+		description.value = currentPhoto.value.content;
+	}
 };
 
 const prevPhoto = () => {
-	currentIndex.value = (currentIndex.value - 1 + dailyList.value.length) % dailyList.value.length;
+	isDropdownOpen.value = false;
+	if (dailyList.value.length > 0) {
+		currentIndex.value = (currentIndex.value - 1 + dailyList.value.length) % dailyList.value.length;
+	}
 };
 
 const nextPhoto = () => {
-	currentIndex.value = (currentIndex.value + 1) % dailyList.value.length;
+	isDropdownOpen.value = false;
+	if (dailyList.value.length > 0) {
+		currentIndex.value = (currentIndex.value + 1) % dailyList.value.length;
+	}
 };
 
 const toggleDropdown = () => {
@@ -93,8 +101,28 @@ const sharePhoto = async () => {
 };
 
 const deletePhoto = async () => {
-	isDropdownOpen.value = false;
-	emit('delete', currentPhoto.value.id);
+	try {
+		const { value: accept } = await Swal.fire({
+			title: '사진을 정말 삭제하시겠습니까?',
+			confirmButtonText: `Continue&nbsp;<i class="fa fa-arrow-right"></i>`,
+			showCancelButton: true,
+			width: 700,
+		});
+		if (accept) {
+			const data = await calendarDeleteApi(currentPhoto.value.id);
+			if (!data) {
+				return;
+			}
+			await Swal.fire({
+				icon: 'success',
+				title: '삭제가 완료되었습니다.',
+				width: 600,
+			});
+			dailyList.value.splice(currentIndex.value--, 1);
+			nextPhoto();
+			getCurrentPhoto();
+		}
+	} catch (error) {}
 };
 
 const closeModal = () => {
