@@ -10,6 +10,15 @@ import lombok.NoArgsConstructor;
 public class SignalMessage {
     private String type;
     private String boothId;
-    private String targetSessionId;
+    private String sender;
+    private String recipient;
     private Object data;
+
+    // 추가 생성자
+    public SignalMessage(String type, String boothId, String sender, Object data) {
+        this.type = type;
+        this.boothId = boothId;
+        this.sender = sender;
+        this.data = data;
+    }
 }

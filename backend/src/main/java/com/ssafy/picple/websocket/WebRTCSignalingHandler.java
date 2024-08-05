@@ -8,8 +8,10 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 @Component
 public class WebRTCSignalingHandler extends TextWebSocketHandler {
@@ -27,27 +29,23 @@ public class WebRTCSignalingHandler extends TextWebSocketHandler {
 
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
-        String payload = message.getPayload();
-        SignalMessage signalMessage = objectMapper.readValue(payload, SignalMessage.class);
-
-        String type = signalMessage.getType();
-        String boothId = signalMessage.getBoothId();
+        SignalMessage signalMessage = objectMapper.readValue(message.getPayload(), SignalMessage.class);
         String sessionId = session.getId();
 
-        switch (type) {
+        switch (signalMessage.getType()) {
             case "join":
-                handleJoinBooth(session, boothId);
+                handleJoinBooth(session, signalMessage.getBoothId());
                 break;
             case "offer":
             case "answer":
             case "ice-candidate":
-                forwardMessage(boothId, sessionId, payload);
+                forwardMessage(signalMessage.getBoothId(), sessionId, signalMessage);
                 break;
             case "leave":
                 handleLeaveBooth(session);
                 break;
             default:
-                System.out.println("Unknown message type: " + type);
+                System.out.println("Unknown message type: " + signalMessage.getType());
         }
     }
 
@@ -71,6 +69,15 @@ public class WebRTCSignalingHandler extends TextWebSocketHandler {
     private void handleJoinBooth(WebSocketSession session, String boothId) throws IOException {
         String sessionId = session.getId();
         sessionToBooth.put(sessionId, boothId);
+
+        // 새로운 참가자에게 기존 참가자 목록 전송
+        List<String> existingParticipants = sessionToBooth.entrySet().stream()
+                .filter(entry -> entry.getValue().equals(boothId) && !entry.getKey().equals(sessionId))
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toList());
+
+        SignalMessage participantListMessage = new SignalMessage("participant-list", boothId, sessionId, existingParticipants);
+        session.sendMessage(new TextMessage(objectMapper.writeValueAsString(participantListMessage)));
 
         // 같은 부스에 있는 다른 참가자들에게 새 참가자 알림
         for (Map.Entry<String, String> entry : sessionToBooth.entrySet()) {
@@ -112,19 +119,12 @@ public class WebRTCSignalingHandler extends TextWebSocketHandler {
         System.out.println("Booth leave 완료: " + sessionId + " -> " + boothId);
     }
 
-    private void forwardMessage(String boothId, String senderSessionId, String message) throws IOException {
-        for (Map.Entry<String, String> entry : sessionToBooth.entrySet()) {
-            if (entry.getValue().equals(boothId) && !entry.getKey().equals(senderSessionId)) {
-                WebSocketSession peerSession = sessions.get(entry.getKey());
-                if (peerSession != null && peerSession.isOpen()) {
-                    try {
-                        peerSession.sendMessage(new TextMessage(message));
-                    } catch (IOException e) {
-                        System.err.println("Error forwarding message: " + e.getMessage());
-                    }
-                }
-            }
+    private void forwardMessage(String boothId, String senderSessionId, SignalMessage message) throws IOException {
+        String recipientSessionId = message.getRecipient();
+        WebSocketSession recipientSession = sessions.get(recipientSessionId);
+        if (recipientSession != null && recipientSession.isOpen()) {
+            message.setSender(senderSessionId);
+            recipientSession.sendMessage(new TextMessage(objectMapper.writeValueAsString(message)));
         }
-        System.out.println("Message forwarded from: " + senderSessionId + " to booth: " + boothId);
     }
 }
