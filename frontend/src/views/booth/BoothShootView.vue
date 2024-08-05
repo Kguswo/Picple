@@ -1,448 +1,434 @@
 <script setup>
-import WhiteBoardComp from '@/components/common/WhiteBoardComp.vue';
-import BoothBack from '@/components/booth/BoothBackComp.vue';
-import { usePhotoStore } from '@/stores/photoStore';
-import { RouterView, useRouter } from 'vue-router';
-import { ref, onMounted, onUnmounted, nextTick } from 'vue';
-import html2canvas from 'html2canvas';
-import Swal from 'sweetalert2';
+import WhiteBoardComp from "@/components/common/WhiteBoardComp.vue";
+import BoothBack from "@/components/booth/BoothBackComp.vue";
+import { useBoothStore } from "@/stores/boothStore";
+import { usePhotoStore } from "@/stores/photoStore";
+import { RouterView, useRouter, useRoute } from "vue-router";
+import { ref, onMounted, onUnmounted, computed, provide } from "vue";
+import InitializationService from "@/assets/js/showView/InitializationService";
+import PhotoService from "@/assets/js/showView/PhotoService";
+import WebSocketService from "@/services/WebSocketService";
+import WebRTCService from "@/services/WebRTCService";
 
-import videoOn from '@/assets/icon/video_on.png';
-import videoOff from '@/assets/icon/video_off.png';
-import microOn from '@/assets/icon/micro_on.png';
-import microOff from '@/assets/icon/micro_off.png';
+import videoOn from "@/assets/icon/video_on.png";
+import videoOff from "@/assets/icon/video_off.png";
+import microOn from "@/assets/icon/micro_on.png";
+import microOff from "@/assets/icon/micro_off.png";
 
+const route = useRoute();
 const router = useRouter();
 const photoStore = usePhotoStore();
+const boothStore = useBoothStore();
 
-const navigateTo = (name) => {
-	router.push({ name });
+const participants = ref([]);
+const peers = ref([]);
+
+const navigateTo = (path) => {
+    router.push({ name: path });
 };
 
-const videoElement = ref(null);
-let mediaStream = null;
-
-let isMirrored = false;
-let isvideoOn = ref(true);
-let isMicroOn = ref(true);
-const remainPicCnt = ref(10);
-
-const images = ref([]);
-
-onMounted(async () => {
-	try {
-		mediaStream = await navigator.mediaDevices.getUserMedia({
-			video: true,
-			audio: true,
-		});
-
-		videoElement.value.srcObject = mediaStream;
-	} catch (error) {}
-});
-
-onUnmounted(() => {
-	if (mediaStream) {
-		mediaStream.getTracks().forEach((track) => {
-			track.stop();
-		});
-	}
-});
-
-const toggleMirror = () => {
-	isMirrored = !isMirrored;
-	videoElement.value.style.transform = isMirrored ? 'scaleX(-1)' : 'scaleX(1)';
-};
-
-const toggleCamera = () => {
-	isvideoOn.value = !isvideoOn.value;
-
-	mediaStream.getVideoTracks().forEach((track) => {
-		track.enabled = isvideoOn.value;
-	});
-	videoElement.value.srcObject = mediaStream;
-};
-
-const toggleMicro = () => {
-	isMicroOn.value = !isMicroOn.value;
-
-	mediaStream.getAudioTracks().forEach((track) => {
-		track.enabled = isMicroOn.value;
-	});
-};
-
-const bgImage = ref('https://via.placeholder.com/400');
-
-const changeImage = (image) => {
-	bgImage.value = image;
-};
-
-const captureArea = ref(null);
-const countdown = ref(0);
-var cameraaudio = new Audio('/src/assets/audio/shutter.mp3');
-
-const startCountdown = () => {
-	const countdownInterval = setInterval(() => {
-		countdown.value--;
-		if (countdown.value <= 0) {
-			clearInterval(countdownInterval);
-			Swal.close();
-			capturePhoto();
-		} else {
-			Swal.update({
-				html: `<p style='color:white; font-size:50px;'>${countdown.value}</h3>`,
-			});
-		}
-	}, 1000);
-};
-
-const takePhoto = async () => {
-	const img = new Image();
-	img.crossOrigin = 'Anonymous';
-	img.src = bgImage.value;
-
-	countdown.value = 3;
-
-	img.onload = async () => {
-		await nextTick();
-
-		Swal.fire({
-			title: `<h1 style='color:white;'>포즈!</h1>`,
-			html: `<p style='color:white; font-size:50px;'>${countdown.value}</p>`,
-			showConfirmButton: false,
-			background: 'rgba(0, 0, 0, 0.3)',
-			backdrop: false,
-			didOpen: () => {
-				startCountdown();
-			},
-		});
-	};
-
-	img.onerror = async (error) => {
-		await Swal.fire({
-			title: '@배경 오류 발생@',
-			text: '해당 사진은 배경으로 사용할 수 없습니다!',
-			icon: 'warning',
-		});
-	};
-};
-
-const capturePhoto = async () => {
-	await nextTick();
-	cameraaudio.play();
-	html2canvas(captureArea.value, { useCORS: true, allowTaint: false })
-		.then(async (canvas) => {
-			const imageData = canvas.toDataURL('image/png');
-			images.value.push({ src: imageData, visible: true });
-			remainPicCnt.value = 10 - images.value.length;
-			if (images.value.length === 10) {
-				const { value: result } = await Swal.fire({
-					title: '사진 촬영 종료',
-					text: '10장을 모두 촬영하여 프레임 선택창으로 이동합니다!',
-					icon: 'success',
-				});
-				if (result) {
-					exitphoto();
-				}
-			}
-		})
-		.catch((error) => {});
-};
-
-const exitphoto = async () => {
-	const { value: result } = await Swal.fire({
-		title: '촬영 끝내기',
-		text: '촬영을 종료하고 저장을 위해 나가시겠습니까?',
-		icon: 'warning',
-		showCancelButton: true,
-		confirmButtonText: '확인',
-		cancelButtonText: '취소',
-	});
-
-	if (result) {
-		photoStore.setPhotoList(images.value);
-		router.push('/selectTemp');
-	} else {
-		Swal.fire('취소', '촬영을 계속합니다!', 'error');
-	}
-};
+const bgImage = computed(() => boothStore.bgImage);
 
 const showtype = ref(1);
 
 const changeComponent = () => {
-	showtype.value = showtype.value === 1 ? 2 : 1;
-	navigateTo(showtype.value === 1 ? 'background' : 'showphoto');
+    showtype.value = showtype.value === 1 ? 2 : 1;
+    navigateTo(showtype.value === 1 ? "background" : "showphoto");
+    console.log(
+        "컴포넌트 변경:",
+        showtype.value === 1 ? "배경 선택" : "사진 보기"
+    );
 };
+
+const showControls = ref(false);
+
+const toggleControls = () => {
+    showControls.value = !showControls.value;
+};
+
+const handleControlClick = (event) => {
+    event.stopPropagation();
+};
+
+const boothActions = {
+    changeImage: async (image) => {
+        try {
+            await WebSocketService.send({
+                type: "change_background",
+                boothId: route.params.boothId,
+                backgroundImage: image,
+            });
+            boothStore.setBgImage(image);
+        } catch (error) {
+            console.error("Failed to change background:", error);
+        }
+    },
+    takePhoto: () => PhotoService.takePhoto(),
+    exitphoto: async () => {
+        console.log("exitphoto 호출 시도");
+        const shouldExit = await PhotoService.exitphoto();
+        console.log("exitphoto 결과:", shouldExit);
+        if (shouldExit) {
+            console.log("라우터 이동 시작");
+            router.push("/selectTemp");
+        } else {
+            console.log("라우터 이동 취소");
+        }
+    },
+    images: () => PhotoService.images,
+};
+
+provide("boothActions", boothActions);
+
+const videoElement = ref(null);
+const canvasElement = ref(null);
+
+onMounted(async () => {
+    WebSocketService.setBoothStore(boothStore);
+    WebSocketService.on("background_info", (message) => {
+        boothStore.setBgImage(message.backgroundImage);
+    });
+    WebSocketService.on("new-peer", handleNewPeer);
+    WebSocketService.on("peer-left", handlePeerLeft);
+    WebRTCService.onRemoteStream = handleRemoteStream;
+
+    if (videoElement.value && canvasElement.value) {
+        InitializationService.setVideoElement(videoElement.value);
+        InitializationService.setCanvasElement(canvasElement.value);
+        await InitializationService.initialize(
+            router,
+            route,
+            boothStore,
+            photoStore
+        );
+    } else {
+        console.error("videoElement 또는 canvasElement가 설정되지 않았습니다.");
+    }
+    if (videoElement.value) {
+        videoElement.value.style.transform = "scaleX(-1)";
+    }
+    if (canvasElement.value) {
+        canvasElement.value.style.transform = "scaleX(-1)";
+    }
+
+    await initializeWebRTC();
+});
+
+onUnmounted(() => {
+    InitializationService.cleanup();
+    WebSocketService.off("new-peer", handleNewPeer);
+    WebSocketService.off("peer-left", handlePeerLeft);
+    WebRTCService.disconnect();
+});
+
+const initializeWebRTC = async () => {
+    await WebRTCService.initializeLocalStream();
+    if (videoElement.value) {
+        videoElement.value.srcObject = WebRTCService.localStream;
+    }
+};
+
+const handleNewPeer = async (peerId) => {
+    const peerConnection = await WebRTCService.createPeerConnection(peerId);
+    peers.value.push({ id: peerId, connection: peerConnection });
+};
+
+const handlePeerLeft = (peerId) => {
+    const index = peers.value.findIndex((peer) => peer.id === peerId);
+    if (index !== -1) {
+        peers.value.splice(index, 1);
+    }
+};
+
+const handleRemoteStream = (peerId, stream) => {
+    const peer = peers.value.find((p) => p.id === peerId);
+    if (peer) {
+        peer.stream = stream;
+        const videoElement = document.querySelector(`#video-${peerId}`);
+        if (videoElement) {
+            videoElement.srcObject = stream;
+        }
+    }
+};
+
+const changeImage = async (image) => {
+    await boothActions.changeImage(image);
+};
+
+const videoWidth = ref(213);
+const videoHeight = ref(160);
+const videoContainerRef = ref(null);
+const videoPosition = ref({ x: 0, y: 0 });
+const videoScale = ref(1);
+const videoRotation = ref(0);
+const isDragging = ref(false);
+const startPosition = ref({ x: 0, y: 0 });
+const isFocused = ref(false);
+const isMirrored = ref(true);
+const isvideoOn = ref(true);
+const isMicroOn = ref(true);
+
+const handleFocus = () => {
+    isFocused.value = true;
+};
+
+const handleBlur = () => {
+    isFocused.value = false;
+};
+
+const takePhoto = async () => {
+    console.log("takePhoto 함수 호출");
+    await PhotoService.takePhoto();
+};
+
+const exitphoto = async () => {
+    console.log("exitphoto 호출 시도");
+    const shouldExit = await PhotoService.exitphoto();
+    console.log("exitphoto 결과:", shouldExit);
+    if (shouldExit) {
+        console.log("라우터 이동 시작");
+        router.push("/selectTemp");
+    } else {
+        console.log("라우터 이동 취소");
+    }
+};
+
+const centerIndicatorStyle = computed(() => ({
+    position: "absolute",
+    top: "50%",
+    left: "50%",
+    width: "10px",
+    height: "1px",
+    backgroundColor: isFocused.value ? "gray" : "lightgray",
+    transform: "translate(-50%, -50%)",
+}));
+
+const videoStyle = computed(() => ({
+    position: "absolute",
+    left: "50%",
+    top: "50%",
+    transform: `translate(-50%, -50%) translate(${videoPosition.value.x}px, ${videoPosition.value.y}px) scale(${videoScale.value}) rotate(${videoRotation.value}deg)`,
+    cursor: isDragging.value ? "grabbing" : "grab",
+    border: isFocused.value ? "2px dashed gray" : "2px dashed lightgray",
+    width: `${videoWidth.value}px`,
+    height: `${videoHeight.value}px`,
+}));
+
+const startDrag = (event) => {
+    isDragging.value = true;
+    startPosition.value = {
+        x: event.clientX - videoPosition.value.x,
+        y: event.clientY - videoPosition.value.y,
+    };
+};
+
+const onDrag = (event) => {
+    if (!isDragging.value) return;
+    const dx = event.clientX - startPosition.value.x;
+    const dy = event.clientY - startPosition.value.y;
+    videoPosition.value = { x: dx, y: dy };
+};
+
+const stopDrag = () => {
+    isDragging.value = false;
+};
+
+const toggleMirror = () => {
+    isMirrored.value = !isMirrored.value;
+    const transform = isMirrored.value ? "scaleX(-1)" : "scaleX(1)";
+    if (videoElement.value) {
+        videoElement.value.style.transform = transform;
+    }
+    if (canvasElement.value) {
+        canvasElement.value.style.transform = transform;
+    }
+};
+
+const toggleCamera = () => {
+    isvideoOn.value = !isvideoOn.value;
+    if (InitializationService.videoElement) {
+        InitializationService.videoElement.srcObject
+            .getVideoTracks()
+            .forEach((track) => {
+                track.enabled = isvideoOn.value;
+            });
+    }
+};
+
+const toggleMicro = () => {
+    isMicroOn.value = !isMicroOn.value;
+    if (InitializationService.videoElement) {
+        InitializationService.videoElement.srcObject
+            .getAudioTracks()
+            .forEach((track) => {
+                track.enabled = isMicroOn.value;
+            });
+    }
+};
+
+const { isLoading } = InitializationService;
+const { remainPicCnt, images } = PhotoService;
 </script>
 
 <template>
-	<WhiteBoardComp class="whiteboard-area-booth">
-		<div class="booth-content">
-			<div class="booth-top-div">
-				<div>남은 사진 수: {{ remainPicCnt }}/10</div>
-				<div class="close-btn">
-					<button
-						class="close"
-						@click="navigateTo('main')"
-					>
-						나가기
-					</button>
-				</div>
-			</div>
+    <WhiteBoardComp class="whiteboard-area-booth">
+        <div v-if="isLoading" class="loading-overlay">
+            <img src="@/assets/img/common/loading.gif" alt="Loading..." />
+        </div>
+        <div class="booth-content">
+            <div class="booth-top-div">
+                <div>남은 사진 수: {{ remainPicCnt }}/10</div>
+                <div class="close-btn">
+                    <button class="close" @click="navigateTo('main')">
+                        나가기
+                    </button>
+                </div>
+            </div>
 
-			<div class="booth-content-main">
-				<BoothBack class="booth-camera-box">
-					<div
-						ref="captureArea"
-						:style="{ backgroundImage: `url(${bgImage})` }"
-						class="photo-zone"
-					>
-						<div v-show="isvideoOn">
-							<video
-								ref="videoElement"
-								autoplay
-								style="width: 30%; height: fit-content"
-							></video>
-						</div>
-					</div>
+            <div class="booth-content-main">
+                <BoothBack class="booth-camera-box">
+                    <div
+                        ref="captureArea"
+                        :style="{ backgroundImage: `url(${bgImage})` }"
+                        class="photo-zone"
+                        @focus="handleFocus"
+                        @blur="handleBlur"
+                        tabindex="0"
+                    >
+                        <div
+                            class="video-container"
+                            ref="videoContainerRef"
+                            :style="videoStyle"
+                            @mousedown="startDrag"
+                            @mousemove="onDrag"
+                            @mouseup="stopDrag"
+                            @mouseleave="stopDrag"
+                            @click="toggleControls"
+                            tabindex="0"
+                        >
+                            <div class="video-item">
+                                <canvas
+                                    ref="canvasElement"
+                                    :width="videoWidth"
+                                    :height="videoHeight"
+                                ></canvas>
+                                <video
+                                    ref="videoElement"
+                                    autoplay
+                                    muted
+                                    :width="videoWidth"
+                                    :height="videoHeight"
+                                    style="display: none"
+                                ></video>
+                                <div :style="centerIndicatorStyle"></div>
+                                <p>You</p>
+                            </div>
+                        </div>
+                        <div
+                            v-if="showControls"
+                            class="controls"
+                            @click="handleControlClick"
+                        >
+                            <button
+                                class="close-controls"
+                                @click="toggleControls"
+                            >
+                                X
+                            </button>
+                            <label>
+                                Rotate
+                                <input
+                                    type="range"
+                                    v-model="videoRotation"
+                                    min="0"
+                                    max="360"
+                                />
+                            </label>
+                            <label>
+                                Scale
+                                <input
+                                    type="range"
+                                    v-model="videoScale"
+                                    min="0.5"
+                                    max="2"
+                                    step="0.01"
+                                />
+                            </label>
+                        </div>
+                    </div>
 
-					<div class="create-btn">
-						<div class="left-btn">
-							<button
-								class="circle-btn"
-								@click="toggleMicro"
-							>
-								<img
-									:src="isMicroOn ? microOn : microOff"
-									alt="M"
-								/>
-							</button>
-							<button
-								class="circle-btn"
-								@click="toggleCamera"
-							>
-								<img
-									:src="isvideoOn ? videoOn : videoOff"
-									alt="C"
-								/>
-							</button>
-							<button
-								class="ract-btn"
-								@click="toggleMirror"
-							>
-								반전
-							</button>
-						</div>
+                    <div class="remote-streams">
+                        <div
+                            v-for="peer in peers"
+                            :key="peer.id"
+                            class="video-item"
+                        >
+                            <video
+                                :id="`video-${peer.id}`"
+                                autoplay
+                                playsinline
+                            ></video>
+                            <p>{{ peer.id }}</p>
+                        </div>
+                    </div>
 
-						<button
-							@click="takePhoto"
-							class="take-photo"
-						>
-							<img
-								src="@/assets/icon/camera.png"
-								alt=""
-							/>
-						</button>
-						<div class="right-btn">
-							<button
-								class="ract-btn"
-								@click="exitphoto"
-							>
-								템플릿 선택
-							</button>
-						</div>
-					</div>
-				</BoothBack>
+                    <div class="create-btn">
+                        <div class="left-btn">
+                            <button class="circle-btn" @click="toggleMicro">
+                                <img
+                                    :src="isMicroOn ? microOn : microOff"
+                                    alt="M"
+                                />
+                            </button>
+                            <button class="circle-btn" @click="toggleCamera">
+                                <img
+                                    :src="isvideoOn ? videoOn : videoOff"
+                                    alt="Toggle Camera"
+                                />
+                            </button>
+                            <button class="ract-btn" @click="toggleMirror">
+                                반전
+                            </button>
+                        </div>
 
-				<BoothBack class="booth-select-box">
-					<div class="select-box-top">
-						<button
-							class="prev-btn"
-							@click="changeComponent"
-						>
-							&lt;
-						</button>
-						<div class="box-name">
-							<p v-if="showtype === 1">배경선택</p>
-							<p v-if="showtype === 2">사진보기</p>
-						</div>
-						<button
-							class="next-btn"
-							@click="changeComponent"
-						>
-							&gt;
-						</button>
-					</div>
+                        <button @click="takePhoto" class="take-photo">
+                            <img src="@/assets/icon/camera.png" alt="" />
+                        </button>
+                        <div class="right-btn">
+                            <button class="ract-btn" @click="exitphoto">
+                                템플릿 선택
+                            </button>
+                        </div>
+                    </div>
+                </BoothBack>
 
-					<div class="select-text-box">
-						<RouterView
-							v-if="showtype === 1"
-							@update="changeImage"
-						></RouterView>
-						<RouterView
-							v-else
-							:images="images"
-						>
-						</RouterView>
-					</div>
-				</BoothBack>
-			</div>
-		</div>
-	</WhiteBoardComp>
+                <BoothBack class="booth-select-box">
+                    <div class="select-box-top">
+                        <button class="prev-btn" @click="changeComponent">
+                            &lt;
+                        </button>
+                        <div class="box-name">
+                            <p v-if="showtype === 1">배경선택</p>
+                            <p v-if="showtype === 2">사진보기</p>
+                        </div>
+                        <button class="next-btn" @click="changeComponent">
+                            &gt;
+                        </button>
+                    </div>
+
+                    <div class="select-text-box">
+                        <RouterView
+                            v-if="showtype === 1"
+                            @update="changeImage"
+                        ></RouterView>
+                        <RouterView v-else :images="images"> </RouterView>
+                    </div>
+                </BoothBack>
+            </div>
+        </div>
+    </WhiteBoardComp>
 </template>
 
 <style scoped>
-.select-text-box {
-	display: flex;
-	height: 85%;
-	width: 90%;
-	flex-direction: column;
-	align-items: center;
-}
-
-.select-box-top {
-	height: 15%;
-	width: 85%;
-
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	button {
-		background: transparent;
-		border: none;
-		width: 20%;
-		height: 100%;
-		font-size: 40px;
-
-		&:hover {
-			color: rgb(137, 137, 137);
-		}
-	}
-}
-.booth-content {
-	display: flex;
-	flex-direction: column;
-	justify-content: space-evenly;
-	align-items: center;
-
-	width: 100%;
-	height: 100%;
-}
-.booth-top-div {
-	width: 95%;
-	height: 8%;
-	display: flex;
-	align-items: center;
-	font-size: 30px;
-	justify-content: space-between;
-
-	.close-btn {
-		padding: 5px;
-		display: flex;
-		justify-content: right;
-		.close {
-			background-color: transparent;
-			border: none;
-		}
-	}
-}
-
-.booth-content-main {
-	display: flex;
-	flex-wrap: wrap;
-	align-content: center;
-	justify-content: space-evenly;
-	width: 100%;
-	height: 95%;
-
-	.photo-zone {
-		justify-content: center;
-		width: 95%;
-		height: 87%;
-
-		border-radius: 20px;
-		background-size: cover;
-		background-position: center;
-		background-size: cover;
-		transition: background-image 0.5s;
-	}
-
-	.create-btn {
-		height: 10%;
-		width: 90%;
-		display: flex;
-		flex-wrap: wrap;
-		justify-content: space-between;
-		align-content: flex-end;
-		align-items: center;
-		.left-btn {
-			display: flex;
-			margin: 5px;
-			align-items: center;
-			width: 40%;
-		}
-		.right-btn {
-			display: flex;
-			margin: 5px;
-			flex-direction: row-reverse;
-			align-items: center;
-			width: 40%;
-		}
-
-		.circle-btn {
-			border: none;
-			border-radius: 50%;
-			width: 50px;
-			height: 50px;
-			line-height: 50px;
-			padding: 5px;
-			display: flex;
-			justify-content: center;
-			align-items: center;
-			margin: 0 5px;
-			border: none;
-			background-color: transparent;
-			cursor: pointer;
-		}
-		.take-photo {
-			border: none;
-			border-radius: 50%;
-			width: 50px;
-			height: 50px;
-			line-height: 50px;
-			padding: 5px;
-			display: flex;
-			justify-content: center;
-			align-items: center;
-			margin: 0 5px;
-			border: 0.3px solid black;
-			background-color: transparent;
-			cursor: pointer;
-
-			&:hover {
-				background-color: rgb(203, 203, 203);
-			}
-			&:active {
-				background-color: rgb(90, 90, 90);
-			}
-		}
-	}
-}
-
-.ract-btn {
-	border: none;
-	border-radius: 10px;
-	width: 100px;
-	height: 36px;
-	margin: 5px;
-	padding: 5px;
-
-	&:hover {
-		background-color: rgb(136, 136, 136);
-	}
-}
-.timer-modal {
-	box-shadow: none;
-	border: none;
-	color: rgb(255, 255, 255);
-}
+@import url("@/assets/css/shootView.css");
 </style>
