@@ -121,7 +121,7 @@ const formatDatePopOver = (date) => {
 		</WhiteBoardComp>
 
 		<ListModal
-			:visible="isModalOpen"
+			v-if="isModalOpen"
 			:selectedDate="selectedDate"
 			@close="closeModal"
 		/>
