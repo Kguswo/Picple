@@ -1,10 +1,9 @@
 <script setup>
-import { defineProps, defineEmits, watch, ref } from 'vue';
+import { defineProps, defineEmits, watch, ref, onMounted } from 'vue';
 import { calendarContentApi, calendarDailyListApi, calendarDeleteApi, calendarShareApi } from '@/api/calendarApi';
 import Swal from 'sweetalert2';
 
 const props = defineProps({
-	visible: Boolean,
 	selectedDate: String,
 });
 
@@ -16,11 +15,14 @@ const descriptionField = ref(null);
 const description = ref('');
 const currentPhoto = ref(null);
 const isDropdownOpen = ref(false);
+const modalBody = ref(null);
+const leftButton = ref(null);
+const rightButton = ref(null);
 
-watch(
-	() => props.visible,
-	() => getDailyList(),
-);
+onMounted(() => {
+	getDailyList();
+	modalBody.value.focus();
+});
 
 watch(currentIndex, () => getCurrentPhoto());
 
@@ -125,6 +127,21 @@ const deletePhoto = async () => {
 	} catch (error) {}
 };
 
+const handleKeyup = (event) => {
+	event.stopPropagation();
+	if (dailyList.value.length === 0) {
+		return;
+	}
+	if (event.key === 'ArrowLeft') {
+		leftButton.value.click();
+		return;
+	}
+	if (event.key === 'ArrowRight') {
+		rightButton.value.click();
+		return;
+	}
+};
+
 const closeModal = () => {
 	isDropdownOpen.value = false;
 	emit('close');
@@ -132,10 +149,7 @@ const closeModal = () => {
 </script>
 
 <template>
-	<div
-		v-if="visible"
-		class="modal"
-	>
+	<div class="modal">
 		<div class="modal-content">
 			<div class="modal-header">
 				<span
@@ -185,7 +199,12 @@ const closeModal = () => {
 					</div>
 				</div>
 			</div>
-			<div class="modal-body">
+			<div
+				class="modal-body"
+				@keyup="handleKeyup"
+				ref="modalBody"
+				tabindex="0"
+			>
 				<div
 					v-if="dailyList.length > 0"
 					class="photo-container"
@@ -193,6 +212,7 @@ const closeModal = () => {
 					<button
 						class="nav-button"
 						@click="prevPhoto"
+						ref="leftButton"
 					>
 						<img
 							src="@/assets/img/calendar/arrow-left.png"
@@ -227,6 +247,7 @@ const closeModal = () => {
 					<button
 						class="nav-button"
 						@click="nextPhoto"
+						ref="rightButton"
 					>
 						<img
 							src="@/assets/img/calendar/arrow-right.png"
@@ -311,5 +332,9 @@ const closeModal = () => {
 	height: 100%;
 	font-size: 1.5rem;
 	color: red;
+}
+
+.modal-body:focus {
+	outline: none;
 }
 </style>
