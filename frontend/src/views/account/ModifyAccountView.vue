@@ -35,36 +35,42 @@ const modifyAccount = async () => {
 			return;
 		}
 		userStore.changeNickname(nickname.value.value);
-		await Swal.fire({ icon: 'success', title: '닉네임이 변경되었습니다.', width: 600 });
+		await Swal.fire({
+			icon: 'success',
+			title: '닉네임이 변경되었습니다.',
+			width: 600,
+		});
 		router.push({ name: 'main' });
 	} catch (error) {}
 };
 
 const deleteAccount = async () => {
-	const { value: accept } = await Swal.fire({
-		title: '정말 회원을 탈퇴하시겠습니까?',
-		input: 'checkbox',
-		inputValue: 0,
-		inputPlaceholder: `탈퇴 시 서비스를 이용하지 못합니다. 동의하십니까?`,
-		confirmButtonText: `Continue&nbsp;<i class="fa fa-arrow-right"></i>`,
-		showCancelButton: true,
-		inputValidator: (result) => {
-			return !result && '회원탈퇴는 동의가 필요합니다.';
-		},
-	});
-	if (accept) {
-		const data = await deleteAccountApi();
-		if (!data) {
-			return;
+	try {
+		const { value: accept } = await Swal.fire({
+			title: '정말 회원을 탈퇴하시겠습니까?',
+			input: 'checkbox',
+			inputValue: 0,
+			inputPlaceholder: `탈퇴 시 서비스를 이용하지 못합니다. 동의하십니까?`,
+			confirmButtonText: `Continue&nbsp;<i class="fa fa-arrow-right"></i>`,
+			showCancelButton: true,
+			inputValidator: (result) => {
+				return !result && '회원탈퇴는 동의가 필요합니다.';
+			},
+		});
+		if (accept) {
+			const data = await deleteAccountApi();
+			if (!data) {
+				return;
+			}
+			userStore.resetUser();
+			await Swal.fire({
+				icon: 'success',
+				title: '회원탈퇴가 완료되었습니다.',
+				width: 600,
+			});
+			router.push({ name: 'main' });
 		}
-		if (!data.isSuccess) {
-			await Swal.fire({ icon: 'error', title: `${data.message}`, width: 600 });
-			return;
-		}
-		userStore.resetUser();
-		await Swal.fire({ icon: 'success', title: '회원탈퇴가 완료되었습니다.', width: 600 });
-		router.push({ name: 'main' });
-	}
+	} catch (error) {}
 };
 </script>
 
