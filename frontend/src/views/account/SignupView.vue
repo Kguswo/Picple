@@ -1,59 +1,93 @@
 <script setup>
-import FormComp from "@/components/form/FormComp.vue";
-import FormInputComp from "@/components/form/FormInputComp.vue";
-import FormButtonComp from "@/components/form/FormButtonComp.vue";
-import { ref } from "vue";
-import { validateNicknameDup, validateSignup } from "@/stores/validation";
-import { useRouter } from "vue-router";
+import FormComp from '@/components/form/FormComp.vue';
+import FormInputComp from '@/components/form/FormInputComp.vue';
+import FormButtonComp from '@/components/form/FormButtonComp.vue';
+import {
+	validatePasswordPattern,
+	validateNicknamePattern,
+	validatePasswordConfirm,
+	setFormMessage,
+} from '@/composables/validation';
+import { useRouter } from 'vue-router';
 import Swal from 'sweetalert2';
+import { signupApi } from '@/api/userApi';
+import { useUserStore } from '@/stores/userStore';
+import { storeToRefs } from 'pinia';
+import { useFormStore } from '@/stores/formStore';
 
 const router = useRouter();
+const userStore = useUserStore();
+const formStore = useFormStore();
 
-const nickname = ref({ type: "text", label: "닉네임", value: "" });
-const password = ref({ type: "password", label: "비밀번호", value: "" });
-const passwordConfirm = ref({ type: "password", label: "비밀번호 확인", value: "" });
-const nicknameField = ref(null);
-const passwordField = ref(null);
-const passwordConfirmField = ref(null);
-const checkedNickname = ref("");
-
-const checkNicknameDup = (e) => {
-  e.stopPropagation();
-  const isSuccess = validateNicknameDup(nicknameField.value, nickname.value.value);
-  if (!isSuccess) {
-    return;
-  }
-  checkedNickname.value = nickname.value.value;
-}
+const { verifiedEmail } = storeToRefs(userStore);
+const { nickname, password, passwordConfirm, nicknameField, passwordField, passwordConfirmField } =
+	storeToRefs(formStore);
+formStore.initForm([nickname, password, passwordConfirm], [nicknameField, passwordField, passwordConfirmField]);
 
 const signup = async () => {
-  const fields = [nicknameField.value, passwordField.value, passwordConfirmField.value];
-  const isSuccess = validateSignup(fields, nickname.value.value, password.value.value, passwordConfirm.value.value, checkedNickname.value
-  );
-  if (!isSuccess) {
-    return;
-  }
-  // todo: 회원가입
-  await Swal.fire({ title: "회원가입이 완료되었습니다.", width: 600 });
-  router.push({ name: "main" });
-}
+	nicknameField.value.message = validateNicknamePattern(nickname.value.value);
+	passwordField.value.message = validatePasswordPattern(password.value.value);
+	passwordConfirmField.value.message = validatePasswordConfirm(password.value.value, passwordConfirm.value.value);
 
+	if (formStore.focusInputField(nicknameField)) {
+		return;
+	}
+
+	if (formStore.focusInputField(passwordField)) {
+		return;
+	}
+
+	if (formStore.focusInputField(passwordConfirmField)) {
+		return;
+	}
+
+	const data = await signupApi(userStore.verifiedEmail, password.value.value, nickname.value.value);
+	if (!data.isSuccess && data.code === 3003) {
+		nicknameField.value.message = setFormMessage(data.message, true);
+		nicknameField.value.focusInput();
+		return;
+	}
+	if (!data.isSuccess) {
+		await Swal.fire({ icon: 'error', title: `${data.message}`, width: 600 });
+		return;
+	}
+	verifiedEmail.value = '';
+	await Swal.fire({ icon: 'success', title: '회원가입이 완료되었습니다.', width: 600 });
+	router.push({ name: 'main' });
+};
 </script>
 
 <template>
-  <FormComp title="회원가입">
-    <form class="form-content" @keyup.enter="signup">
-      <FormInputComp :params="nickname" ref="nicknameField" name="nickname">
-        <FormButtonComp size="small" @keyup.enter="checkNicknameDup" @click="checkNicknameDup">중복
-        </FormButtonComp>
-      </FormInputComp>
+	<FormComp title="회원가입">
+		<form
+			class="form-content"
+			@keyup.enter="signup"
+		>
+			<FormInputComp
+				:inputParams="nickname"
+				ref="nicknameField"
+				name="nickname"
+				class="mt-10"
+			/>
 
-      <FormInputComp :params="password" ref="passwordField" class="mt-10" />
-      <FormInputComp :params="passwordConfirm" ref="passwordConfirmField" class="mt-10" />
+			<FormInputComp
+				:inputParams="password"
+				ref="passwordField"
+				class="mt-10"
+			/>
+			<FormInputComp
+				:inputParams="passwordConfirm"
+				ref="passwordConfirmField"
+				class="mt-10"
+			/>
 
-      <FormButtonComp size="big" @click="signup">가입</FormButtonComp>
-    </form>
-  </FormComp>
+			<FormButtonComp
+				size="big"
+				@click="signup"
+				>가입</FormButtonComp
+			>
+		</form>
+	</FormComp>
 </template>
 
 <style scoped></style>

@@ -1,12 +1,12 @@
 <script setup>
-import FormComp from "@/components/form/FormComp.vue";
-import FormEmailComp from "@/components/form/FormEmailComp.vue"
+import FormComp from '@/components/form/FormComp.vue';
+import FormEmailComp from '@/components/form/FormEmailComp.vue';
 </script>
 
 <template>
-    <FormComp title="회원가입">
-        <FormEmailComp path="/signup" />
-    </FormComp>
+	<FormComp title="회원가입">
+		<FormEmailComp path="/signup" />
+	</FormComp>
 </template>
 
 <style scoped></style>
