@@ -192,11 +192,25 @@ class WebSocketService {
     }
 
     handleMessage(message) {
-        const handler = this.messageHandlers[message.type];
-        if (handler) {
-            handler(message);
-        } else {
-            console.warn(`Unhandled message type: ${message.type}`);
+        console.log("Received message:", message);
+        switch (message.type) {
+            case "new-peer":
+                if (this.handlers["new-peer"]) {
+                    this.handlers["new-peer"](message.peerId);
+                }
+                break;
+            case "offer":
+                WebRTCService.handleOffer(message.sender, message.offer);
+                break;
+            case "answer":
+                WebRTCService.handleAnswer(message.sender, message.answer);
+                break;
+            case "ice-candidate":
+                WebRTCService.handleIceCandidate(
+                    message.sender,
+                    message.candidate
+                );
+                break;
         }
     }
 

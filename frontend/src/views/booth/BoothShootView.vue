@@ -8,6 +8,7 @@ import { ref, onMounted, onUnmounted, computed, provide } from "vue";
 import InitializationService from "@/assets/js/showView/InitializationService";
 import PhotoService from "@/assets/js/showView/PhotoService";
 import WebSocketService from "@/services/WebSocketService";
+import WebRTCService from "@/services/WebRTCService";
 
 import videoOn from "@/assets/icon/video_on.png";
 import videoOff from "@/assets/icon/video_off.png";
@@ -20,6 +21,7 @@ const photoStore = usePhotoStore();
 const boothStore = useBoothStore();
 
 const participants = ref([]);
+const peers = ref([]);
 
 const navigateTo = (path) => {
     router.push({ name: path });
@@ -86,6 +88,10 @@ onMounted(async () => {
     WebSocketService.on("background_info", (message) => {
         boothStore.setBgImage(message.backgroundImage);
     });
+    WebSocketService.on("new-peer", handleNewPeer);
+    WebSocketService.on("peer-left", handlePeerLeft);
+    WebRTCService.onRemoteStream = handleRemoteStream;
+
     if (videoElement.value && canvasElement.value) {
         InitializationService.setVideoElement(videoElement.value);
         InitializationService.setCanvasElement(canvasElement.value);
@@ -104,11 +110,46 @@ onMounted(async () => {
     if (canvasElement.value) {
         canvasElement.value.style.transform = "scaleX(-1)";
     }
+
+    await initializeWebRTC();
 });
 
 onUnmounted(() => {
     InitializationService.cleanup();
+    WebSocketService.off("new-peer", handleNewPeer);
+    WebSocketService.off("peer-left", handlePeerLeft);
+    WebRTCService.disconnect();
 });
+
+const initializeWebRTC = async () => {
+    await WebRTCService.initializeLocalStream();
+    if (videoElement.value) {
+        videoElement.value.srcObject = WebRTCService.localStream;
+    }
+};
+
+const handleNewPeer = async (peerId) => {
+    const peerConnection = await WebRTCService.createPeerConnection(peerId);
+    peers.value.push({ id: peerId, connection: peerConnection });
+};
+
+const handlePeerLeft = (peerId) => {
+    const index = peers.value.findIndex((peer) => peer.id === peerId);
+    if (index !== -1) {
+        peers.value.splice(index, 1);
+    }
+};
+
+const handleRemoteStream = (peerId, stream) => {
+    const peer = peers.value.find((p) => p.id === peerId);
+    if (peer) {
+        peer.stream = stream;
+        const videoElement = document.querySelector(`#video-${peerId}`);
+        if (videoElement) {
+            videoElement.srcObject = stream;
+        }
+    }
+};
 
 const changeImage = async (image) => {
     await boothActions.changeImage(image);
@@ -313,6 +354,21 @@ const { remainPicCnt, images } = PhotoService;
                                     step="0.01"
                                 />
                             </label>
+                        </div>
+                    </div>
+
+                    <div class="remote-streams">
+                        <div
+                            v-for="peer in peers"
+                            :key="peer.id"
+                            class="video-item"
+                        >
+                            <video
+                                :id="`video-${peer.id}`"
+                                autoplay
+                                playsinline
+                            ></video>
+                            <p>{{ peer.id }}</p>
                         </div>
                     </div>
 

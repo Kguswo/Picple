@@ -153,8 +153,8 @@ class InitializationService {
                         });
                     }
                 },
-                width: 640,
-                height: 480,
+                width: 640, // 너비 설정
+                height: 480, // 높이 설정
             });
             this.camera.start();
         }
