@@ -1,48 +1,78 @@
 <script setup>
-import { ref, defineEmits } from 'vue';
+import { ref, defineEmits, defineProps, onMounted, inject } from "vue";
 
-const emit = defineEmits(['update']);
+const boothActions = inject("boothActions", {
+  changeImage: () => console.warn("changeImage not provided"),
+});
 
-const emitImage = (image) => {
-	emit('update', image);
+const props = defineProps({
+  boothId: String,
+});
+
+const selectBackground = (image) => {
+  if (typeof boothActions.changeImage === "function") {
+    boothActions.changeImage(image);
+  } else {
+    console.error("changeImage is not a function");
+    // 대체 동작 수행
+    emit("update", image);
+  }
 };
 
-// todo: 다음에 실제 배경으로 사용할 이미지 필요
+onMounted(() => {
+  console.log("BoothSelectBackComp 호출됨");
+});
+
+const emit = defineEmits(["update"]);
+
+// background 변경을 위한 변수
+const emitImage = (image) => {
+  emit("update", image); // 부모에게 변경된 이미지 전달
+  selectBackground(image); // inject된 메서드 사용
+};
+
+//임시 이미지 - 다음에 실제 배경으로 사용할 이미지 필요
 const backgroundImages = ref([
-	'https://i.crepe.land/https://crepe.land/portfolio/q/qe/qenpmy8g9uzxsmqi0q4u5qw7ijk0y954_%EC%97%85%EB%A1%9C%EB%93%9C%EC%9A%A93.jpg?q=100&t=i&v=3a&w=800',
-	'https://gongu.copyright.or.kr/gongu/wrt/cmmn/wrtFileImageView.do?wrtSn=11288733&filePath=L2Rpc2sxL25ld2RhdGEvMjAxNS8wMi9DTFM2OS9OVVJJXzAwMV8wMjE5X251cmltZWRpYV8yMDE1MTIwMw==&thumbAt=Y&thumbSe=b_tbumb&wrtTy=10006',
-	'https://github.com/user-attachments/assets/4e03d0e8-e626-4ab7-b6a2-10cce836d059',
-	'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQcdHa-pocMXaC3uCdCP89WIAfHyeqCMfRF6Q&s',
-	'https://d2v80xjmx68n4w.cloudfront.net/gigs/g6pZU1704354867.jpg',
-	'https://gongu.copyright.or.kr/gongu/wrt/cmmn/wrtFileImageView.do?wrtSn=11288960&filePath=L2Rpc2sxL25ld2RhdGEvMjAxNS8wMi9DTFM2OS9OVVJJXzAwMV8wNDQ2X251cmltZWRpYV8yMDE1MTIwMw==&thumbAt=Y&thumbSe=b_tbumb&wrtTy=10006',
-	'https://marketplace.canva.com/EAD2xI0GoM0/1/0/1600w/canva-%ED%95%98%EB%8A%98-%EC%95%BC%EC%99%B8-%EC%9E%90%EC%97%B0-%EC%98%81%EA%B0%90-%EC%9D%B8%EC%9A%A9%EB%AC%B8-%EB%8D%B0%EC%8A%A4%ED%81%AC%ED%86%B1-%EB%B0%B0%EA%B2%BD%ED%99%94%EB%A9%B4-rssvAb9JL4I.jpg',
+  "https://i.crepe.land/https://crepe.land/portfolio/q/qe/qenpmy8g9uzxsmqi0q4u5qw7ijk0y954_%EC%97%85%EB%A1%9C%EB%93%9C%EC%9A%A93.jpg?q=100&t=i&v=3a&w=800",
+  "https://gongu.copyright.or.kr/gongu/wrt/cmmn/wrtFileImageView.do?wrtSn=11288733&filePath=L2Rpc2sxL25ld2RhdGEvMjAxNS8wMi9DTFM2OS9OVVJJXzAwMV8wMjE5X251cmltZWRpYV8yMDE1MTIwMw==&thumbAt=Y&thumbSe=b_tbumb&wrtTy=10006",
+  "https://github.com/user-attachments/assets/4e03d0e8-e626-4ab7-b6a2-10cce836d059",
+  "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQcdHa-pocMXaC3uCdCP89WIAfHyeqCMfRF6Q&s",
+  "https://d2v80xjmx68n4w.cloudfront.net/gigs/g6pZU1704354867.jpg",
+  "https://gongu.copyright.or.kr/gongu/wrt/cmmn/wrtFileImageView.do?wrtSn=11288960&filePath=L2Rpc2sxL25ld2RhdGEvMjAxNS8wMi9DTFM2OS9OVVJJXzAwMV8wNDQ2X251cmltZWRpYV8yMDE1MTIwMw==&thumbAt=Y&thumbSe=b_tbumb&wrtTy=10006",
+  "https://marketplace.canva.com/EAD2xI0GoM0/1/0/1600w/canva-%ED%95%98%EB%8A%98-%EC%95%BC%EC%99%B8-%EC%9E%90%EC%97%B0-%EC%98%81%EA%B0%90-%EC%9D%B8%EC%9A%A9%EB%AC%B8-%EB%8D%B0%EC%8A%A4%ED%81%AC%ED%86%B1-%EB%B0%B0%EA%B2%BD%ED%99%94%EB%A9%B4-rssvAb9JL4I.jpg",
 ]);
 
+// 파일 입력 요소 참조
 const fileInput = ref(null);
 
+// 파일 업로드를 위한 메서드
 const triggerFileUpload = () => {
-	fileInput.value.click();
+  fileInput.value.click(); // 파일 입력 요소 클릭
 };
 
+// 파일 업로드 처리
 const fileUpload = (event) => {
-	const files = event.target.files;
-	if (files.length > 0) {
-		const file = files[0];
-		const reader = new FileReader();
+  const files = event.target.files;
+  if (files.length > 0) {
+    const file = files[0];
+    const reader = new FileReader();
 
-		reader.onload = (e) => {
-			const imageUrl = e.target.result;
-			backgroundImages.value.push(imageUrl);
-		};
+    reader.onload = (e) => {
+      const imageUrl = e.target.result; // 파일의 URL
+      backgroundImages.value.push(imageUrl); // 배열에 추가
+    };
 
-		reader.readAsDataURL(file);
+    reader.readAsDataURL(file); // 파일을 URL로 변환
 
-		// todo: DB에 저장할 경우 axios를 통한 api 호출 필요
-	}
+    // DB에 저장할 경우 axios를 통한 api 호출 필요
+  }
 };
 
+// AI 이미지 생성
 const createAI = () => {
-	// todo: 이미지 생성을 위한 dalle3 연결 코드 필요
+  console.log("AI 생성 클릭");
+
+  // 이미지 생성을 위한 dalle3 연결 코드 필요
 };
 </script>
 
