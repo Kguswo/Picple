@@ -79,28 +79,29 @@ const toggleDropdown = () => {
 	isDropdownOpen.value = !isDropdownOpen.value;
 };
 
-const downloadPhoto = async () => {
-	try {
-		const response = await axios.get(
-			'https://picple.s3.ap-northeast-2.amazonaws.com/%ED%86%A0%ED%86%A0%EB%A1%9C.jpg',
-			{
-				responseType: 'blob',
-			},
-		);
-		const url = window.URL.createObjectURL(new Blob([response.data]));
-		const link = document.createElement('a');
-		link.href = url;
-		link.setAttribute('download', '다운로드.jpg');
-		document.body.appendChild(link);
-		link.click();
-		document.body.removeChild(link);
-		window.URL.revokeObjectURL(url);
-	} catch (error) {
-		console.log(error);
-	}
-};
+const downloadPhoto = async () => {};
 
-const sharePhoto = async () => {};
+const sharePhoto = async () => {
+	try {
+		const { value: accept } = await Swal.fire({
+			title: '사진을 게시판에 공유하시겠습니까?',
+			confirmButtonText: `Continue&nbsp;<i class="fa fa-arrow-right"></i>`,
+			showCancelButton: true,
+			width: 700,
+		});
+		if (accept) {
+			const data = await calendarShareApi(currentPhoto.value.id);
+			if (!data) {
+				return;
+			}
+			await Swal.fire({
+				icon: 'success',
+				title: '공유가 완료되었습니다.',
+				width: 600,
+			});
+		}
+	} catch (error) {}
+};
 
 const deletePhoto = async () => {
 	try {
@@ -168,13 +169,9 @@ const closeModal = () => {
 				<div class="header-title">
 					{{ selectedDate }}
 				</div>
-				<div
-					class="dropdown"
-					@click="toggleDropdown"
-				>
+				<div class="dropdown">
 					<svg
-						@blur.stop="isDropdownOpen = false"
-						@keyup.stop="isDropdownOpen = false"
+						@click="toggleDropdown"
 						class="dropdown-icon"
 						xmlns="@/assets/icon/three-dots-vertical.svg"
 						width="30"
