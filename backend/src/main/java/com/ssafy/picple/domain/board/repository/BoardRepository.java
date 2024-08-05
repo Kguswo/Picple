@@ -29,8 +29,8 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
 	@Query("UPDATE Board b SET b.hit = b.hit -1 WHERE b.id = :boardId AND b.hit>0")
 	void decreaseHit(@Param("boardId") Long boardId);
 
-	// 사용자 닉네임 검색으로 해당 유저(닉네임) 포함된 사진 조회
-	@Query("SELECT b FROM Board b JOIN b.photo p JOIN PhotoUser pu ON p.id = pu.photo.id JOIN User u ON pu.user.id = u.id WHERE u.nickname = :nickname")
+	// 사용자 닉네임 검색으로 해당 유저(닉네임) 포함된 사진 조회(삭제되지 않은 것만 검색 가능)
+	@Query("SELECT b FROM Board b JOIN b.photo p JOIN PhotoUser pu ON p.id = pu.photo.id JOIN User u ON pu.user.id = u.id WHERE b.isDeleted = false AND u.nickname = :nickname")
 	List<Board> findAllByUserNickname(@Param("nickname") String nickname);
 
 	// 내가 올린 게시물 삭제
