@@ -16,7 +16,7 @@ import com.ssafy.picple.domain.board.entity.Board;
 public interface BoardRepository extends JpaRepository<Board, Long> {
 
 	// Board 전체 조회(생성일, 사진, 좋아요여부, 좋아요수)
-	List<Board> findAllByIsDeletedFalse(Sort sort);
+	List<Board> findByIsDeletedFalse(Sort sort);
 
 	// 사진 좋아요 1증가
 	@Transactional

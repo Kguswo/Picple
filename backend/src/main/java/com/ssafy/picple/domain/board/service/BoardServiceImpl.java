@@ -35,7 +35,7 @@ public class BoardServiceImpl implements BoardService {
 	@Override
 	public List<BoardDto> findAllBoards(Long userId) {
 		Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
-		List<Board> boards = boardRepository.findAllByIsDeletedFalse(sort);
+		List<Board> boards = boardRepository.findByIsDeletedFalse(sort);
 		return boards.stream()
 				.map(board -> new BoardDto(
 						board.getId(),
