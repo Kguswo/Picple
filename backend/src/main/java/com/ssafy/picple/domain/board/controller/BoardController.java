@@ -1,5 +1,7 @@
 package com.ssafy.picple.domain.board.controller;
 
+import static com.ssafy.picple.config.baseResponse.BaseResponseStatus.*;
+
 import java.util.List;
 
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -10,7 +12,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.ssafy.picple.config.baseResponse.BaseException;
 import com.ssafy.picple.config.baseResponse.BaseResponse;
-import com.ssafy.picple.config.baseResponse.BaseResponseStatus;
 import com.ssafy.picple.domain.board.dto.BoardDto;
 import com.ssafy.picple.domain.board.service.BoardService;
 
@@ -77,9 +78,9 @@ public class BoardController {
 		Long userId = boardService.getUserId(request);
 		boolean isDeleted = boardService.deleteBoard(boardId, userId);
 		if (isDeleted) {
-			return new BaseResponse<>(BaseResponseStatus.SUCCESS);
+			return new BaseResponse<>(SUCCESS);
 		} else {
-			return new BaseResponse<>(BaseResponseStatus.REQUEST_ERROR);
+			return new BaseResponse<>(REQUEST_ERROR);
 		}
 	}
 

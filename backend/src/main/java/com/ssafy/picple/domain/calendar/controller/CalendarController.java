@@ -1,5 +1,7 @@
 package com.ssafy.picple.domain.calendar.controller;
 
+import static com.ssafy.picple.config.baseResponse.BaseResponseStatus.*;
+
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -48,7 +50,7 @@ public class CalendarController {
 			Long count = calendarService.getPhotoCounts(userId, date);
 			return new BaseResponse<>(count);
 		} catch (Exception e) {
-			return new BaseResponse<>(BaseResponseStatus.DATABASE_ERROR);
+			return new BaseResponse<>(DATABASE_ERROR);
 		}
 	}
 
@@ -109,7 +111,7 @@ public class CalendarController {
 
 		Long userId = (Long)request.getAttribute("userId");
 		calendarService.updateContent(calendarId, userId, content);
-		return new BaseResponse<>(BaseResponseStatus.SUCCESS);
+		return new BaseResponse<>(SUCCESS);
 
 	}
 
@@ -127,7 +129,7 @@ public class CalendarController {
 
 		Long userId = (Long)request.getAttribute("userId");
 		calendarService.sharePhoto(calendarId, userId);
-		return new BaseResponse<>(BaseResponseStatus.SUCCESS);
+		return new BaseResponse<>(SUCCESS);
 
 	}
 
@@ -145,7 +147,7 @@ public class CalendarController {
 
 		Long userId = (Long)request.getAttribute("userId");
 		calendarService.deleteCalendar(calendarId, userId);
-		return new BaseResponse<>(BaseResponseStatus.SUCCESS);
+		return new BaseResponse<>(SUCCESS);
 
 	}
 
