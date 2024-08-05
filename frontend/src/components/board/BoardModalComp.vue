@@ -96,6 +96,8 @@ const formatDate = (dateString) => {
 						<img
 							:src="board.photoUrl"
 							alt="사진없음"
+							@contextmenu.prevent
+							@dragstart.prevent
 						/>
 						<div class="modal-text">
 							<span class="modal-date">작성일 {{ formatDate(board.createdAt) }}</span>
