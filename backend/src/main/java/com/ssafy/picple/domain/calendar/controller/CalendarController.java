@@ -2,6 +2,7 @@ package com.ssafy.picple.domain.calendar.controller;
 
 import static com.ssafy.picple.config.baseResponse.BaseResponseStatus.*;
 
+import java.io.FileNotFoundException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -131,6 +132,43 @@ public class CalendarController {
 		calendarService.sharePhoto(calendarId, userId);
 		return new BaseResponse<>(SUCCESS);
 
+	}
+
+	/**
+	 * 캘린더에서 특정 사진 선택하여 로컬에 다운로드
+	 *
+	 * @param request
+	 * @param calendarId
+	 * @return
+	 * @throws BaseException
+	 */
+	@PostMapping("/download/{calendarId}")
+	@Transactional
+	public BaseResponse<BaseResponseStatus> downloadCalendar(HttpServletRequest request,
+			@PathVariable Long calendarId) throws BaseException {
+		Long userId = (Long)request.getAttribute("userId");
+		try {
+			calendarService.downloadPhoto(calendarId, userId);
+		} catch (FileNotFoundException e) {
+			throw new BaseException(FILE_NOT_FOUND_ERROR);
+		}
+		return new BaseResponse<>(SUCCESS);
+	}
+
+	/**
+	 * 캘린더Id에 해당하는 PhotoUrl 조회(사진 다운로드용)
+	 *
+	 * @param request
+	 * @param calendarId
+	 * @return
+	 * @throws BaseException
+	 */
+	@GetMapping("/photo")
+	public BaseResponse<String> getPhotos(HttpServletRequest request,
+			@RequestParam("calendarId") Long calendarId) throws BaseException {
+		Long userId = (Long)request.getAttribute("userId");
+		String photoUrl = calendarService.getPhotoUrlByCalendarId(calendarId, userId);
+		return new BaseResponse<>(photoUrl);
 	}
 
 	/**

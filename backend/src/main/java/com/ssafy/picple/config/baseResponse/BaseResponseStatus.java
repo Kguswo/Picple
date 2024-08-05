@@ -57,6 +57,7 @@ public enum BaseResponseStatus {
 	FILE_UPLOAD_ERROR(false, 3120, "파일 업로드 중 오류가 발생했습니다."),
 	FILE_DOWNLOAD_ERROR(false, 3121, "파일 다운로드 중 오류가 발생했습니다."),
 	FILE_DELETE_ERROR(false, 3122, "파일 삭제 중 오류가 발생했습니다."),
+	FILE_NOT_FOUND_ERROR(false, 3123, "파일을 찾을 수 없습니다."),
 
 	// calendar
 	GET_CALENDAR_EMPTY(false, 3130, "캘린더에 일치하는 항목이 없습니다."),
