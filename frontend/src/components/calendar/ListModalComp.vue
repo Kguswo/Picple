@@ -8,7 +8,7 @@ const props = defineProps({
 	selectedDate: String,
 });
 
-const emit = defineEmits(['close']);
+const emit = defineEmits(['close', 'delete']);
 
 const dailyList = ref([]);
 const currentIndex = ref(0);
@@ -94,7 +94,7 @@ const sharePhoto = async () => {
 
 const deletePhoto = async () => {
 	isDropdownOpen.value = false;
-	emit('delete');
+	emit('delete', currentPhoto.value.id);
 };
 
 const closeModal = () => {

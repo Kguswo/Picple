@@ -5,9 +5,12 @@ import ListModal from '@/components/calendar/ListModalComp.vue';
 import { onMounted, ref } from 'vue';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
-import { calendarMonthlyCountApi } from '@/api/calendarApi';
+import { calendarDeleteApi, calendarMonthlyCountApi } from '@/api/calendarApi';
 import { formatDate } from '@/composables/date';
 import Swal from 'sweetalert2';
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
 
 const monthlyCount = ref({});
 const attributes = ref([]);
@@ -82,7 +85,7 @@ const closeModal = () => {
 	isModalOpen.value = false;
 };
 
-const deletePhoto = async () => {
+const deletePhoto = async (calendarId) => {
 	try {
 		const { value: accept } = await Swal.fire({
 			title: '사진을 정말 삭제하시겠습니까?',
@@ -91,7 +94,7 @@ const deletePhoto = async () => {
 			width: 700,
 		});
 		if (accept) {
-			const data = await calendarDeleteApi(currentPhoto.value.id);
+			const data = await calendarDeleteApi(calendarId);
 			if (!data) {
 				return;
 			}
@@ -100,6 +103,7 @@ const deletePhoto = async () => {
 				title: '삭제가 완료되었습니다.',
 				width: 600,
 			});
+			router.go(0);
 		}
 	} catch (error) {}
 };
