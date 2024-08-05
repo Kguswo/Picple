@@ -2,6 +2,7 @@ package com.ssafy.picple.domain.board.repository;
 
 import java.util.List;
 
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -15,7 +16,7 @@ import com.ssafy.picple.domain.board.entity.Board;
 public interface BoardRepository extends JpaRepository<Board, Long> {
 
 	// Board 전체 조회(생성일, 사진, 좋아요여부, 좋아요수)
-	List<Board> findAllByIsDeletedFalse();
+	List<Board> findByIsDeletedFalse(Sort sort);
 
 	// 사진 좋아요 1증가
 	@Transactional
@@ -32,6 +33,10 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
 	// 사용자 닉네임 검색으로 해당 유저(닉네임) 포함된 사진 조회(삭제되지 않은 것만 검색 가능)
 	@Query("SELECT b FROM Board b JOIN b.photo p JOIN PhotoUser pu ON p.id = pu.photo.id JOIN User u ON pu.user.id = u.id WHERE b.isDeleted = false AND u.nickname = :nickname")
 	List<Board> findAllByUserNickname(@Param("nickname") String nickname);
+
+	// 사용자 닉네임 검색 및 선택한 정렬 기준으로 정렬 조회
+	@Query("SELECT b FROM Board b JOIN b.photo p JOIN PhotoUser pu ON p.id = pu.photo.id JOIN User u ON pu.user.id = u.id WHERE b.isDeleted = false AND u.nickname = :nickname")
+	List<Board> findAllByUserNickname(@Param("nickname") String nickname, Sort sort);
 
 	// 내가 올린 게시물 삭제
 	@Transactional

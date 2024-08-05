@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.ssafy.picple.config.baseResponse.BaseException;
@@ -62,6 +63,24 @@ public class BoardController {
 			@PathVariable String nickname) throws BaseException {
 		Long userId = boardService.getUserId(request);
 		List<BoardDto> boards = boardService.findAllBoardsByUserNickname(userId, nickname);
+		return new BaseResponse<>(boards);
+	}
+
+	/**
+	 * 사용자 닉네임 검색 및 선택 정렬 기준으로 조회
+	 *
+	 * @param request
+	 * @param nickname
+	 * @param criteria
+	 * @return
+	 * @throws BaseException
+	 */
+	@GetMapping("/users/{nickname}")
+	public BaseResponse<List<BoardDto>> findAllBoardsByUserNickname(HttpServletRequest request,
+			@PathVariable String nickname, @RequestParam(required = false) String criteria,
+			@RequestParam(value = "sortDirection", required = false) boolean sortDirection) throws BaseException {
+		Long userId = boardService.getUserId(request);
+		List<BoardDto> boards = boardService.findAllBoardsByUserNickname(userId, nickname, criteria, sortDirection);
 		return new BaseResponse<>(boards);
 	}
 
