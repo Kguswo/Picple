@@ -11,14 +11,6 @@ const props = defineProps({
 
 const isModalOpen = ref(false);
 
-const openModal = () => {
-	isModalOpen.value = true;
-};
-
-const closeModal = () => {
-	isModalOpen.value = false;
-};
-
 const toggleLike = async () => {
 	try {
 		const data = await boardLikeApi(props.board.id);
@@ -52,25 +44,40 @@ const deleteBoard = async () => {
 		} catch (error) {}
 	}
 };
+
+const openModal = () => {
+	isModalOpen.value = true;
+};
+
+const closeModal = () => {
+	isModalOpen.value = false;
+};
 </script>
 
 <template>
 	<div class="photo-card">
 		<div
-			class="photo"
+			class="thumnail"
 			@click="openModal"
-		></div>
+		>
+			<img
+				:src="board.photoUrl"
+				alt="사진"
+				@contextmenu.prevent
+				@dragstart.prevent
+			/>
+		</div>
 		<div class="content">
 			<div class="like">
 				<svg
 					v-if="board.liked"
+					@click="toggleLike"
 					xmlns="@/assets/icon/hear-fill.svg"
 					class="heart"
 					width="20"
 					height="20"
 					fill="red"
 					viewBox="0 0 16 16"
-					@click="toggleLike"
 				>
 					<path
 						fill-rule="evenodd"
@@ -107,15 +114,14 @@ const deleteBoard = async () => {
 <style scoped>
 .photo-card {
 	margin: 5px;
-	height: 70%;
 	width: 23%;
+	height: 70%;
 	border: 2px solid gray;
 	background-color: white;
 	box-shadow: 5px 5px 5px black;
 
 	display: flex;
 	flex-direction: column;
-	justify-content: center;
 	align-items: center;
 
 	* {
@@ -124,12 +130,18 @@ const deleteBoard = async () => {
 	}
 }
 
-.photo {
-	margin-top: 10px;
-	height: 80%;
+.thumnail {
 	width: 90%;
-	border: 2px solid gray;
-	background-color: rgba(192, 192, 192, 0.722);
+	height: 80%;
+	margin-bottom: 5px;
+
+	img {
+		margin-top: 10px;
+		width: 100%;
+		height: 100%;
+		min-height: 200px;
+		object-fit: cover;
+	}
 }
 
 .content {
