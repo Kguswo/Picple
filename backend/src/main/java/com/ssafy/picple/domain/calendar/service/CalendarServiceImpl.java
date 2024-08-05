@@ -159,6 +159,10 @@ public class CalendarServiceImpl implements CalendarService {
 		Board board = boardRepository.findByUserIdAndPhotoIdAndIsDeletedFalse(calendar.getUser().getId(),
 				calendar.getPhoto().getId());
 
-		boardService.deleteBoard(board.getId(), board.getUser().getId());
+		// board에도 존재하면 여기서도 삭제 진행
+		if (board != null) {
+			boardService.deleteBoard(board.getId(), board.getUser().getId());
+		}
+
 	}
 }
