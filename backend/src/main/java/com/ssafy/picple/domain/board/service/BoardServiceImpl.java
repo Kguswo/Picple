@@ -28,13 +28,14 @@ public class BoardServiceImpl implements BoardService {
 	private final BoardLikeRepository boardLikeRepository;
 
 	/**
-	 * Board 전체 조회(생성일, 사진, 좋아요여부, 좋아요수)
+	 * Board 전체 조회(생성일, 사진, 좋아요여부, 좋아요수) - 기본 최신순(내림차순)
 	 *
 	 * @return
 	 */
 	@Override
 	public List<BoardDto> findAllBoards(Long userId) {
-		List<Board> boards = boardRepository.findAllByIsDeletedFalse();
+		Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
+		List<Board> boards = boardRepository.findAllByIsDeletedFalse(sort);
 		return boards.stream()
 				.map(board -> new BoardDto(
 						board.getId(),
