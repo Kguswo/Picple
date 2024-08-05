@@ -12,7 +12,6 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
@@ -20,6 +19,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final Map<String, WebSocketSession> sessions = new ConcurrentHashMap<>();
+    private final Map<String, String> boothBackgrounds = new ConcurrentHashMap<>();
 
     @Autowired
     private BoothService boothService;
@@ -48,6 +48,11 @@ public class WebSocketHandler extends TextWebSocketHandler {
             response.put("type", "joined_booth");
             response.put("boothId", boothId);
             response.put("success", joined);
+
+            // 현재 배경 정보 추가
+            String currentBackground = boothBackgrounds.getOrDefault(boothId, "default_background_url");
+            response.put("currentBackground", currentBackground);
+
             session.sendMessage(new TextMessage(objectMapper.writeValueAsString(response)));
             System.out.println("부스 참여 " + (joined ? "성공" : "실패") + ": " + boothId);
         } catch (Exception e) {
@@ -60,6 +65,8 @@ public class WebSocketHandler extends TextWebSocketHandler {
     }
 
     private void handleChangeBackground(WebSocketSession session, String boothId, String backgroundImage) throws IOException {
+        boothBackgrounds.put(boothId, backgroundImage);  // 배경 정보 저장
+
         Map<String, Object> message = new HashMap<>();
         message.put("type", "background_changed");
         message.put("backgroundImage", backgroundImage);
@@ -68,9 +75,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
         TextMessage textMessage = new TextMessage(messageJson);
 
         for (WebSocketSession s : sessions.values()) {
-            if (!s.getId().equals(session.getId())) {  // 변경을 요청한 세션 제외
-                s.sendMessage(textMessage);
-            }
+            s.sendMessage(textMessage);  // 모든 세션에 전송 (변경을 요청한 세션 포함)
         }
     }
 
