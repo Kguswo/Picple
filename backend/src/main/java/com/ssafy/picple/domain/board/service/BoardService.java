@@ -18,6 +18,9 @@ public interface BoardService {
 	// 사용자 닉네임 검색으로 해당 유저(닉네임) 포함된 사진 조회
 	List<BoardDto> findAllBoardsByUserNickname(Long userId, String nickname);
 
+	// 사용자 닉네임 검색 및 선택 정렬 기준으로 해당 유저(닉네임) 포함된 사진 조회
+	List<BoardDto> findAllBoardsByUserNickname(Long userId, String nickname, String criteria, boolean sortDirection);
+
 	// 내가 올린 사진 삭제하기
 	boolean deleteBoard(Long boardId, Long userId) throws BaseException;
 
