@@ -98,6 +98,12 @@ onMounted(async () => {
     } else {
         console.error("videoElement 또는 canvasElement가 설정되지 않았습니다.");
     }
+    if (videoElement.value) {
+        videoElement.value.style.transform = "scaleX(-1)";
+    }
+    if (canvasElement.value) {
+        canvasElement.value.style.transform = "scaleX(-1)";
+    }
 });
 
 onUnmounted(() => {
@@ -188,15 +194,12 @@ const stopDrag = () => {
 
 const toggleMirror = () => {
     isMirrored.value = !isMirrored.value;
+    const transform = isMirrored.value ? "scaleX(-1)" : "scaleX(1)";
     if (videoElement.value) {
-        videoElement.value.style.transform = isMirrored.value
-            ? "scaleX(-1)"
-            : "scaleX(1)";
+        videoElement.value.style.transform = transform;
     }
     if (canvasElement.value) {
-        canvasElement.value.style.transform = isMirrored.value
-            ? "scaleX(-1)"
-            : "scaleX(1)";
+        canvasElement.value.style.transform = transform;
     }
 };
 
