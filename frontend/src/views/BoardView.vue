@@ -3,7 +3,7 @@ import WhiteBoardComp from '@/components/common/WhiteBoardComp.vue';
 import BoardPhotoComp from '@/components/board/BoardPhotoComp.vue';
 import Page from '@/components/common/PageComp.vue';
 import { onMounted, ref } from 'vue';
-import { boardSearchApi, boardSortApi } from '@/api/boardApi';
+import { boardListApi, boardSearchApi, boardSortApi } from '@/api/boardApi';
 
 const boardList = ref([]);
 const isLikeClicked = ref(false);
@@ -11,7 +11,7 @@ const isTimeClicked = ref(false);
 
 onMounted(async () => {
 	try {
-		const data = await boardSortApi('createdAt');
+		const data = await boardListApi();
 		if (!data) {
 			return;
 		}
@@ -32,6 +32,7 @@ const searchByNickname = async () => {
 			return;
 		}
 		boardList.value = data.result;
+		toggleSortButton(false, false);
 	} catch (error) {}
 };
 
@@ -42,8 +43,7 @@ const sortByCreatedAt = async () => {
 			return;
 		}
 		boardList.value = data.result;
-		isTimeClicked.value = true;
-		isLikeClicked.value = false;
+		toggleSortButton(true, false);
 	} catch (error) {}
 };
 
@@ -54,9 +54,13 @@ const sortByHit = async () => {
 			return;
 		}
 		boardList.value = data.result;
-		isLikeClicked.value = true;
-		isTimeClicked.value = false;
+		toggleSortButton(false, true);
 	} catch (error) {}
+};
+
+const toggleSortButton = (isTimeClicked, isLikeClicked) => {
+	isTimeClicked.value = isTimeClicked;
+	isLikeClicked.value = isLikeClicked;
 };
 </script>
 
