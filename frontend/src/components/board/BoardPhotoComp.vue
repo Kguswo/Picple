@@ -96,14 +96,12 @@ const deleteBoard = async () => {
 		</div>
 	</div>
 
-	<div @keyup.esc="closeModal">
-		<BoardModalComp
-			:isOpen="isModalOpen"
-			:board="board"
-			@close="closeModal"
-			@delete="deleteBoard"
-		/>
-	</div>
+	<BoardModalComp
+		v-if="isModalOpen"
+		:board="board"
+		@close="closeModal"
+		@delete="deleteBoard"
+	/>
 </template>
 
 <style scoped>
