@@ -1,6 +1,8 @@
 import axios from 'axios';
+import Swal from 'sweetalert2';
+import router from '@/router';
 
-const instance = axios.create({
+export const instance = axios.create({
 	baseURL: 'http://localhost:8080',
 });
 
@@ -12,43 +14,24 @@ instance.interceptors.request.use(
 		}
 		return config;
 	},
-	(error) => Promise.reject(error),
+	(error) => {
+		return Promise.reject(error);
+	},
 );
 
-const axiosGet = async (url) => {
-	try {
-		const response = await instance.get(url);
-		return response.data;
-	} catch (error) {
-		return error;
-	}
-};
-
-const axiosPost = async (url, data) => {
-	try {
-		const response = await instance.post(url, data);
-		return response.data;
-	} catch (error) {
-		return error;
-	}
-};
-
-const axiosPatch = async (url, data) => {
-	try {
-		const response = await instance.patch(url, data);
-		return response.data;
-	} catch (error) {
-		return error;
-	}
-};
-
-const axiosDelete = async (url) => {
-	try {
-		const response = await instance.delete(url);
-		return response.data;
-	} catch (error) {
-		return error;
-	}
-};
-
-export { instance, axiosGet, axiosPost, axiosPatch, axiosDelete };
+instance.interceptors.response.use(
+	async (response) => {
+		const data = response.data;
+		if (!data.isSuccess) {
+			await Swal.fire({ icon: 'error', title: `${data.message}`, width: 600 });
+			router.go(0);
+			return null;
+		}
+		return data;
+	},
+	async (error) => {
+		await Swal.fire({ icon: 'error', title: '서버에 문제가 발생했습니다[503].', width: 600 });
+		router.go(0);
+		return Promise.reject(error);
+	},
+);

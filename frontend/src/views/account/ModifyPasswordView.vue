@@ -42,14 +42,14 @@ const modifyPassword = async () => {
 		return;
 	}
 
-	const data = await modifyPasswordApi(oldPassword.value.value, newPassword.value.value);
-	if (!data.isSuccess && data.code === 3019) {
-		oldPasswordField.value.message = setFormMessage(data.message, true);
-		oldPasswordField.value.focusInput();
-		return;
-	}
-	await Swal.fire({ icon: 'success', title: '비밀번호가 변경되었습니다.', width: 600 });
-	router.push({ name: 'main' });
+	try {
+		const data = await modifyPasswordApi(oldPassword.value.value, newPassword.value.value);
+		if (!data) {
+			return;
+		}
+		await Swal.fire({ icon: 'success', title: '비밀번호가 변경되었습니다.', width: 600 });
+		router.push({ name: 'main' });
+	} catch (error) {}
 };
 </script>
 

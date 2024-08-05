@@ -2,29 +2,51 @@
 import Page from '@/components/common/PageComp.vue';
 import WhiteBoardComp from '@/components/common/WhiteBoardComp.vue';
 import ListModal from '@/components/calendar/ListModalComp.vue';
-import { ref } from 'vue';
-import { allPhotos } from '@/composables/calendarModal';
+import { onMounted, ref } from 'vue';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
+import { calendarMonthlyCountApi } from '@/api/calendarApi';
+import { formatDate } from '@/composables/date';
 
+const monthlyCount = ref({});
 const attributes = ref([]);
+const isModalOpen = ref(false);
+const selectedDate = ref('');
+
+onMounted(async () => {
+	await getMonthlyCount();
+	updateAttributes();
+});
+
+const getMonthlyCount = async () => {
+	const now = new Date();
+	const year = now.getFullYear();
+	const month = now.getMonth() + 1;
+	const endDate = new Date(year, month, 0).getDate();
+
+	try {
+		const data = await calendarMonthlyCountApi(year, month, endDate);
+		if (!data) {
+			return;
+		}
+		data.result.forEach((count, index) => {
+			if (count) {
+				monthlyCount.value[`${year}-${month}-${index + 1}`] = {
+					count,
+					dot: getRandomColor(),
+				};
+			}
+		});
+	} catch (error) {}
+};
 
 const updateAttributes = () => {
-	const datesWithPhotos = {};
-	allPhotos.forEach((photo) => {
-		if (!datesWithPhotos[photo.date]) {
-			datesWithPhotos[photo.date] = { count: 3, dot: getRandomColor() };
-		} else {
-			datesWithPhotos[photo.date].count += 1;
-		}
-	});
-
-	attributes.value = Object.keys(datesWithPhotos).map((date) => {
+	attributes.value = Object.keys(monthlyCount.value).map((date) => {
 		const attribute = {
 			dates: new Date(date),
-			dot: datesWithPhotos[date].dot,
+			dot: monthlyCount.value[date].dot,
 			popover: {
-				label: `${datesWithPhotos[date].count - 2}개의 사진`,
+				label: `${monthlyCount.value[date].count}개의 사진`,
 				placement: 'top',
 				hideIndicator: true,
 			},
@@ -38,33 +60,30 @@ const getRandomColor = () => {
 	return colors[Math.floor(Math.random() * colors.length)];
 };
 
-const showModal = ref(false);
-const selectedDate = ref('');
-
-const openModal = (date) => {
+const changeToModalDate = (date) => {
 	if (typeof date === 'string') {
 		date = new Date(date);
 	} else if (date instanceof Object && date.hasOwnProperty('date')) {
 		date = new Date(date.date);
 	}
-
 	const year = date.getFullYear();
 	const month = date.getMonth() + 1;
 	const day = date.getDate();
+	return formatDate(year, month, day);
+};
 
-	selectedDate.value = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-	showModal.value = true;
+const openModal = (date) => {
+	selectedDate.value = changeToModalDate(date);
+	isModalOpen.value = true;
 };
 
 const closeModal = () => {
-	showModal.value = false;
+	isModalOpen.value = false;
 };
 
-const formatDate = (date) => {
+const formatDatePopOver = (date) => {
 	return format(date, 'M월 d일, EEEE', { locale: ko });
 };
-
-updateAttributes();
 </script>
 
 <template>
@@ -85,7 +104,7 @@ updateAttributes();
 						<template #day-popover="{ day, dayTitle, attributes }">
 							<div class="vc-day-popover-container">
 								<div class="vc-day-popover-header">
-									{{ formatDate(day.date) }}
+									{{ formatDatePopOver(day.date) }}
 								</div>
 								<div
 									class="vc-day-popover-row"
@@ -100,8 +119,9 @@ updateAttributes();
 				</div>
 			</div>
 		</WhiteBoardComp>
+
 		<ListModal
-			:visible="showModal"
+			v-if="isModalOpen"
 			:selectedDate="selectedDate"
 			@close="closeModal"
 		/>

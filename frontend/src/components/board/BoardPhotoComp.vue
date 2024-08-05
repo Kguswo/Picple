@@ -11,27 +11,20 @@ const props = defineProps({
 
 const isModalOpen = ref(false);
 
-const openModal = () => {
-	isModalOpen.value = true;
-};
-
-const closeModal = () => {
-	isModalOpen.value = false;
-};
-
 const toggleLike = async () => {
-	const data = await boardLikeApi(props.board.id);
-	if (!data.isSuccess) {
-		await Swal.fire({ icon: 'error', title: '좋아요 누르기에 실패하였습니다.', width: 600 });
-		return;
-	}
-	if (props.board.liked) {
-		--props.board.hit;
-		props.board.liked = false;
-	} else {
-		++props.board.hit;
-		props.board.liked = true;
-	}
+	try {
+		const data = await boardLikeApi(props.board.id);
+		if (!data) {
+			return;
+		}
+		if (props.board.liked) {
+			--props.board.hit;
+			props.board.liked = false;
+		} else {
+			++props.board.hit;
+			props.board.liked = true;
+		}
+	} catch (error) {}
 };
 
 const deleteBoard = async () => {
@@ -41,38 +34,50 @@ const deleteBoard = async () => {
 		showCancelButton: true,
 	});
 	if (accept) {
-		const data = await boardDeleteApi(props.board.id);
-		if (data.code === 2000) {
-			await Swal.fire({ icon: 'error', title: '게시글 삭제는 작성자만 할 수 있습니다.', width: 600 });
-			return;
-		}
-		if (!data.isSuccess) {
-			await Swal.fire({ icon: 'error', title: '게시글 삭제에 실패하였습니다.', width: 600 });
-			return;
-		}
-		await Swal.fire({ icon: 'success', title: '게시글이 삭제되었습니다.', width: 600 });
-		router.go(0);
+		try {
+			const data = await boardDeleteApi(props.board.id);
+			if (!data) {
+				return;
+			}
+			await Swal.fire({ icon: 'success', title: '게시글이 삭제되었습니다.', width: 600 });
+			router.go(0);
+		} catch (error) {}
 	}
+};
+
+const openModal = () => {
+	isModalOpen.value = true;
+};
+
+const closeModal = () => {
+	isModalOpen.value = false;
 };
 </script>
 
 <template>
 	<div class="photo-card">
 		<div
-			class="photo"
+			class="thumnail"
 			@click="openModal"
-		></div>
+		>
+			<img
+				:src="board.photoUrl"
+				alt="사진"
+				@contextmenu.prevent
+				@dragstart.prevent
+			/>
+		</div>
 		<div class="content">
 			<div class="like">
 				<svg
 					v-if="board.liked"
+					@click="toggleLike"
 					xmlns="@/assets/icon/hear-fill.svg"
 					class="heart"
 					width="20"
 					height="20"
 					fill="red"
 					viewBox="0 0 16 16"
-					@click="toggleLike"
 				>
 					<path
 						fill-rule="evenodd"
@@ -98,28 +103,25 @@ const deleteBoard = async () => {
 		</div>
 	</div>
 
-	<div @keyup.esc="closeModal">
-		<BoardModalComp
-			:isOpen="isModalOpen"
-			:board="board"
-			@close="closeModal"
-			@delete="deleteBoard"
-		/>
-	</div>
+	<BoardModalComp
+		v-if="isModalOpen"
+		:board="board"
+		@close="closeModal"
+		@delete="deleteBoard"
+	/>
 </template>
 
 <style scoped>
 .photo-card {
 	margin: 5px;
-	height: 80%;
 	width: 23%;
+	height: 70%;
 	border: 2px solid gray;
 	background-color: white;
 	box-shadow: 5px 5px 5px black;
 
 	display: flex;
 	flex-direction: column;
-	justify-content: center;
 	align-items: center;
 
 	* {
@@ -128,12 +130,18 @@ const deleteBoard = async () => {
 	}
 }
 
-.photo {
-	margin-top: 10px;
-	height: 80%;
+.thumnail {
 	width: 90%;
-	border: 2px solid gray;
-	background-color: rgba(192, 192, 192, 0.722);
+	height: 80%;
+	margin-bottom: 5px;
+
+	img {
+		margin-top: 10px;
+		width: 100%;
+		height: 100%;
+		min-height: 200px;
+		object-fit: cover;
+	}
 }
 
 .content {

@@ -31,16 +31,15 @@ const sendAuthNumber = async (e) => {
 		return;
 	}
 
-	emailField.value.message = { text: `인증번호를 전송하였습니다.`, isError: false };
-	isSend.value = true;
-
-	const data = await sendAuthNumberApi(email.value.value);
-	if (!data.isSuccess && (data.code === 3002 || data.code === 3003)) {
-		await Swal.fire({ icon: 'error', title: `${data.message}`, width: 600 });
-		router.go(0);
-		return;
-	}
-	// todo: 제한시간 표시
+	try {
+		const data = await sendAuthNumberApi(email.value.value);
+		if (!data) {
+			return;
+		}
+		emailField.value.message = { text: `인증번호를 전송하였습니다.`, isError: false };
+		isSend.value = true;
+		// todo: 제한시간 표시
+	} catch (error) {}
 };
 
 const verifyEmail = async () => {
@@ -59,14 +58,15 @@ const verifyEmail = async () => {
 		return;
 	}
 	// todo: 제한시간 검사
-	const data = await verifyAuthNumberApi(email.value.value, authNumber.value.value);
-	if (!data.isSuccess && (data.code === 3005 || data.code === 3006)) {
-		await Swal.fire({ icon: 'error', title: `${data.message}`, width: 600 });
-		return;
-	}
-	verifiedEmail.value = email.value.value;
-	await Swal.fire({ icon: 'success', title: '이메일 인증에 성공했습니다.', width: 600 });
-	router.push({ path: props.path });
+	try {
+		const data = await verifyAuthNumberApi(email.value.value, authNumber.value.value);
+		if (!data) {
+			return;
+		}
+		verifiedEmail.value = email.value.value;
+		await Swal.fire({ icon: 'success', title: '이메일 인증에 성공했습니다.', width: 600 });
+		router.push({ path: props.path });
+	} catch (error) {}
 };
 </script>
 

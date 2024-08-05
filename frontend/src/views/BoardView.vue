@@ -3,20 +3,20 @@ import WhiteBoardComp from '@/components/common/WhiteBoardComp.vue';
 import BoardPhotoComp from '@/components/board/BoardPhotoComp.vue';
 import Page from '@/components/common/PageComp.vue';
 import { onMounted, ref } from 'vue';
-import { boardSearchApi, boardSortApi } from '@/api/boardApi';
-import Swal from 'sweetalert2';
+import { boardListApi, boardSearchApi, boardSortApi } from '@/api/boardApi';
 
 const boardList = ref([]);
 const isLikeClicked = ref(false);
 const isTimeClicked = ref(false);
 
 onMounted(async () => {
-	const data = await boardSortApi('createdAt');
-	if (!data.isSuccess) {
-		await Swal.fire({ icon: 'error', title: '게시글을 불러오지 못했습니다.', width: 600 });
-		return;
-	}
-	boardList.value = data.result;
+	try {
+		const data = await boardListApi();
+		if (!data) {
+			return;
+		}
+		boardList.value = data.result;
+	} catch (error) {}
 });
 
 const nickname = ref('');
@@ -25,34 +25,42 @@ const searchByNickname = async () => {
 	if (!nickname.value) {
 		return;
 	}
-	const data = await boardSearchApi(nickname.value);
-	if (!data.isSuccess) {
-		await Swal.fire({ icon: 'error', title: '검색 조회에 실패하였습니다.', width: 600 });
-		return;
-	}
-	boardList.value = data.result;
+
+	try {
+		const data = await boardSearchApi(nickname.value);
+		if (!data) {
+			return;
+		}
+		boardList.value = data.result;
+		toggleSortButton(false, false);
+	} catch (error) {}
 };
 
 const sortByCreatedAt = async () => {
-	const data = await boardSortApi('createdAt');
-	if (!data.isSuccess) {
-		await Swal.fire({ icon: 'error', title: '최신순 정렬에 실패하였습니다.', width: 600 });
-		return;
-	}
-	boardList.value = data.result;
-	isTimeClicked.value = true;
-	isLikeClicked.value = false;
+	try {
+		const data = await boardSortApi('createdAt');
+		if (!data) {
+			return;
+		}
+		boardList.value = data.result;
+		toggleSortButton(true, false);
+	} catch (error) {}
 };
 
 const sortByHit = async () => {
-	const data = await boardSortApi('hit');
-	if (!data.isSuccess) {
-		await Swal.fire({ icon: 'error', title: '좋아요순 정렬에 실패하였습니다.', width: 600 });
-		return;
-	}
-	boardList.value = data.result;
-	isLikeClicked.value = true;
-	isTimeClicked.value = false;
+	try {
+		const data = await boardSortApi('hit');
+		if (!data) {
+			return;
+		}
+		boardList.value = data.result;
+		toggleSortButton(false, true);
+	} catch (error) {}
+};
+
+const toggleSortButton = (isTimeClicked, isLikeClicked) => {
+	isTimeClicked.value = isTimeClicked;
+	isLikeClicked.value = isLikeClicked;
 };
 </script>
 

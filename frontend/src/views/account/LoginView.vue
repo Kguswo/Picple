@@ -8,7 +8,6 @@ import { useRouter } from 'vue-router';
 import VueCookie from 'vue-cookies';
 import { useUserStore } from '@/stores/userStore';
 import { loginApi } from '@/api/userApi';
-import Swal from 'sweetalert2';
 import { useFormStore } from '@/stores/formStore';
 import { storeToRefs } from 'pinia';
 
@@ -34,15 +33,16 @@ const login = async () => {
 	}
 
 	setCookie('saveId', email.value.value, '1d', isChecked.value);
-	const data = await loginApi(email.value.value, password.value.value);
-	if (!data.isSuccess) {
-		await Swal.fire({ icon: 'error', title: '아이디 또는 비밀번호를 틀렸습니다.', width: 600 });
-		router.go(0);
-		return;
-	}
-	userStore.setUser(email.value.value, data.result.nickname);
-	localStorage.setItem('accessToken', data.result.accessToken);
-	router.push({ name: 'main' });
+
+	try {
+		const data = await loginApi(email.value.value, password.value.value);
+		if (!data) {
+			return;
+		}
+		userStore.setUser(email.value.value, data.result.nickname);
+		localStorage.setItem('accessToken', data.result.accessToken);
+		router.push({ name: 'main' });
+	} catch (error) {}
 };
 
 const setCookie = (key, value, expireTime, isChecked) => {

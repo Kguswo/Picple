@@ -1,149 +1,269 @@
 <script setup>
-import { defineProps, defineEmits, watch } from 'vue';
-import useCalendarModal from '@/composables/calendarModal';
+import { defineProps, defineEmits, watch, ref, onMounted } from 'vue';
+import { calendarContentApi, calendarDailyListApi, calendarDeleteApi, calendarShareApi } from '@/api/calendarApi';
+import Swal from 'sweetalert2';
+import axios from 'axios';
 
 const props = defineProps({
-	visible: Boolean,
 	selectedDate: String,
 });
 
-const emits = defineEmits(['close']);
+const emit = defineEmits(['close']);
 
-const {
-	photos,
-	currentPhotoExpanded,
-	close,
-	prevPhoto,
-	nextPhoto,
-	getPrevPhoto,
-	getCurrentPhoto,
-	getNextPhoto,
-	toggleCurrentPhoto,
-	getPhotoClass,
-	updatePhotos,
-} = useCalendarModal(props, emits);
+const dailyList = ref([]);
+const currentIndex = ref(0);
+const descriptionField = ref(null);
+const description = ref('');
+const currentPhoto = ref(null);
+const isDropdownOpen = ref(false);
+const leftButton = ref(null);
+const rightButton = ref(null);
+const modalDiv = ref(null);
 
-watch(
-	() => props.selectedDate,
-	(newDate) => {
-		if (newDate) {
-			updatePhotos(newDate);
+onMounted(() => {
+	getDailyList();
+	modalDiv.value.focus();
+});
+
+watch(currentIndex, () => getCurrentPhoto());
+
+const getDailyList = async () => {
+	try {
+		const data = await calendarDailyListApi(props.selectedDate);
+		if (!data) {
+			return;
 		}
-	},
-);
+		dailyList.value = data.result;
+		getCurrentPhoto();
+	} catch (error) {}
+};
+
+const saveContent = async () => {
+	const calendarId = currentPhoto.value.id;
+	try {
+		const data = await calendarContentApi(calendarId, description.value);
+		if (!data) {
+			return;
+		}
+		currentPhoto.value.content = description.value;
+		await Swal.fire({
+			icon: 'success',
+			title: '저장이 완료되었습니다.',
+			width: 600,
+		});
+	} catch (error) {}
+};
+
+const getCurrentPhoto = () => {
+	if (dailyList.value.length > 0) {
+		currentPhoto.value = dailyList.value[currentIndex.value];
+		description.value = currentPhoto.value.content;
+	}
+};
+
+const prevPhoto = () => {
+	isDropdownOpen.value = false;
+	if (dailyList.value.length > 0) {
+		currentIndex.value = (currentIndex.value - 1 + dailyList.value.length) % dailyList.value.length;
+	}
+};
+
+const nextPhoto = () => {
+	isDropdownOpen.value = false;
+	if (dailyList.value.length > 0) {
+		currentIndex.value = (currentIndex.value + 1) % dailyList.value.length;
+	}
+};
+
+const toggleDropdown = () => {
+	isDropdownOpen.value = !isDropdownOpen.value;
+};
+
+const downloadPhoto = async () => {};
+
+const sharePhoto = async () => {
+	try {
+		const { value: accept } = await Swal.fire({
+			title: '사진을 게시판에 공유하시겠습니까?',
+			confirmButtonText: `Continue&nbsp;<i class="fa fa-arrow-right"></i>`,
+			showCancelButton: true,
+			width: 700,
+		});
+		if (accept) {
+			const data = await calendarShareApi(currentPhoto.value.id);
+			if (!data) {
+				return;
+			}
+			await Swal.fire({
+				icon: 'success',
+				title: '공유가 완료되었습니다.',
+				width: 600,
+			});
+		}
+	} catch (error) {}
+};
+
+const deletePhoto = async () => {
+	try {
+		const { value: accept } = await Swal.fire({
+			title: '사진을 정말 삭제하시겠습니까?',
+			confirmButtonText: `Continue&nbsp;<i class="fa fa-arrow-right"></i>`,
+			showCancelButton: true,
+			width: 700,
+		});
+		if (accept) {
+			const data = await calendarDeleteApi(currentPhoto.value.id);
+			if (!data) {
+				return;
+			}
+			await Swal.fire({
+				icon: 'success',
+				title: '삭제가 완료되었습니다.',
+				width: 600,
+			});
+			dailyList.value.splice(currentIndex.value--, 1);
+			nextPhoto();
+			getCurrentPhoto();
+		}
+	} catch (error) {}
+};
+
+const handleKeyup = (event) => {
+	if (dailyList.value.length === 0) {
+		return;
+	}
+	if (event.key === 'ArrowLeft') {
+		leftButton.value.click();
+		return;
+	}
+	if (event.key === 'ArrowRight') {
+		rightButton.value.click();
+		return;
+	}
+	if (event.key === 'Escape') {
+		closeModal();
+		return;
+	}
+};
+
+const closeModal = () => {
+	isDropdownOpen.value = false;
+	emit('close');
+};
 </script>
 
 <template>
 	<div
-		v-if="visible"
-		class="modal-overlay"
-		@click="close"
+		class="modal"
+		ref="modalDiv"
+		@keyup="handleKeyup"
+		tabindex="0"
 	>
-		<div
-			class="modal-content"
-			@click.stop
-		>
+		<div class="modal-content">
 			<div class="modal-header">
-				<button
-					class="close-button"
-					@click="close"
+				<span
+					class="close"
+					@click="closeModal"
+					>&times;</span
 				>
-					<img
-						src="@/assets/img/common/close.png"
-						alt="Close"
-					/>
-				</button>
-				<div>
+				<div class="header-title">
 					{{ selectedDate }}
+				</div>
+				<div class="dropdown">
+					<svg
+						@click="toggleDropdown"
+						class="dropdown-icon"
+						xmlns="@/assets/icon/three-dots-vertical.svg"
+						width="30"
+						height="30"
+						fill="black"
+						viewBox="0 0 16 16"
+					>
+						<path
+							d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0"
+						/>
+					</svg>
+					<div
+						class="dropdown-content"
+						:class="{ 'dropdown-show': isDropdownOpen }"
+					>
+						<button
+							class="navbar-button"
+							@click="downloadPhoto"
+						>
+							다운로드
+						</button>
+						<button
+							class="navbar-button"
+							@click="sharePhoto"
+						>
+							게시판에 공유하기
+						</button>
+						<button
+							class="navbar-button"
+							@click="deletePhoto"
+						>
+							삭제하기
+						</button>
+					</div>
 				</div>
 			</div>
 			<div class="modal-body">
 				<div
-					v-if="photos.length > 0"
+					v-if="dailyList.length > 0"
 					class="photo-container"
 				>
-					<div
-						class="photo prev-photo"
-						v-if="photos.length > 2"
-						:class="getPhotoClass(getPrevPhoto())"
+					<button
+						class="nav-button"
+						@click="prevPhoto"
+						ref="leftButton"
 					>
-						<div
-							class="photo-background"
-							:class="getPhotoClass(getPrevPhoto())"
+						<img
+							src="@/assets/img/calendar/arrow-left.png"
+							alt="Previous"
+						/>
+					</button>
+					<div class="modal-img">
+						<img
+							:src="currentPhoto.photoUrl"
+							alt="사진"
+						/>
+						<form
+							class="description-container"
+							@submit.prevent
 						>
-							<img
-								:src="getPrevPhoto().src"
-								alt="Previous Photo"
-							/>
-						</div>
-					</div>
-					<div
-						class="photo current-photo"
-						:class="[getPhotoClass(getCurrentPhoto()), { expanded: currentPhotoExpanded }]"
-						@click="toggleCurrentPhoto"
-					>
-						<div
-							class="photo-background"
-							:class="getPhotoClass(getCurrentPhoto())"
-						>
-							<img
-								:src="getCurrentPhoto().src"
-								alt="Current Photo"
+							<input
+								ref="descriptionField"
+								v-model="description"
+								placeholder="설명을 작성하세요"
+								class="description"
+								maxlength="20"
 							/>
 							<button
-								class="nav-button share-button"
-								:class="getPhotoClass(getCurrentPhoto())"
+								type="button"
+								class="form-button-small"
+								@click="saveContent"
 							>
-								<img
-									src="@/assets/img/calendar/share.png"
-									alt="Share"
-								/>
+								저장
 							</button>
-						</div>
+						</form>
 					</div>
-					<div
-						class="photo next-photo"
-						v-if="photos.length > 1"
-						:class="getPhotoClass(getNextPhoto())"
+					<button
+						class="nav-button"
+						@click="nextPhoto"
+						ref="rightButton"
 					>
-						<div
-							class="photo-background"
-							:class="getPhotoClass(getNextPhoto())"
-						>
-							<img
-								:src="getNextPhoto().src"
-								alt="Next Photo"
-							/>
-						</div>
-					</div>
-					<div class="nav-buttons">
-						<button
-							class="nav-button prev-button"
-							:class="{ expanded: currentPhotoExpanded }"
-							@click="prevPhoto"
-						>
-							<img
-								src="@/assets/img/calendar/arrow-left.png"
-								alt="Previous"
-							/>
-						</button>
-						<button
-							class="nav-button next-button"
-							:class="{ expanded: currentPhotoExpanded }"
-							@click="nextPhoto"
-						>
-							<img
-								src="@/assets/img/calendar/arrow-right.png"
-								alt="Next"
-							/>
-						</button>
-					</div>
+						<img
+							src="@/assets/img/calendar/arrow-right.png"
+							alt="Next"
+						/>
+					</button>
 				</div>
 				<div
 					v-else
 					class="no-photos"
 				>
-					해당 날짜엔 이미지가 없습니다.
+					해당 날짜에 사진이 존재하지 않습니다.
 				</div>
 			</div>
 		</div>
@@ -151,7 +271,63 @@ watch(
 </template>
 
 <style scoped>
-@import '@/assets/css/calendarModal.css';
+@import '@/assets/css/modal.css';
+
+.header-title {
+	width: 100%;
+	font-size: 2vw;
+	font-weight: bold;
+	text-align: center;
+}
+
+.description-container {
+	width: 100%;
+	margin-top: 20px;
+	position: relative;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+.description {
+	width: 100%;
+	padding: 10px;
+	border: none;
+	border-bottom: 1px solid black;
+	resize: none;
+}
+
+.description:focus {
+	outline: none;
+	border-bottom: 2px solid black;
+}
+
+.nav-button {
+	width: 10%;
+	background: none;
+	border: none;
+
+	img {
+		height: 40px;
+		cursor: pointer;
+
+		&:active {
+			transform: translateY(2px);
+		}
+	}
+}
+
+.form-button-small {
+	position: absolute;
+	right: 1%;
+	border: none;
+	border-radius: 5px;
+	padding: 5px 10px;
+	font-size: 15px;
+	background-color: #62abd9;
+	color: white;
+	cursor: pointer;
+}
 
 .no-photos {
 	display: flex;

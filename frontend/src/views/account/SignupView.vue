@@ -2,12 +2,7 @@
 import FormComp from '@/components/form/FormComp.vue';
 import FormInputComp from '@/components/form/FormInputComp.vue';
 import FormButtonComp from '@/components/form/FormButtonComp.vue';
-import {
-	validatePasswordPattern,
-	validateNicknamePattern,
-	validatePasswordConfirm,
-	setFormMessage,
-} from '@/composables/validation';
+import { validatePasswordPattern, validateNicknamePattern, validatePasswordConfirm } from '@/composables/validation';
 import { useRouter } from 'vue-router';
 import Swal from 'sweetalert2';
 import { signupApi } from '@/api/userApi';
@@ -41,19 +36,15 @@ const signup = async () => {
 		return;
 	}
 
-	const data = await signupApi(userStore.verifiedEmail, password.value.value, nickname.value.value);
-	if (!data.isSuccess && data.code === 3003) {
-		nicknameField.value.message = setFormMessage(data.message, true);
-		nicknameField.value.focusInput();
-		return;
-	}
-	if (!data.isSuccess) {
-		await Swal.fire({ icon: 'error', title: `${data.message}`, width: 600 });
-		return;
-	}
-	verifiedEmail.value = '';
-	await Swal.fire({ icon: 'success', title: '회원가입이 완료되었습니다.', width: 600 });
-	router.push({ name: 'main' });
+	try {
+		const data = await signupApi(userStore.verifiedEmail, password.value.value, nickname.value.value);
+		if (!data) {
+			return;
+		}
+		verifiedEmail.value = '';
+		await Swal.fire({ icon: 'success', title: '회원가입이 완료되었습니다.', width: 600 });
+		router.push({ name: 'main' });
+	} catch (error) {}
 };
 </script>
 
