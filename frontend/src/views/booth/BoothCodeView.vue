@@ -3,7 +3,6 @@ import FormComp from '@/components/form/FormComp.vue';
 import FormInputComp from '@/components/form/FormInputComp.vue';
 import FormButtonComp from '@/components/form/FormButtonComp.vue';
 import { useRouter } from 'vue-router';
-import { validateJoinBooth } from '@/stores/validation';
 import { ref, onMounted } from 'vue';
 
 import WebSocketService from '@/services/WebSocketService';
@@ -18,11 +17,6 @@ onMounted(() => {
 });
 
 const join = async () => {
-	const isSuccess = validateJoinBooth(boothCodeField.value, boothCode.value.value);
-	if (!isSuccess) {
-		return;
-	}
-
 	try {
 		await WebSocketService.joinBooth(boothCode.value.value);
 		// 부스 참여 성공 시 BoothShootView로 이동
@@ -48,7 +42,7 @@ const cancel = () => {
 			@keyup.enter="join"
 		>
 			<FormInputComp
-				:params="boothCode"
+				:inputParams="boothCode"
 				ref="boothCodeField"
 			/>
 
