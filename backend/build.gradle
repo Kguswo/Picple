@@ -55,5 +55,6 @@ tasks.named('test') {
 }
 
 bootJar {
+    archiveFileName = 'app.jar'
     mainClass = 'com.ssafy.picple.PicpleApplication'
 }
