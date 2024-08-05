@@ -43,7 +43,11 @@ const saveContent = async () => {
 			return;
 		}
 		currentPhoto.value.content = description.value;
-		await Swal.fire({ icon: 'success', title: '저장이 완료되었습니다.', width: 600 });
+		await Swal.fire({
+			icon: 'success',
+			title: '저장이 완료되었습니다.',
+			width: 600,
+		});
 	} catch (error) {}
 };
 
@@ -68,20 +72,29 @@ const downloadPhoto = () => {};
 
 const sharePhoto = async () => {
 	try {
-		const data = await calendarShareApi(currentPhoto.value.id);
-		if (!data) {
-			return;
+		const { value: accept } = await Swal.fire({
+			title: '사진을 게시판에 공유하시겠습니까?',
+			confirmButtonText: `Continue&nbsp;<i class="fa fa-arrow-right"></i>`,
+			showCancelButton: true,
+			width: 700,
+		});
+		if (accept) {
+			const data = await calendarShareApi(currentPhoto.value.id);
+			if (!data) {
+				return;
+			}
+			await Swal.fire({
+				icon: 'success',
+				title: '공유가 완료되었습니다.',
+				width: 600,
+			});
 		}
 	} catch (error) {}
 };
 
 const deletePhoto = async () => {
-	try {
-		const data = await calendarDeleteApi(currentPhoto.value.id);
-		if (!data) {
-			return;
-		}
-	} catch (error) {}
+	isDropdownOpen.value = false;
+	emit('delete');
 };
 
 const closeModal = () => {

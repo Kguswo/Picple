@@ -7,6 +7,7 @@ import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { calendarMonthlyCountApi } from '@/api/calendarApi';
 import { formatDate } from '@/composables/date';
+import Swal from 'sweetalert2';
 
 const monthlyCount = ref({});
 const attributes = ref([]);
@@ -31,7 +32,10 @@ const getMonthlyCount = async () => {
 		}
 		data.result.forEach((count, index) => {
 			if (count) {
-				monthlyCount.value[`${year}-${month}-${index + 1}`] = { count, dot: getRandomColor() };
+				monthlyCount.value[`${year}-${month}-${index + 1}`] = {
+					count,
+					dot: getRandomColor(),
+				};
 			}
 		});
 	} catch (error) {}
@@ -78,6 +82,28 @@ const closeModal = () => {
 	isModalOpen.value = false;
 };
 
+const deletePhoto = async () => {
+	try {
+		const { value: accept } = await Swal.fire({
+			title: '사진을 정말 삭제하시겠습니까?',
+			confirmButtonText: `Continue&nbsp;<i class="fa fa-arrow-right"></i>`,
+			showCancelButton: true,
+			width: 700,
+		});
+		if (accept) {
+			const data = await calendarDeleteApi(currentPhoto.value.id);
+			if (!data) {
+				return;
+			}
+			await Swal.fire({
+				icon: 'success',
+				title: '삭제가 완료되었습니다.',
+				width: 600,
+			});
+		}
+	} catch (error) {}
+};
+
 const formatDatePopOver = (date) => {
 	return format(date, 'M월 d일, EEEE', { locale: ko });
 };
@@ -121,6 +147,7 @@ const formatDatePopOver = (date) => {
 			:visible="isModalOpen"
 			:selectedDate="selectedDate"
 			@close="closeModal"
+			@delete="deletePhoto"
 		/>
 	</Page>
 </template>
