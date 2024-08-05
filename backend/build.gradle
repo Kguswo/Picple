@@ -53,8 +53,3 @@ dependencies {
 tasks.named('test') {
     useJUnitPlatform()
 }
-
-bootJar {
-    archiveFileName = 'app.jar'
-    mainClass = 'com.ssafy.picple.PicpleApplication'
-}
