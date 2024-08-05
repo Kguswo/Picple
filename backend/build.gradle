@@ -48,6 +48,13 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
     implementation 'com.fasterxml.jackson.core:jackson-databind'
     implementation 'com.amazonaws:aws-java-sdk-s3'
+    testImplementation 'io.projectreactor:reactor-test'
+    implementation 'com.fasterxml.jackson.core:jackson-core'
+    implementation 'io.projectreactor:reactor-core:3.5.8'
+    testImplementation 'org.mockito:mockito-core:4.8.0' // Mocking
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+    testImplementation 'org.mockito:mockito-junit-jupiter:3.12.4'
 }
 
 tasks.named('test') {
