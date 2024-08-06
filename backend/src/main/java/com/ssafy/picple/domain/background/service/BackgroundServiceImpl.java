@@ -31,6 +31,7 @@ public class BackgroundServiceImpl implements BackgroundService {
 	private final BackgroundRepository backgroundRepository;
 	private final UserRepository userRepository;
 	private final BackgroundUserRepository backgroundUserRepository;
+	private final LocalFileService localFileService;
 
 	@Override
 	public List<BackgroundResponseDto> getDefaultBackgrounds() throws BaseException {
@@ -63,6 +64,15 @@ public class BackgroundServiceImpl implements BackgroundService {
 			String[] result = openAIService.createBackground(prompt);
 			String base64Image = result[0];
 			String fileName = result[1];
+			String[] result = openAIService.createAIBackground(prompt);
+			saveBackground(userId, result);
+
+		} catch (Exception e) {
+			// 예외 처리
+			throw new BaseException(AI_BACKGROUND_GENERATION_ERROR);
+		}
+	}
+
 	private void saveBackground(Long userId, String[] result) throws BaseException {
 		String base64Image = result[0];
 		String fileName = result[1];
