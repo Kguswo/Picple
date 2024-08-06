@@ -36,7 +36,8 @@ const login = async () => {
 
 	try {
 		const data = await loginApi(email.value.value, password.value.value);
-		if (!data) {
+		if (!data.isSuccess) {
+			await Swal.fire({ icon: 'error', title: '로그인에 실패하였습니다.', width: 600 });
 			return;
 		}
 		userStore.setUser(email.value.value, data.result.nickname);

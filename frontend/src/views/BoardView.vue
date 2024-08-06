@@ -6,20 +6,53 @@ import { onMounted, ref } from 'vue';
 import { boardListApi, boardSearchApi, boardSortApi } from '@/api/boardApi';
 
 const boardList = ref([]);
-const isLikeClicked = ref(false);
-const isTimeClicked = ref(false);
+const hitSortArrow = ref('');
+const createdAtSortArrow = ref('');
+const nickname = ref('');
 
 onMounted(async () => {
 	try {
 		const data = await boardListApi();
-		if (!data) {
+		if (!data.isSuccess) {
+			await Swal.fire({ icon: 'error', title: '게시판 조회에 실패하였습니다.', width: 600 });
 			return;
 		}
 		boardList.value = data.result;
 	} catch (error) {}
 });
 
-const nickname = ref('');
+const toggleSort = (criteria) => {
+	if (criteria === 'hit') {
+		createdAtSortArrow.value = '';
+		if (hitSortArrow.value === '' || hitSortArrow.value === '↑') {
+			hitSortArrow.value = '↓';
+			return;
+		}
+		hitSortArrow.value = '↑';
+		return;
+	}
+	if (criteria === 'createdAt') {
+		hitSortArrow.value = '';
+		if (createdAtSortArrow.value === '' || createdAtSortArrow.value === '↑') {
+			createdAtSortArrow.value = '↓';
+			return;
+		}
+		createdAtSortArrow.value = '↑';
+		return;
+	}
+};
+
+const sortBoards = async (criteria) => {
+	try {
+		const data = await boardSortApi(criteria);
+		if (!data.isSuccess) {
+			await Swal.fire({ icon: 'error', title: '게시글 정렬에 실패하였습니다.', width: 600 });
+			return;
+		}
+		boardList.value = data.result;
+		toggleSort(criteria);
+	} catch (error) {}
+};
 
 const searchByNickname = async () => {
 	if (!nickname.value) {
@@ -28,39 +61,12 @@ const searchByNickname = async () => {
 
 	try {
 		const data = await boardSearchApi(nickname.value);
-		if (!data) {
+		if (!data.isSuccess) {
+			await Swal.fire({ icon: 'error', title: '사용자 검색에 실패하였습니다.', width: 600 });
 			return;
 		}
 		boardList.value = data.result;
-		toggleSortButton(false, false);
 	} catch (error) {}
-};
-
-const sortByCreatedAt = async () => {
-	try {
-		const data = await boardSortApi('createdAt');
-		if (!data) {
-			return;
-		}
-		boardList.value = data.result;
-		toggleSortButton(true, false);
-	} catch (error) {}
-};
-
-const sortByHit = async () => {
-	try {
-		const data = await boardSortApi('hit');
-		if (!data) {
-			return;
-		}
-		boardList.value = data.result;
-		toggleSortButton(false, true);
-	} catch (error) {}
-};
-
-const toggleSortButton = (isTimeClicked, isLikeClicked) => {
-	isTimeClicked.value = isTimeClicked;
-	isLikeClicked.value = isLikeClicked;
 };
 </script>
 
@@ -94,18 +100,16 @@ const toggleSortButton = (isTimeClicked, isLikeClicked) => {
 
 					<div class="button-group">
 						<button
-							class="button-sort-like"
-							:class="{ clicked: isLikeClicked }"
-							@click="sortByHit"
+							@click="sortBoards('hit')"
+							:class="{ clicked: hitSortArrow }"
 						>
-							좋아요순
+							좋아요순 <span>{{ hitSortArrow }}</span>
 						</button>
 						<button
-							class="button-sort-time"
-							:class="{ clicked: isTimeClicked }"
-							@click="sortByCreatedAt"
+							@click="sortBoards('createdAt')"
+							:class="{ clicked: createdAtSortArrow }"
 						>
-							최신순
+							최신순 <span>{{ createdAtSortArrow }}</span>
 						</button>
 					</div>
 				</div>
@@ -209,10 +213,7 @@ const toggleSortButton = (isTimeClicked, isLikeClicked) => {
 		color: black;
 		transition: background-color 0.3s ease;
 		cursor: pointer;
-	}
 
-	.button-sort-time,
-	.button-sort-like {
 		&:hover {
 			background-color: rgba(250, 198, 198, 0.3);
 		}

@@ -44,7 +44,8 @@ const modifyPassword = async () => {
 
 	try {
 		const data = await modifyPasswordApi(oldPassword.value.value, newPassword.value.value);
-		if (!data) {
+		if (!data.isSuccess) {
+			await Swal.fire({ icon: 'error', title: '비밀번호 변경에 실패하였습니다.', width: 600 });
 			return;
 		}
 		await Swal.fire({ icon: 'success', title: '비밀번호가 변경되었습니다.', width: 600 });

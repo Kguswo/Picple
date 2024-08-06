@@ -14,7 +14,8 @@ const isModalOpen = ref(false);
 const toggleLike = async () => {
 	try {
 		const data = await boardLikeApi(props.board.id);
-		if (!data) {
+		if (!data.isSuccess) {
+			await Swal.fire({ icon: 'error', title: `${data.message}`, width: 600 });
 			return;
 		}
 		if (props.board.liked) {
@@ -36,7 +37,8 @@ const deleteBoard = async () => {
 	if (accept) {
 		try {
 			const data = await boardDeleteApi(props.board.id);
-			if (!data) {
+			if (!data.isSuccess) {
+				await Swal.fire({ icon: 'error', title: '게시글 삭제에 실패하였습니다.', width: 600 });
 				return;
 			}
 			await Swal.fire({ icon: 'success', title: '게시글이 삭제되었습니다.', width: 600 });

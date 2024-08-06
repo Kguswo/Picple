@@ -38,7 +38,8 @@ const signup = async () => {
 
 	try {
 		const data = await signupApi(userStore.verifiedEmail, password.value.value, nickname.value.value);
-		if (!data) {
+		if (!data.isSuccess) {
+			await Swal.fire({ icon: 'error', title: '회원가입에 실패하였습니다.', width: 600 });
 			return;
 		}
 		verifiedEmail.value = '';

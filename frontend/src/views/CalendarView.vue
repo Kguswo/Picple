@@ -26,7 +26,8 @@ const getMonthlyCount = async () => {
 
 	try {
 		const data = await calendarMonthlyCountApi(year, month, endDate);
-		if (!data) {
+		if (!data.isSuccess) {
+			await Swal.fire({ icon: 'error', title: '캘린더 조회에 실패하였습니다.', width: 600 });
 			return;
 		}
 		data.result.forEach((count, index) => {

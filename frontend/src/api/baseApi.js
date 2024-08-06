@@ -20,18 +20,11 @@ instance.interceptors.request.use(
 );
 
 instance.interceptors.response.use(
-	async (response) => {
-		const data = response.data;
-		if (!data.isSuccess) {
-			await Swal.fire({ icon: 'error', title: `${data.message}`, width: 600 });
-			router.go(0);
-			return null;
-		}
-		return data;
+	(response) => {
+		return response.data;
 	},
 	async (error) => {
 		await Swal.fire({ icon: 'error', title: '서버에 문제가 발생했습니다[503].', width: 600 });
-		router.go(0);
 		return Promise.reject(error);
 	},
 );

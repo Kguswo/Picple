@@ -30,7 +30,8 @@ watch(currentIndex, () => getCurrentPhoto());
 const getDailyList = async () => {
 	try {
 		const data = await calendarDailyListApi(props.selectedDate);
-		if (!data) {
+		if (!data.isSuccess) {
+			await Swal.fire({ icon: 'error', title: '캘린더 조회에 실패하였습니다.', width: 600 });
 			return;
 		}
 		dailyList.value = data.result;
@@ -42,7 +43,8 @@ const saveContent = async () => {
 	const calendarId = currentPhoto.value.id;
 	try {
 		const data = await calendarContentApi(calendarId, description.value);
-		if (!data) {
+		if (!data.isSuccess) {
+			await Swal.fire({ icon: 'error', title: '저장에 실패하였습니다.', width: 600 });
 			return;
 		}
 		currentPhoto.value.content = description.value;
@@ -91,7 +93,8 @@ const sharePhoto = async () => {
 		});
 		if (accept) {
 			const data = await calendarShareApi(currentPhoto.value.id);
-			if (!data) {
+			if (!data.isSuccess) {
+				await Swal.fire({ icon: 'error', title: `${data.message}`, width: 600 });
 				return;
 			}
 			await Swal.fire({
@@ -113,7 +116,8 @@ const deletePhoto = async () => {
 		});
 		if (accept) {
 			const data = await calendarDeleteApi(currentPhoto.value.id);
-			if (!data) {
+			if (!data.isSuccess) {
+				await Swal.fire({ icon: 'error', title: '삭제에 실패하였습니다.', width: 600 });
 				return;
 			}
 			await Swal.fire({
