@@ -105,7 +105,7 @@ public class BoardServiceImpl implements BoardService {
 	}
 
 	/**
-	 * 사용자 닉네임 검색 및 선택 정렬 기준으로 조회
+	 * 자율적으로 사용자 닉네임 검색 및 선택 정렬 기준으로 조회
 	 *
 	 * @param userId
 	 * @param nickname
@@ -117,24 +117,38 @@ public class BoardServiceImpl implements BoardService {
 			boolean direction) {
 		// 정렬기준의 존재여부에 따라 적용할 정렬기준 선택 - 최신순, 좋아요순, 기본순 + 정렬 방향 false 내림차순, true 오름차순
 		Sort.Direction sortDirection = direction ? Sort.Direction.ASC : Sort.Direction.DESC;
-		Sort sort =
-				(criteria != null && !criteria.isEmpty()) ? Sort.by(sortDirection, criteria) : Sort.unsorted();
+		Sort sort = (criteria != null && !criteria.isEmpty()) ? Sort.by(sortDirection, criteria) : Sort.unsorted();
 
-		// 정렬 기준 체크 후 그에 해당하는 정렬 실행
-		List<Board> boards = sort.isUnsorted() ?
-				boardRepository.findAllByUserNickname(nickname) :
-				boardRepository.findAllByUserNickname(nickname, sort);
+		if (nickname == null || nickname.isEmpty() || nickname.equals("")) {
+			List<Board> boards = boardRepository.findByIsDeletedFalse(sort);
+			return boards.stream()
+					.filter(board -> !board.isDeleted())
+					.map(board -> new BoardDto(
+							board.getId(),
+							board.getCreatedAt().toString(),
+							getPhotoUrl(board),
+							isLikedByUser(board, userId),
+							board.getHit()
+					))
+					.collect(Collectors.toList());
+		} else {
+			// 정렬 기준 체크 후 그에 해당하는 정렬 실행
+			List<Board> boards = sort.isUnsorted() ?
+					boardRepository.findAllByUserNickname(nickname) :
+					boardRepository.findAllByUserNickname(nickname, sort);
 
-		return boards.stream()
-				.filter(board -> !board.isDeleted())
-				.map(board -> new BoardDto(
-						board.getId(),
-						board.getCreatedAt().toString(),
-						getPhotoUrl(board),
-						isLikedByUser(board, userId),
-						board.getHit()
-				))
-				.collect(Collectors.toList());
+			return boards.stream()
+					.filter(board -> !board.isDeleted())
+					.map(board -> new BoardDto(
+							board.getId(),
+							board.getCreatedAt().toString(),
+							getPhotoUrl(board),
+							isLikedByUser(board, userId),
+							board.getHit()
+					))
+					.collect(Collectors.toList());
+		}
+
 	}
 
 	/**
