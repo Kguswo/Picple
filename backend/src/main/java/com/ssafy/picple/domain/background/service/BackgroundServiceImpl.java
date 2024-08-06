@@ -61,15 +61,25 @@ public class BackgroundServiceImpl implements BackgroundService {
 	public void createAIBackground(Long userId, String prompt) throws BaseException {
 		try {
 			// 프롬프트를 통해 AI API를 사용하여 사진 생성
-			String[] result = openAIService.createBackground(prompt);
-			String base64Image = result[0];
-			String fileName = result[1];
 			String[] result = openAIService.createAIBackground(prompt);
 			saveBackground(userId, result);
 
 		} catch (Exception e) {
 			// 예외 처리
 			throw new BaseException(AI_BACKGROUND_GENERATION_ERROR);
+		}
+	}
+
+	// 테스트 필요
+	@Override
+	@Transactional
+	public void createLocalBackground(Long userId, MultipartFile file) throws BaseException {
+		try {
+			String[] result = localFileService.createLocalImageBackground(file);
+			saveBackground(userId, result);
+
+		} catch (Exception e) {
+			throw new BaseException(LOCAL_BACKGROUND_UPLOAD_ERROR);
 		}
 	}
 
