@@ -10,6 +10,6 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 public class AIBackgroundResponse {
-	int created;
+	long created;
 	List<ImageObject> data;
 }
