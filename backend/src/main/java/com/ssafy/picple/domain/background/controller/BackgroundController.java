@@ -19,7 +19,6 @@ import com.ssafy.picple.config.baseResponse.BaseResponse;
 import com.ssafy.picple.domain.background.dto.request.CreateAIBackgroundRequest;
 import com.ssafy.picple.domain.background.dto.request.DeleteBackgroundRequest;
 import com.ssafy.picple.domain.background.dto.response.BackgroundResponseDto;
-import com.ssafy.picple.domain.background.dto.response.CreateBackgroundResponse;
 import com.ssafy.picple.domain.background.dto.response.ModifyBackgroundTitleResponse;
 import com.ssafy.picple.domain.background.service.BackgroundService;
 
@@ -65,15 +64,13 @@ public class BackgroundController {
 
 	// 수정 필요
 	@PostMapping("/local/{userId}")
-	public BaseResponse<CreateBackgroundResponse> createLocalBackground(
+	public BaseResponse<Object> createLocalBackground(
 			@PathVariable Long userId,
 			@RequestParam("file") MultipartFile file) throws BaseException {
-		try {
-			backgroundService.createLocalBackground(userId, file);
-			return new BaseResponse<>(SUCCESS);
-		} catch (Exception e) {
-			throw new BaseException(LOCAL_BACKGROUND_UPLOAD_ERROR);
-		}
+
+		backgroundService.createLocalBackground(userId, file);
+		
+		return new BaseResponse<>(SUCCESS);
 	}
 
 	@DeleteMapping("/{backgroundId}")
