@@ -75,9 +75,9 @@ public class BoardController {
 	 * @return
 	 * @throws BaseException
 	 */
-	@GetMapping("/users/{nickname}")
+	@GetMapping("/sorted")
 	public BaseResponse<List<BoardDto>> findAllBoardsByUserNickname(HttpServletRequest request,
-			@PathVariable String nickname, @RequestParam(required = false) String criteria,
+			@RequestParam String nickname, @RequestParam(required = false) String criteria,
 			@RequestParam(value = "sortDirection", required = false) boolean sortDirection) throws BaseException {
 		Long userId = boardService.getUserId(request);
 		List<BoardDto> boards = boardService.findAllBoardsByUserNickname(userId, nickname, criteria, sortDirection);
