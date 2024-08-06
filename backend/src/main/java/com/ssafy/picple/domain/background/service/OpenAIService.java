@@ -72,7 +72,7 @@ public class OpenAIService {
 				.bodyValue("""
 						{
 						  "model": "dall-e-3",
-						  "prompt": "%s, 8비트 스타일로 배경 사진을 그려줘",
+						  "prompt": "친구들과 함께 찍을 사진으로 할 배경을 만들어 줬으면 좋겠어. %s, 8비트 스타일로 배경 사진을 그려줘!",
 						  "n": 1,
 						  "size": "1024x1024",
 						  "response_format": "b64_json"
