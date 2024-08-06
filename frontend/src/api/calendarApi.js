@@ -17,6 +17,10 @@ const calendarDailyListApi = (createdAt) => {
 	return instance.get(`${calendarsBaseUrl}/daily?createdAt=${createdAt}`);
 };
 
+const calendarDownloadApi = (calendarId) => {
+	// return instance.get(`${calendarsBaseUrl}/photoResources?calendarId=${calendarId}`);
+};
+
 const calendarShareApi = (calendarId) => {
 	return instance.post(`${calendarsBaseUrl}/share/${calendarId}`);
 };
@@ -29,4 +33,11 @@ const calendarDeleteApi = (calendarId) => {
 	return instance.delete(`${calendarsBaseUrl}/${calendarId}`);
 };
 
-export { calendarMonthlyCountApi, calendarDailyListApi, calendarShareApi, calendarContentApi, calendarDeleteApi };
+export {
+	calendarMonthlyCountApi,
+	calendarDailyListApi,
+	calendarDownloadApi,
+	calendarShareApi,
+	calendarContentApi,
+	calendarDeleteApi,
+};
