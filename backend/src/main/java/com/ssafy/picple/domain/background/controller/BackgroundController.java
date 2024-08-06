@@ -59,7 +59,7 @@ public class BackgroundController {
 	public BaseResponse<String[]> createAiBackground(
 			@RequestBody CreateAIBackgroundRequest request) throws BaseException {
 
-		String[] imageUrl = openAIService.createBackground(request.getPrompt());
+		String[] imageUrl = openAIService.createAIBackground(request.getPrompt());
 
 		return new BaseResponse<>(imageUrl);
 	}
