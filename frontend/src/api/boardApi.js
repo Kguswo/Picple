@@ -7,12 +7,10 @@ const boardListApi = () => {
 	return instance.get(`${boardsBaseUrl}`);
 };
 
-const boardSortApi = (criteria) => {
-	return instance.get(`${boardsBaseUrl}/sorted/${criteria}`);
-};
-
-const boardSearchApi = (nickname) => {
-	return instance.get(`${boardsBaseUrl}/user/${nickname}`);
+const boardSortApi = (nickname, criteria, sortDirection) => {
+	return instance.get(
+		`${boardsBaseUrl}/sorted?nickname=${nickname}&criteria=${criteria}&sortDirection=${sortDirection}`,
+	);
 };
 
 const boardDeleteApi = (boardId) => {
@@ -23,4 +21,4 @@ const boardLikeApi = (boardId) => {
 	return instance.patch(`${likesBaseUrl}/${boardId}`);
 };
 
-export { boardListApi, boardSortApi, boardSearchApi, boardDeleteApi, boardLikeApi };
+export { boardListApi, boardSortApi, boardDeleteApi, boardLikeApi };

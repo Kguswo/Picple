@@ -3,14 +3,18 @@ import WhiteBoardComp from '@/components/common/WhiteBoardComp.vue';
 import BoardPhotoComp from '@/components/board/BoardPhotoComp.vue';
 import Page from '@/components/common/PageComp.vue';
 import { onMounted, ref } from 'vue';
-import { boardListApi, boardSearchApi, boardSortApi } from '@/api/boardApi';
+import { boardListApi, boardSortApi } from '@/api/boardApi';
 
 const boardList = ref([]);
-const hitSortArrow = ref('');
-const createdAtSortArrow = ref('');
+const sortArrow = ref('');
+const prevCriteria = ref('');
 const nickname = ref('');
 
-onMounted(async () => {
+onMounted(() => {
+	getBoardList();
+});
+
+const getBoardList = async () => {
 	try {
 		const data = await boardListApi();
 		if (!data.isSuccess) {
@@ -19,32 +23,29 @@ onMounted(async () => {
 		}
 		boardList.value = data.result;
 	} catch (error) {}
-});
+};
 
 const toggleSort = (criteria) => {
-	if (criteria === 'hit') {
-		createdAtSortArrow.value = '';
-		if (hitSortArrow.value === '' || hitSortArrow.value === '↑') {
-			hitSortArrow.value = '↓';
+	if (prevCriteria.value === criteria) {
+		if (sortArrow.value !== '↓') {
+			sortArrow.value = '↓';
 			return;
 		}
-		hitSortArrow.value = '↑';
+		sortArrow.value = '↑';
 		return;
 	}
-	if (criteria === 'createdAt') {
-		hitSortArrow.value = '';
-		if (createdAtSortArrow.value === '' || createdAtSortArrow.value === '↑') {
-			createdAtSortArrow.value = '↓';
-			return;
-		}
-		createdAtSortArrow.value = '↑';
-		return;
-	}
+
+	sortArrow.value = '↓';
+	prevCriteria.value = criteria;
 };
 
 const sortBoards = async (criteria) => {
 	try {
-		const data = await boardSortApi(criteria);
+		const data = await boardSortApi(
+			nickname.value,
+			criteria,
+			prevCriteria.value !== criteria || sortArrow.value !== '↓' ? false : true,
+		);
 		if (!data.isSuccess) {
 			await Swal.fire({ icon: 'error', title: '게시글 정렬에 실패하였습니다.', width: 600 });
 			return;
@@ -56,11 +57,14 @@ const sortBoards = async (criteria) => {
 
 const searchByNickname = async () => {
 	if (!nickname.value) {
+		getBoardList();
 		return;
 	}
 
+	sortArrow.value = '';
+	prevCriteria.value = '';
 	try {
-		const data = await boardSearchApi(nickname.value);
+		const data = await boardSortApi(nickname.value, 'createdAt', false);
 		if (!data.isSuccess) {
 			await Swal.fire({ icon: 'error', title: '사용자 검색에 실패하였습니다.', width: 600 });
 			return;
@@ -101,15 +105,15 @@ const searchByNickname = async () => {
 					<div class="button-group">
 						<button
 							@click="sortBoards('hit')"
-							:class="{ clicked: hitSortArrow }"
+							:class="{ clicked: prevCriteria === 'hit' }"
 						>
-							좋아요순 <span>{{ hitSortArrow }}</span>
+							좋아요순 <span>{{ prevCriteria === 'hit' ? sortArrow : '' }}</span>
 						</button>
 						<button
 							@click="sortBoards('createdAt')"
-							:class="{ clicked: createdAtSortArrow }"
+							:class="{ clicked: prevCriteria === 'createdAt' }"
 						>
-							최신순 <span>{{ createdAtSortArrow }}</span>
+							최신순 <span>{{ prevCriteria === 'createdAt' ? sortArrow : '' }}</span>
 						</button>
 					</div>
 				</div>
