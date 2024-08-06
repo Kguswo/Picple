@@ -2,8 +2,6 @@ package com.ssafy.picple.domain.background.service;
 
 import static com.ssafy.picple.config.baseResponse.BaseResponseStatus.*;
 
-import java.util.UUID;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -11,22 +9,18 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ssafy.picple.config.baseResponse.BaseException;
-import com.ssafy.picple.domain.background.dto.response.openai.AIBackgroundResponse;
-import com.ssafy.picple.util.S3Service;
 
 import reactor.core.publisher.Mono;
 
 @Service
 public class OpenAIService {
 
+	private final FileUploadService fileUploadService;
 	private final WebClient webClient;
-	private final S3Service s3Service;
 
-	public OpenAIService(@Value("${openai.api-key}") String openAIApiKey, S3Service s3Service) {
-		this.s3Service = s3Service;
+	public OpenAIService(@Value("${openai.api-key}") String openAIApiKey, FileUploadService fileUploadService) {
+		this.fileUploadService = fileUploadService;
 		this.webClient = WebClient.builder()
 				.exchangeStrategies(ExchangeStrategies.builder()
 						.codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(10 * 1024 * 1024))
@@ -44,12 +38,12 @@ public class OpenAIService {
 	 * @return 생성된 이미지의 S3 URL을 포함하는 문자열을 반환
 	 * @throws BaseException 예외 발생 시
 	 */
-	public String[] createBackground(String prompt) throws BaseException {
+	public String[] createAIBackground(String prompt) throws BaseException {
 		try {
 			Mono<String> result = requestImageGeneration(prompt);
 
-			String base64Image = parseBackgroundImageResponse(result);
-			String fileName = generateFileName(); // 포맷을 PNG로 가정
+			String base64Image = fileUploadService.parseBackgroundImage(result);
+			String fileName = fileUploadService.generateFileName("ai", "png"); // 포맷을 PNG로 가정
 
 			return new String[] {base64Image, fileName};
 		} catch (Exception e) {
@@ -93,37 +87,4 @@ public class OpenAIService {
 
 		return result;
 	}
-
-	/**
-	 * OpenAI API 응답을 파싱하는 메서드
-	 *
-	 * @param result OpenAI API의 응답 본문
-	 * @return Base64로 인코딩된 이미지 데이터
-	 * @throws BaseException 예외 발생 시
-	 */
-	private String parseBackgroundImageResponse(Mono<String> result) throws BaseException {
-		try {
-			// block() 부분 문제 해결 필요
-			String responseBody = result.block();
-			ObjectMapper mapper = new ObjectMapper();
-			AIBackgroundResponse openAIResponse = mapper.readValue(responseBody, AIBackgroundResponse.class);
-			return openAIResponse.getData().get(0).getBase64Json();
-		} catch (JsonProcessingException e) {
-			// JSON 파싱 오류 처리
-			throw new BaseException(AI_RESPONSE_JSON_PARSING_ERROR);
-		} catch (Exception e) {
-			// 기타 모든 예외 처리
-			throw new BaseException(AI_BACKGROUND_GENERATION_ERROR);
-		}
-	}
-
-	/**
-	 * 파일 이름 생성 메서드
-	 *
-	 * @return 생성된 파일 이름
-	 */
-	private String generateFileName() {
-		return "backgrounds/8bit/" + UUID.randomUUID() + ".png"; // 이미지 포맷을 PNG로 가정
-	}
-
 }
