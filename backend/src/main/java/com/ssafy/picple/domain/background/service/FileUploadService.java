@@ -10,7 +10,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ssafy.picple.config.baseResponse.BaseException;
 import com.ssafy.picple.domain.background.dto.response.openai.AIBackgroundResponse;
-import com.ssafy.picple.util.S3Service;
 
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
@@ -18,8 +17,6 @@ import reactor.core.publisher.Mono;
 @Service
 @RequiredArgsConstructor
 public class FileUploadService {
-
-	private final S3Service s3Service;
 
 	/**
 	 * OpenAI API 응답을 파싱하는 메서드
