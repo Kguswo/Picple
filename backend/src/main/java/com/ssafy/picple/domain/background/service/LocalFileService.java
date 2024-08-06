@@ -3,6 +3,7 @@ package com.ssafy.picple.domain.background.service;
 import static com.ssafy.picple.config.baseResponse.BaseResponseStatus.*;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Base64;
 
 import org.springframework.stereotype.Service;
@@ -18,7 +19,7 @@ import reactor.core.publisher.Mono;
 public class LocalFileService {
 
 	private final FileUploadService fileUploadService;
-	private final String[] imageFormats = {".png", ".jpg", ".jpeg", ".gif", ".bmp", ".tiff", ".webp", ".svg"};
+	private final String[] imageFormats = {"png", "jpg", "jpeg", "gif", "bmp", "tiff", "webp", "svg"};
 
 	/**
 	 * 사용자의 로컬에서 사진을 불러와 파일을 Base64로 인코딩하고
@@ -28,13 +29,12 @@ public class LocalFileService {
 	 * @throws BaseException 예외 발생 시
 	 */
 	public String[] createLocalImageBackground(MultipartFile file) throws BaseException {
-		if (file.isEmpty()) {
-			throw new BaseException(EMPTY_FILE_ERROR);
-		}
-		String contentType = file.getContentType();
-		if (contentType == null || !contentType.startsWith("image/")) {
+		String contentType = file.getContentType().substring(6);
+
+		if (contentType == null || !Arrays.asList(imageFormats).contains(contentType)) {
 			throw new BaseException(INVALID_IMAGE_FORMAT);
 		}
+
 		try {
 			String base64Image = fileUploadService.parseBackgroundImage("local", convertToBase64Mono(file));
 			String fileName = fileUploadService.generateFileName("local", "png"); // 포맷을 PNG로 가정
