@@ -42,7 +42,7 @@ public class OpenAIService {
 		try {
 			Mono<String> result = requestImageGeneration(prompt);
 
-			String base64Image = fileUploadService.parseBackgroundImage(result);
+			String base64Image = fileUploadService.parseBackgroundImage("ai", result);
 			String fileName = fileUploadService.generateFileName("ai", "png"); // 포맷을 PNG로 가정
 
 			return new String[] {base64Image, fileName};

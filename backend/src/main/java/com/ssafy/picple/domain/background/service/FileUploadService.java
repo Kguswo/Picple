@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ssafy.picple.config.baseResponse.BaseException;
+import com.ssafy.picple.domain.background.dto.response.LocalFileUploadResponse;
 import com.ssafy.picple.domain.background.dto.response.openai.AIBackgroundResponse;
 
 import lombok.RequiredArgsConstructor;
@@ -25,12 +26,17 @@ public class FileUploadService {
 	 * @return Base64로 인코딩된 이미지 데이터
 	 * @throws BaseException 예외 발생 시
 	 */
-	public String parseBackgroundImage(Mono<String> result) throws BaseException {
+	public String parseBackgroundImage(String command, Mono<String> result) throws BaseException {
 		try {
 			String responseBody = result.block();
 			ObjectMapper mapper = new ObjectMapper();
-			AIBackgroundResponse response = mapper.readValue(responseBody, AIBackgroundResponse.class);
-			return response.getData().get(0).getUrl();
+			if (command.equals("ai")) {
+				AIBackgroundResponse response = mapper.readValue(responseBody, AIBackgroundResponse.class);
+				return response.getData().get(0).getUrl();
+			} else {
+				LocalFileUploadResponse response = mapper.readValue(responseBody, LocalFileUploadResponse.class);
+				return response.getUrl();
+			}
 		} catch (JsonProcessingException e) {
 			// JSON 파싱 오류 처리
 			throw new BaseException(JSON_PARSING_ERROR);
