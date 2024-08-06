@@ -66,7 +66,7 @@ public class BackgroundServiceImpl implements BackgroundService {
 
 		} catch (Exception e) {
 			// 예외 처리
-			throw new BaseException(AI_BACKGROUND_GENERATION_ERROR);
+			throw new BaseException(BACKGROUND_UPLOAD_ERROR);
 		}
 	}
 
@@ -79,7 +79,8 @@ public class BackgroundServiceImpl implements BackgroundService {
 			saveBackground(userId, result);
 
 		} catch (Exception e) {
-			throw new BaseException(LOCAL_BACKGROUND_UPLOAD_ERROR);
+			// e.printStackTrace();
+			throw new BaseException(BACKGROUND_UPLOAD_ERROR);
 		}
 	}
 

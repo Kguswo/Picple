@@ -42,7 +42,8 @@ public class LocalFileService {
 			return new String[] {base64Image, fileName};
 		} catch (Exception e) {
 			// 기타 모든 예외 처리
-			throw new BaseException(AI_BACKGROUND_GENERATION_ERROR);
+			e.printStackTrace();
+			throw new BaseException(BACKGROUND_UPLOAD_ERROR);
 		}
 	}
 

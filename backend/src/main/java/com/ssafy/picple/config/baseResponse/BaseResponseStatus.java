@@ -49,8 +49,7 @@ public enum BaseResponseStatus {
 	// 3200 ~~ 3299 : 염규영
 	INVALID_BACKGROUND_ID(false, 3202, "올바르지 않은 배경화면 ID입니다."),
 	DELETE_BACKGROUND_ERROR(false, 3203, "배경 사진 삭제에 실패하였습니다."),
-	AI_BACKGROUND_GENERATION_ERROR(false, 3204, "AI 배경 사진 생성에 실패하였습니다."),
-	LOCAL_BACKGROUND_UPLOAD_ERROR(false, 3205, "로컬 배경 사진 추가에 실패하였습니다."),
+	BACKGROUND_UPLOAD_ERROR(false, 3204, "배경 사진 생성에 실패하였습니다."),
 	JSON_PARSING_ERROR(false, 3206, "JSON을 처리할 수 없습니다."),
 	AI_CLIENT_ERROR(false, 3207, "AI 클라이언트 오류가 발생하였습니다."),
 	AI_SERVER_ERROR(false, 3208, "AI 서버 오류가 발생하였습니다."),
@@ -58,7 +57,6 @@ public enum BaseResponseStatus {
 	FILE_SIZE_TOO_BIG(false, 3222, "사진 크기가 너무 큽니다."),
 	FILE_SIZE_TOO_SMALL(false, 3223, "사진 크기가 너무 작습니다."),
 	FILE_UPLOAD_ERROR(false, 3224, "파일 업로드에 실패하였습니다."),
-	EMPTY_FILE_ERROR(false, 3225, "아무 것도 선택되지 않았습니다."),
 	FILE_CONVERSION_ERROR(false, 3226, "파일을 변환하는데 실패하였습니다."),
 
 	/**
