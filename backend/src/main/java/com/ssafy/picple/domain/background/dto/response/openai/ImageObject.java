@@ -4,7 +4,6 @@ import lombok.Data;
 
 @Data
 public class ImageObject {
-	// String url; // URL 사용 시
-	String base64Json; // Base64 사용 시
+	String url;
 	String prompt;
 }
