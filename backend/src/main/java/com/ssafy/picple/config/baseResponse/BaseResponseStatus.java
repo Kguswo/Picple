@@ -57,7 +57,10 @@ public enum BaseResponseStatus {
 	FILE_SIZE_TOO_BIG(false, 3222, "사진 크기가 너무 큽니다."),
 	FILE_SIZE_TOO_SMALL(false, 3223, "사진 크기가 너무 작습니다."),
 	FILE_UPLOAD_ERROR(false, 3224, "파일 업로드에 실패하였습니다."),
+	URL_EMPTY_ERROR(false, 3225, "URL이 비어있습니다."),
 	FILE_CONVERSION_ERROR(false, 3226, "파일을 변환하는데 실패하였습니다."),
+	GENERATING_FILE_NAME_ERROR(false, 3227, "파일명을 생성하는데 실패하였습니다."),
+	BLOCKING_ERROR(false, 3228, "블로킹에 실패하였습니다."),
 
 	/**
 	 * 4000 : Database, Server
