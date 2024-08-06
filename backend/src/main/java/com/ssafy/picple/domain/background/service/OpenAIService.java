@@ -60,7 +60,7 @@ public class OpenAIService {
 	 * @return 생성된 사진의 Base64 인코딩 문자열을 포함하는 Mono 객체 반환
 	 * @throws BaseException 예외 발생 시
 	 */
-	public Mono<String> requestImageGeneration(String prompt) throws BaseException {
+	private Mono<String> requestImageGeneration(String prompt) throws BaseException {
 
 		// I/O 관련 오류 처리
 		if (prompt.isEmpty())
