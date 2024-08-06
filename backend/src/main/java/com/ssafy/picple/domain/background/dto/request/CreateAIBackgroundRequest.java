@@ -8,5 +8,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CreateAIBackgroundRequest {
+	private Long userId;
 	private String prompt;
 }
