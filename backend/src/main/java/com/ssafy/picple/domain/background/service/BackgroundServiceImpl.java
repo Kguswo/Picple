@@ -63,44 +63,29 @@ public class BackgroundServiceImpl implements BackgroundService {
 			String[] result = openAIService.createBackground(prompt);
 			String base64Image = result[0];
 			String fileName = result[1];
+	private void saveBackground(Long userId, String[] result) throws BaseException {
+		String base64Image = result[0];
+		String fileName = result[1];
 
-			// S3에 업로드
-			s3Service.uploadBase64ImageToS3(base64Image, fileName);
+		// S3에 업로드
+		s3Service.uploadBase64ImageToS3(base64Image, fileName);
 
-			// 데이터베이스에 저장
-			Background background = Background.builder()
-					.backgroundTitle(fileName)
-					.backgroundUrl(base64Image)
-					.build();
-			backgroundRepository.save(background);
+		// 데이터베이스에 저장
+		Background background = Background.builder()
+				.backgroundTitle(fileName)
+				.backgroundUrl(base64Image)
+				.build();
+		backgroundRepository.save(background);
 
-			// Background와 User의 관계 저장
-			User user = userRepository.findById(userId)
-					.orElseThrow(() -> new BaseException(NOT_FOUND_USER));
+		// Background와 User의 관계 저장
+		User user = userRepository.findById(userId)
+				.orElseThrow(() -> new BaseException(NOT_FOUND_USER));
 
-			BackgroundUser backgroundUser = BackgroundUser.builder()
-					.background(background)
-					.user(user)
-					.build();
-			backgroundUserRepository.save(backgroundUser);
-
-		} catch (Exception e) {
-			// 예외 처리
-			throw new BaseException(AI_BACKGROUND_GENERATION_ERROR);
-		}
-	}
-
-	// 수정 필요
-	@Override
-	@Transactional
-	public void createLocalBackground(Long userId, MultipartFile file) throws BaseException {
-		try {
-			// TODO: 파일 업로드 로직 구현
-			Background background = new Background("temp_title", "temp_url");
-			backgroundRepository.save(background);
-		} catch (Exception e) {
-			throw new BaseException(LOCAL_BACKGROUND_UPLOAD_ERROR);
-		}
+		BackgroundUser backgroundUser = BackgroundUser.builder()
+				.background(background)
+				.user(user)
+				.build();
+		backgroundUserRepository.save(backgroundUser);
 	}
 
 	@Override
