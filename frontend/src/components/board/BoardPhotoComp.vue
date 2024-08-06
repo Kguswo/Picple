@@ -167,4 +167,10 @@ const closeModal = () => {
 		}
 	}
 }
+
+.heart {
+	&:active {
+		transform: translateY(-4px);
+	}
+}
 </style>
