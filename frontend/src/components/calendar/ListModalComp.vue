@@ -1,8 +1,13 @@
 <script setup>
 import { defineProps, defineEmits, watch, ref, onMounted } from 'vue';
-import { calendarContentApi, calendarDailyListApi, calendarDeleteApi, calendarShareApi } from '@/api/calendarApi';
+import {
+	calendarContentApi,
+	calendarDailyListApi,
+	calendarDeleteApi,
+	calendarDownloadApi,
+	calendarShareApi,
+} from '@/api/calendarApi';
 import Swal from 'sweetalert2';
-import axios from 'axios';
 
 const props = defineProps({
 	selectedDate: String,
@@ -40,6 +45,7 @@ const getDailyList = async () => {
 };
 
 const saveContent = async () => {
+	isDropdownOpen.value = false;
 	const calendarId = currentPhoto.value.id;
 	try {
 		const data = await calendarContentApi(calendarId, description.value);
@@ -81,7 +87,24 @@ const toggleDropdown = () => {
 	isDropdownOpen.value = !isDropdownOpen.value;
 };
 
-const downloadPhoto = async () => {};
+const downloadPhoto = async () => {
+	// try {
+	// 	const data = await calendarDownloadApi(currentPhoto.value.id);
+	// 	console.log(data);
+	// 	if (!data.isSuccess) {
+	// 		await Swal.fire({ icon: 'error', title: '다운로드에 실패하였습니다.', width: 600 });
+	// 		return;
+	// 	}
+	// 	const url = window.URL.createObjectURL(new Blob([data]));
+	// 	const link = document.createElement('a');
+	// 	link.href = url;
+	// 	link.setAttribute('download', '다운로드.jpg');
+	// 	document.body.appendChild(link);
+	// 	link.click();
+	// 	document.body.removeChild(link);
+	// 	window.URL.revokeObjectURL(url);
+	// } catch (error) {}
+};
 
 const sharePhoto = async () => {
 	try {
