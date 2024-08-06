@@ -56,13 +56,14 @@ const sortBoards = async (criteria) => {
 };
 
 const searchByNickname = async () => {
+	sortArrow.value = '';
+	prevCriteria.value = '';
+
 	if (!nickname.value) {
 		getBoardList();
 		return;
 	}
 
-	sortArrow.value = '';
-	prevCriteria.value = '';
 	try {
 		const data = await boardSortApi(nickname.value, 'createdAt', false);
 		if (!data.isSuccess) {
@@ -219,7 +220,7 @@ const searchByNickname = async () => {
 		cursor: pointer;
 
 		&:hover {
-			background-color: rgba(250, 198, 198, 0.3);
+			background-color: rgb(98, 171, 217, 0.5);
 		}
 
 		&:active {
@@ -228,7 +229,8 @@ const searchByNickname = async () => {
 	}
 
 	.clicked {
-		background-color: rgb(250, 198, 198);
+		background-color: #62abd9;
+		color: white;
 	}
 }
 
