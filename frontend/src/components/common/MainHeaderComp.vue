@@ -16,7 +16,8 @@ const navigateTo = (name) => {
 const logout = async () => {
 	try {
 		const data = await logoutApi();
-		if (!data) {
+		if (!data.isSuccess) {
+			await Swal.fire({ icon: 'error', title: '로그아웃에 실패하였습니다.', width: 600 });
 			return;
 		}
 		userStore.resetUser();

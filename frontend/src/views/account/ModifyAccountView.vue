@@ -31,7 +31,8 @@ const modifyAccount = async () => {
 
 	try {
 		const data = await modifyAccountApi(nickname.value.value);
-		if (!data) {
+		if (!data.isSuccess) {
+			await Swal.fire({ icon: 'error', title: '닉네임 변경에 실패하였습니다.', width: 600 });
 			return;
 		}
 		userStore.changeNickname(nickname.value.value);
@@ -59,7 +60,8 @@ const deleteAccount = async () => {
 		});
 		if (accept) {
 			const data = await deleteAccountApi();
-			if (!data) {
+			if (!data.isSuccess) {
+				await Swal.fire({ icon: 'error', title: '회원탈퇴에 실패하였습니다.', width: 600 });
 				return;
 			}
 			userStore.resetUser();

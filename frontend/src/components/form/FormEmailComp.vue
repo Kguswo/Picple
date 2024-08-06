@@ -33,7 +33,8 @@ const sendAuthNumber = async (e) => {
 
 	try {
 		const data = await sendAuthNumberApi(email.value.value);
-		if (!data) {
+		if (!data.isSuccess) {
+			await Swal.fire({ icon: 'error', title: '인증번호 전송에 실패하였습니다.', width: 600 });
 			return;
 		}
 		emailField.value.message = { text: `인증번호를 전송하였습니다.`, isError: false };
@@ -60,7 +61,8 @@ const verifyEmail = async () => {
 	// todo: 제한시간 검사
 	try {
 		const data = await verifyAuthNumberApi(email.value.value, authNumber.value.value);
-		if (!data) {
+		if (!data.isSuccess) {
+			await Swal.fire({ icon: 'error', title: '이메일 인증에 실패하였습니다.', width: 600 });
 			return;
 		}
 		verifiedEmail.value = email.value.value;
