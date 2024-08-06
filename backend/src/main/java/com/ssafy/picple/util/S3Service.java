@@ -31,17 +31,25 @@ public class S3Service {
 	 * Base64로 인코딩된 이미지를 S3에 저장하는 메서드
 	 *
 	 * @param base64Image Base64로 인코딩된 이미지 데이터
-	 * @param fileName 파일 이름
-	 * @return 업로드된 이미지의 URL
+	 * @param fileName    파일 이름
 	 */
-	public String uploadBase64ImageToS3(String base64Image, String fileName) {
+	public void uploadBase64ImageToS3(String base64Image, String fileName) {
 		byte[] imageBytes = Base64.getDecoder().decode(base64Image);
 		ByteArrayInputStream inputStream = new ByteArrayInputStream(imageBytes);
 		ObjectMetadata metadata = new ObjectMetadata();
 		metadata.setContentLength(imageBytes.length);
-		metadata.setContentType("image/png"); // 8비트 이미지는 png일 가능성이 높음
+		metadata.setContentType("image/png"); // 이미지는 png일 가능성이 높음
 
 		amazonS3.putObject(new PutObjectRequest(bucketName, fileName, inputStream, metadata));
+	}
+
+	/**
+	 * S3에서 파일의 URL을 반환하는 메서드
+	 *
+	 * @param fileName S3에 저장된 파일의 이름
+	 * @return 파일의 URL
+	 */
+	public String getFileUrl(String fileName) {
 		return amazonS3.getUrl(bucketName, fileName).toString();
 	}
 
