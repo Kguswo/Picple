@@ -22,7 +22,6 @@ import com.ssafy.picple.domain.background.dto.response.BackgroundResponseDto;
 import com.ssafy.picple.domain.background.dto.response.CreateBackgroundResponse;
 import com.ssafy.picple.domain.background.dto.response.ModifyBackgroundTitleResponse;
 import com.ssafy.picple.domain.background.service.BackgroundService;
-import com.ssafy.picple.domain.background.service.OpenAIService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -32,7 +31,6 @@ import lombok.RequiredArgsConstructor;
 public class BackgroundController {
 
 	private final BackgroundService backgroundService;
-	private final OpenAIService openAIService;
 
 	@GetMapping
 	public BaseResponse<List<BackgroundResponseDto>> getDefaultBackgrounds() throws BaseException {
@@ -56,12 +54,13 @@ public class BackgroundController {
 	}
 
 	@PostMapping("/ai/{userId}")
-	public BaseResponse<String[]> createAiBackground(
+	public BaseResponse<Object> createAiBackground(
+			@PathVariable Long userId,
 			@RequestBody CreateAIBackgroundRequest request) throws BaseException {
 
-		String[] imageUrl = openAIService.createAIBackground(request.getPrompt());
+		backgroundService.createAIBackground(userId, request.getPrompt());
 
-		return new BaseResponse<>(imageUrl);
+		return new BaseResponse<>(SUCCESS);
 	}
 
 	// 수정 필요

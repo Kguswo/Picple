@@ -29,8 +29,8 @@ public class FileUploadService {
 		try {
 			String responseBody = result.block();
 			ObjectMapper mapper = new ObjectMapper();
-			AIBackgroundResponse openAIResponse = mapper.readValue(responseBody, AIBackgroundResponse.class);
-			return openAIResponse.getData().get(0).getUrl();
+			AIBackgroundResponse response = mapper.readValue(responseBody, AIBackgroundResponse.class);
+			return response.getData().get(0).getUrl();
 		} catch (JsonProcessingException e) {
 			// JSON 파싱 오류 처리
 			throw new BaseException(JSON_PARSING_ERROR);

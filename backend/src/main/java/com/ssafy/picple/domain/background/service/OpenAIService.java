@@ -48,7 +48,7 @@ public class OpenAIService {
 			return new String[] {base64Image, fileName};
 		} catch (Exception e) {
 			// 기타 모든 예외 처리
-			throw new BaseException(AI_BACKGROUND_GENERATION_ERROR);
+			throw new BaseException(AI_CLIENT_ERROR);
 		}
 	}
 
