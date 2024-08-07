@@ -18,15 +18,25 @@ instance.interceptors.request.use(
 );
 
 instance.interceptors.response.use(
-	async ({ data }) => {
+	async (response) => {
+		const data = response.data;
 		console.log(data);
 		if (data.code == import.meta.env.VITE_NOT_FOUND_USER) {
 			await Swal.fire({ icon: 'error', title: '아이디 또는 비밀번호가 일치하지 않습니다.', width: 700 });
 			return new Promise(() => {});
 		}
 		if (data.code == import.meta.env.VITE_INVALID_JWT) {
-			const response = await instance.post(`${instance.defaults.baseURL}/users/refresh-token`);
-			console.log(response);
+			await instance.post(`${instance.defaults.baseURL}/users/refresh-token`);
+			return new Promise(() => {});
+		}
+		if (data.code == import.meta.env.VITE_INVALID_REFRESH_TOKEN) {
+			await Swal.fire({ icon: 'error', title: '로그인이 필요합니다.', width: 600 });
+			router.push({ name: 'login' });
+			return new Promise(() => {});
+		}
+		if (response.config.url === import.meta.env.VITE_REFRESH_URL) {
+			localStorage.setItem('accessToken', response.data.result);
+			instance.request(response.config);
 		}
 		return data;
 	},
