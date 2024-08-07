@@ -130,7 +130,159 @@ const formatDatePopOver = (date) => {
 </template>
 
 <style scoped>
-@import '@/assets/css/calendar.css';
+.name-area {
+	width: 100%;
+	height: 20%;
+
+	display: flex;
+	justify-content: center;
+	align-items: center;
+
+	border-bottom: 5px solid rgba(0, 0, 0, 0.9);
+
+	color: black;
+	font-size: 50px;
+	text-shadow: 5px 5px #0000004d;
+}
+
+.calendar-area {
+	width: 100%;
+	height: 80%;
+
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+.calendar {
+	width: 85%;
+	height: 85%;
+
+	background-color: #fffef7;
+
+	border: 5px solid rgba(0, 0, 0, 0.8);
+	border-radius: 20px;
+}
+
+:deep(.my-calendar .vc-weekday-1) {
+	color: #6366f1;
+}
+
+:deep(.vc-container .vc-weekday-7) {
+	color: #6366f1;
+}
+
+:deep(.vc-expanded) {
+	width: 100%;
+	height: 100%;
+	border-radius: 20px;
+}
+
+:deep(.vc-pane-container) {
+	display: grid;
+	align-content: space-between;
+	align-items: center;
+	height: 100%;
+}
+
+:deep(.vc-header) {
+	margin-top: 0px;
+}
+
+:deep(.vc-pane-header-wrapper) {
+	height: 20%;
+	z-index: 1;
+}
+
+:deep(div.vc-pane-header-wrapper > div) {
+	height: 100%;
+	display: flex;
+	justify-content: space-around;
+}
+
+:deep(div.vc-header.is-lg > div > button) {
+	background-color: #fffef7;
+	font-size: 25px;
+}
+
+:deep(button.vc-arrow.vc-prev.vc-focus) {
+	background-color: #fffef7;
+	width: 40px;
+}
+
+:deep(button.vc-arrow.vc-prev.vc-focus > svg) {
+	width: 40px;
+	height: 40px;
+}
+
+:deep(button.vc-arrow.vc-next.vc-focus) {
+	background-color: #fffef7;
+	width: 40px;
+}
+
+:deep(button.vc-arrow.vc-next.vc-focus > svg) {
+	width: 40px;
+	height: 40px;
+}
+
+:deep(.vc-pane-layout) {
+	height: 100%;
+	position: absolute;
+	top: 0;
+	width: 100%;
+	z-index: 0;
+}
+
+:deep(div.vc-pane-layout > div) {
+	height: 100%;
+}
+
+:deep(div.vc-pane-layout > div > div.vc-header.is-lg) {
+	height: 20%;
+}
+
+:deep(.vc-weeks) {
+	height: 80%;
+	padding: 0px;
+	padding-bottom: 20px;
+
+	display: flex;
+	flex-direction: column;
+}
+
+:deep(.vc-weekdays) {
+	height: 16%;
+
+	display: flex;
+	justify-content: space-around;
+	align-items: center;
+}
+
+:deep(.vc-weekday) {
+	font-size: 25px;
+	cursor: url('@/assets/img/app/pointer.png') 5 5, auto;
+}
+
+:deep(.vc-week) {
+	height: 16%;
+}
+
+:deep(.vc-day-content) {
+	cursor: url('@/assets/img/app/pointer.png') 5 5, auto;
+}
+
+:deep(div.vc-day-content.vc-focusable.vc-focus.vc-attr) {
+	font-size: 20px;
+	width: 60%;
+	height: 70%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+:deep(.vc-light) {
+	--vc-focus-ring: 0 0 0 7px rgba(193, 193, 193, 0.752);
+}
 
 :deep(.vc-popover-content-wrapper .vc-day-popover-header) {
 	font-weight: bold;
