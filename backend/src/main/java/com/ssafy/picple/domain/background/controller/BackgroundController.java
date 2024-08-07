@@ -52,6 +52,7 @@ public class BackgroundController {
 		}
 	}
 
+	// response 프론트에 넘겨줄지 의논 필요
 	@PostMapping("/ai/{userId}")
 	public BaseResponse<Object> createAiBackground(
 			@PathVariable Long userId,
@@ -62,14 +63,14 @@ public class BackgroundController {
 		return new BaseResponse<>(SUCCESS);
 	}
 
-	// 수정 필요
+	// response 프론트에 넘겨줄지 의논 필요
 	@PostMapping("/local/{userId}")
 	public BaseResponse<Object> createLocalBackground(
 			@PathVariable Long userId,
 			@RequestPart("file") MultipartFile file) throws BaseException {
 
 		backgroundService.createLocalBackground(userId, file);
-		
+
 		return new BaseResponse<>(SUCCESS);
 	}
 
