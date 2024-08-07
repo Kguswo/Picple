@@ -4,14 +4,12 @@ import router from '@/router';
 
 export const instance = axios.create({
 	baseURL: import.meta.env.VITE_API_URL,
+	withCredentials: true,
 });
 
 instance.interceptors.request.use(
 	(config) => {
-		const accessToken = localStorage.getItem('accessToken');
-		if (accessToken) {
-			config.headers['X-ACCESS-TOKEN'] = accessToken;
-		}
+		config.headers.Authorization = `Bearer ${localStorage.getItem('accessToken')}`;
 		return config;
 	},
 	(error) => {
@@ -20,11 +18,22 @@ instance.interceptors.request.use(
 );
 
 instance.interceptors.response.use(
-	(response) => {
-		return response.data;
+	async ({ data }) => {
+		console.log(data);
+		if (data.code == import.meta.env.VITE_NOT_FOUND_USER) {
+			await Swal.fire({ icon: 'error', title: '아이디 또는 비밀번호가 일치하지 않습니다.', width: 700 });
+			return new Promise(() => {});
+		}
+		if (data.code == import.meta.env.VITE_INVALID_JWT) {
+			const response = await instance.post(`${instance.defaults.baseURL}/users/refresh-token`);
+			console.log(response);
+		}
+		return data;
 	},
 	async (error) => {
+		const { config, response } = error;
+		console.log(config, response);
 		await Swal.fire({ icon: 'error', title: '서버에 문제가 발생했습니다[503].', width: 600 });
-		return Promise.reject(error);
+		return new Promise(() => {});
 	},
 );
