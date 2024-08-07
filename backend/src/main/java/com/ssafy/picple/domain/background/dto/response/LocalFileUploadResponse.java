@@ -1,15 +1,8 @@
 package com.ssafy.picple.domain.background.dto.response;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.Data;
 
-@Getter
-@Setter
-@AllArgsConstructor
-@NoArgsConstructor
+@Data
 public class LocalFileUploadResponse {
-	private String title;
 	private String url;
 }

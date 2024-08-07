@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ssafy.picple.config.baseResponse.BaseException;
-import com.ssafy.picple.domain.background.dto.response.LocalFileUploadResponse;
 import com.ssafy.picple.domain.background.dto.response.openai.AIBackgroundResponse;
 
 import lombok.RequiredArgsConstructor;
@@ -26,23 +25,24 @@ public class FileUploadService {
 	 * @return Base64로 인코딩된 이미지 데이터
 	 * @throws BaseException 예외 발생 시
 	 */
-	public String parseBackgroundImage(String command, Mono<String> result) throws BaseException {
+	public String parseAIBackgroundImage(Mono<String> result) throws BaseException {
 		try {
 			String responseBody = result.block();
 			ObjectMapper mapper = new ObjectMapper();
-			if (command.equals("ai")) {
-				AIBackgroundResponse response = mapper.readValue(responseBody, AIBackgroundResponse.class);
-				// 번역된 프롬프트 확인용 콘솔 출력문
-				System.out.println("prompt: " + response.getData().get(0).getRevised_prompt());
-				return response.getData().get(0).getB64_json();
-			} else {
-				LocalFileUploadResponse response = mapper.readValue(responseBody, LocalFileUploadResponse.class);
-				return response.getUrl();
-			}
+			AIBackgroundResponse response = mapper.readValue(responseBody, AIBackgroundResponse.class);
+
+			// 번역된 프롬프트 확인용 콘솔 출력문
+			System.out.println("prompt: " + response.getData().get(0).getRevised_prompt());
+
+			return response.getData().get(0).getB64_json();
 		} catch (JsonProcessingException e) {
 			// JSON 파싱 오류 처리
 			throw new BaseException(JSON_PARSING_ERROR);
 		}
+	}
+
+	public String parseLocalBackgroundImage(Mono<String> result) throws BaseException {
+		return result.block();
 	}
 
 	/**
