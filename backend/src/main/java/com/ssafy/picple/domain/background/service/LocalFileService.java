@@ -37,7 +37,7 @@ public class LocalFileService {
 
 		try {
 			String base64Image = fileUploadService.parseBackgroundImage("local", convertToBase64Mono(file));
-			String fileName = fileUploadService.generateFileName("local", "png"); // 포맷을 PNG로 가정
+			String fileName = fileUploadService.generateFileName("local", ".png"); // 포맷을 PNG로 가정
 
 			return new String[] {base64Image, fileName};
 		} catch (Exception e) {
