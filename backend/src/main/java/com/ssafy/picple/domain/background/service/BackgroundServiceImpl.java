@@ -55,7 +55,6 @@ public class BackgroundServiceImpl implements BackgroundService {
 		}
 	}
 
-	// 테스트 필요
 	@Override
 	@Transactional
 	public void createAIBackground(Long userId, String prompt) throws BaseException {
@@ -90,7 +89,7 @@ public class BackgroundServiceImpl implements BackgroundService {
 
 		// S3에 업로드
 		String backgroundUrl = s3Service.uploadBase64ImageToS3(base64Image, fileName);
-		
+
 		// 생성된 사진 확인용 콘솔 출력문
 		System.out.println("backgroundUrl: " + backgroundUrl);
 
