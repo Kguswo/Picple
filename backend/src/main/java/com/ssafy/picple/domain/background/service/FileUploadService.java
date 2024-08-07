@@ -32,7 +32,7 @@ public class FileUploadService {
 			ObjectMapper mapper = new ObjectMapper();
 			if (command.equals("ai")) {
 				AIBackgroundResponse response = mapper.readValue(responseBody, AIBackgroundResponse.class);
-				return response.getData().get(0).getUrl();
+				return response.getData().get(0).getB64_json();
 			} else {
 				LocalFileUploadResponse response = mapper.readValue(responseBody, LocalFileUploadResponse.class);
 				return response.getUrl();

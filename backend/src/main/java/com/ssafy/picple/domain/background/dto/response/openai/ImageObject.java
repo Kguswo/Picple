@@ -4,7 +4,7 @@ import lombok.Data;
 
 @Data
 public class ImageObject {
-	// String b64_json;
-	String url;
+	String b64_json;
+	// String url;
 	String revised_prompt;
 }

@@ -33,7 +33,7 @@ public class S3Service {
 	 * @param base64Image Base64로 인코딩된 이미지 데이터
 	 * @param fileName    파일 이름
 	 */
-	public void uploadBase64ImageToS3(String base64Image, String fileName) {
+	public String uploadBase64ImageToS3(String base64Image, String fileName) {
 		byte[] imageBytes = Base64.getDecoder().decode(base64Image);
 		ByteArrayInputStream inputStream = new ByteArrayInputStream(imageBytes);
 		ObjectMetadata metadata = new ObjectMetadata();
@@ -41,6 +41,7 @@ public class S3Service {
 		metadata.setContentType("image/png"); // 이미지는 png일 가능성이 높음
 
 		amazonS3.putObject(new PutObjectRequest(bucketName, fileName, inputStream, metadata));
+		return amazonS3.getUrl(bucketName, fileName).toString();
 	}
 
 	/**
