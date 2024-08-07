@@ -1,7 +1,5 @@
 package com.ssafy.picple.domain.background.entity;
 
-import com.ssafy.picple.config.BaseTimeEntity;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -17,7 +15,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @Table(name = "background")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Background extends BaseTimeEntity {
+public class Background {
 
 	@Id
 	@Column(name = "background_id")

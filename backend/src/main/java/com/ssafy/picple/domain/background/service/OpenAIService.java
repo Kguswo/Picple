@@ -75,7 +75,7 @@ public class OpenAIService {
 						  "model": "dall-e-3",
 						  "n": 1,
 						  "quality": "standard",
-						  "response_format": "b64_json"
+						  "response_format": "b64_json",
 						  "size": "1024x1024",
 						  "style": "vivid"
 						}
