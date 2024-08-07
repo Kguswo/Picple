@@ -1,35 +1,34 @@
 package com.ssafy.picple.domain.user.service;
 
 import com.ssafy.picple.config.baseResponse.BaseException;
+import com.ssafy.picple.config.baseResponse.BaseResponseStatus;
 import com.ssafy.picple.domain.user.dto.request.LoginRequest;
-import com.ssafy.picple.domain.user.dto.response.Token;
+import com.ssafy.picple.domain.user.dto.request.ModifyPasswordRequest;
+import com.ssafy.picple.domain.user.dto.response.ModifyConfirmResponse;
+import com.ssafy.picple.domain.user.dto.response.LoginResponse;
+import com.ssafy.picple.domain.user.dto.response.UserInfoResponse;
 import com.ssafy.picple.domain.user.entity.User;
 import com.ssafy.picple.domain.user.repository.UserRepository;
 import com.ssafy.picple.util.JWTUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 import static com.ssafy.picple.config.baseResponse.BaseResponseStatus.*;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final JWTUtil jwtUtil;
+    private final BCryptPasswordEncoder passwordEncoder;
 
-    @Override
-    public List<User> getUser() throws BaseException {
-        List<User> users = userRepository.findAll();
-        if (!users.isEmpty()) {
-            return users;
-        } else {
-            throw new BaseException(GET_USER_EMPTY);
-        }
-    }
+    @Value("${password.encoding.key}")
+    private String passwordKey;
 
     @Override
     @Transactional
@@ -38,19 +37,46 @@ public class UserServiceImpl implements UserService {
         if (userRepository.existsByNickname(user.getNickname())) {
             throw new BaseException(DUPLICATED_USER_NICKNAME);
         }
+        try {
+            user.setPasswordEncoding(encodePassword(user.getPassword()));
+        } catch (Exception e) {
+            throw new BaseException(PASSWORD_ENCRYPTION_ERROR);
+        }
         return userRepository.save(user);
     }
 
+    /**
+     * 로그인
+     * @param loginRequest
+     * @return
+     * @throws BaseException
+     */
     @Override
-    public Token login(LoginRequest loginRequest) throws BaseException {
+    @Transactional
+    public LoginResponse login(LoginRequest loginRequest) throws BaseException {
         User user = userRepository.findByEmail(loginRequest.getEmail())
                 .orElseThrow(() -> new BaseException(NOT_FOUND_USER));
-        if (!user.getPassword().equals(loginRequest.getPassword())) {
+        if (!validatePassword(loginRequest.getPassword(), user.getPassword())) {
             throw new BaseException(INVALID_PASSWORD);
         }
-        Token token = new Token();
-        token.setAccessToken(jwtUtil.createAccessToken(user.getId()));
-        return token;
+        return new LoginResponse(jwtUtil.createAccessToken(user.getId()), user.getNickname());
+    }
+
+    /**
+     * 유저 정보 가져오기
+     * @param userId
+     * @return
+     * @throws BaseException
+     */
+    @Override
+    public UserInfoResponse getUserInfo(Long userId) throws BaseException {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BaseException(NOT_FOUND_USER));
+        return new UserInfoResponse(
+                user.getEmail(),
+                user.getNickname(),
+                user.getCreatedAt().toLocalDate()
+        );
     }
 
     /**
@@ -66,6 +92,82 @@ public class UserServiceImpl implements UserService {
         }
     }
 
+    /**
+     * 닉네임 수정
+     * @param userId, nickname
+     * @throws BaseException
+     */
+    @Override
+    @Transactional
+    public ModifyConfirmResponse modifyUserNickname(Long userId, String nickname) throws BaseException {
+        System.out.println(nickname);
+        if (userRepository.existsByNickname(nickname)) {
+            throw new BaseException(DUPLICATED_USER_NICKNAME);
+        }
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BaseException(NOT_FOUND_USER));
+        try {
+            user.modifyUserNickname(nickname);
+            userRepository.save(user);
+            return new ModifyConfirmResponse(user.getEmail(), nickname);
+        } catch (Exception e) {
+            throw new BaseException(ERROR_MODIFY_NICKNAME);
+        }
+    }
+
+    /**
+     * 비밀번호 변경
+     * @param userId
+     * @param modifyPassword
+     * @return
+     * @throws BaseException
+     */
+    @Override
+    @Transactional
+    public ModifyConfirmResponse modifyUserPassword(Long userId, ModifyPasswordRequest modifyPassword) throws BaseException {
+        String oldPassword = modifyPassword.getOldPassword();
+        String newPassword = modifyPassword.getNewPassword();
+        if (newPassword.isEmpty() || oldPassword.isEmpty()) {
+            throw new BaseException(EMPTY_REQUEST_PASSWORD);
+        }
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BaseException(NOT_FOUND_USER));
+        if (!validatePassword(oldPassword, user.getPassword())) {
+            throw new BaseException(INVALID_PASSWORD);
+        }
+        try {
+            user.setPasswordEncoding(encodePassword(newPassword));
+            userRepository.save(user);
+            return new ModifyConfirmResponse(user.getEmail(), user.getNickname());
+        } catch (Exception e) {
+            throw new BaseException(ERROR_MODIFY_PASSWORD);
+        }
+    }
+
+    @Override
+    @Transactional
+    public BaseResponseStatus resetPassword(String email, String password) throws BaseException {
+        if (password.isEmpty() || password.isEmpty()) {
+            throw new BaseException(EMPTY_REQUEST_PASSWORD);
+        }
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new BaseException(NOT_FOUND_USER));
+        try {
+            user.setPasswordEncoding(encodePassword(password));
+            userRepository.save(user);
+            return BaseResponseStatus.SUCCESS;
+        } catch (Exception e) {
+            throw new BaseException(ERROR_MODIFY_PASSWORD);
+        }
+    }
+
+    /**
+     * User 회원 탈퇴
+     * is_delete --> true
+     * @param userId
+     * @return
+     * @throws BaseException
+     */
     @Override
     @Transactional
     public String deleteUser(Long userId) throws BaseException {
@@ -75,4 +177,25 @@ public class UserServiceImpl implements UserService {
             throw new BaseException(NOT_FOUND_USER);
         }
     }
+
+    /**
+     * 비밀번호 암호화
+     * @param password
+     * @return
+     */
+    private String encodePassword(String password) {
+        return passwordEncoder.encode(password);
+    }
+
+    /**
+     * 비밀번호 검증
+     * 일치 : True
+     * @param requestPassword
+     * @param userPassword
+     * @return
+     */
+    private Boolean validatePassword(String requestPassword, String userPassword) {
+        return passwordEncoder.matches(requestPassword, userPassword);
+    }
+
 }

@@ -70,29 +70,24 @@ public class JWTUtil {
         }
     }
 
-    // 토큰 만료기간 반환
-    public Long getExpiration(String accessToken) {
-        Date expiration = Jwts.parserBuilder()
-                .setSigningKey(this.generateKey())
-                .build()
-                .parseClaimsJws(accessToken)
-                .getBody()
-                .getExpiration();
-        long now = new Date().getTime();
-        return (expiration.getTime() - now) / 1000;
-    }
-
-    public void logout(String token, Long expireTime) throws BaseException {
+    // 수정 필요 (작동 안 됨)
+    public void logout(String token) throws BaseException {
         try {
+            // 만료 시간을 현재 시간으로 설정하여 토큰을 무효화
             Jws<Claims> claims = Jwts.parserBuilder()
                     .setSigningKey(this.generateKey())
                     .build()
                     .parseClaimsJws(token);
 
-            Date expiration = claims.getBody().getExpiration();
-            if (expiration.before(new Date())) {
-                throw new BaseException(INVALID_JWT); // 사용자 정의 예외
-            }
+            Claims body = claims.getBody();
+            body.setExpiration(new Date());
+
+            String invalidatedToken = Jwts.builder()
+                    .setClaims(body)
+                    .signWith(SignatureAlgorithm.HS256, this.generateKey())
+                    .compact();
+
+            System.out.println("Invalidated Token: " + invalidatedToken);
         } catch (JwtException e) {
             throw new BaseException(JWT_GET_USER_ERROR);
         }
@@ -110,7 +105,28 @@ public class JWTUtil {
             throw new BaseException(JWT_GET_USER_ERROR);
         }
         Map<String, Object> value = claims.getBody();
-        return (Long) value.get("userId");
+
+        Object userIdObject = value.get("userId");
+
+        if (userIdObject instanceof Integer) {
+            return ((Integer) userIdObject).longValue();
+        } else if (userIdObject instanceof Long) {
+            return (Long) userIdObject;
+        } else {
+            throw new BaseException(JWT_GET_USER_ERROR);
+        }
+    }
+
+    // 토큰 만료기간 반환
+    public Long getExpiration(String accessToken) {
+        Date expiration = Jwts.parserBuilder()
+                .setSigningKey(this.generateKey())
+                .build()
+                .parseClaimsJws(accessToken)
+                .getBody()
+                .getExpiration();
+        long now = new Date().getTime();
+        return (expiration.getTime() - now) / 1000;
     }
 
 }

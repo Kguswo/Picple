@@ -1,4 +1,4 @@
-package com.ssafy.picple.domain.user.dto.response;
+package com.ssafy.picple.domain.user.dto.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -9,7 +9,7 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class Token {
-    private String accessToken;
-//    private String refreshToken;
+public class ModifyPasswordRequest {
+    private String oldPassword;
+    private String newPassword;
 }
