@@ -71,11 +71,13 @@ public class OpenAIService {
 				.contentType(MediaType.APPLICATION_JSON)
 				.bodyValue("""
 						{
+						  "prompt": "%s. 이를 주제로 한 8비트 스타일 배경 사진을 그려줘!",
 						  "model": "dall-e-3",
-						  "prompt": "친구들과 함께 찍을 사진으로 할 배경을 만들어 줬으면 좋겠어. %s, 8비트 스타일로 배경 사진을 그려줘!",
 						  "n": 1,
-						  "size": "1024x1024",
+						  "quality": "standard",
 						  "response_format": "b64_json"
+						  "size": "1024x1024",
+						  "style": "vivid"
 						}
 						""".formatted(prompt))
 				.retrieve()
