@@ -29,9 +29,9 @@ public class LocalFileService {
 	 * @throws BaseException 예외 발생 시
 	 */
 	public String[] createLocalImageBackground(MultipartFile file) throws BaseException {
-		String contentType = file.getContentType().substring(6);
+		String contentType = file.getContentType();
 
-		if (contentType == null || !Arrays.asList(imageFormats).contains(contentType)) {
+		if (contentType == null || !Arrays.asList(imageFormats).contains(contentType.substring(6))) {
 			throw new BaseException(INVALID_IMAGE_FORMAT);
 		}
 
