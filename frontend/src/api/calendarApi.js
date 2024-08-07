@@ -18,7 +18,7 @@ const calendarDailyListApi = (createdAt) => {
 };
 
 const calendarDownloadApi = (calendarId) => {
-	// return instance.get(`${calendarsBaseUrl}/photoResources?calendarId=${calendarId}`);
+	return instance.get(`${calendarsBaseUrl}/download/${calendarId}`);
 };
 
 const calendarShareApi = (calendarId) => {
