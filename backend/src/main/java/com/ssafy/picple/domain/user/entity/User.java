@@ -1,5 +1,6 @@
 package com.ssafy.picple.domain.user.entity;
 
+import com.ssafy.picple.config.BaseTimeEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -15,7 +16,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @Table(name = "user")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class User {
+public class User extends BaseTimeEntity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -39,6 +40,14 @@ public class User {
 		this.password = password;
 		this.nickname = nickname;
 		this.isDeleted = isDeleted;
+	}
+
+	public void setPasswordEncoding(String password) {
+		this.password = password;
+	}
+
+	public void modifyUserNickname(String nickname) {
+		this.nickname = nickname;
 	}
 
 }

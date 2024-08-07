@@ -22,11 +22,12 @@ import com.ssafy.picple.domain.background.dto.response.BackgroundResponseDto;
 import com.ssafy.picple.domain.background.dto.response.ModifyBackgroundTitleResponse;
 import com.ssafy.picple.domain.background.service.BackgroundService;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/background")
+@RequestMapping("/backgrounds")
 public class BackgroundController {
 
 	private final BackgroundService backgroundService;
@@ -42,9 +43,11 @@ public class BackgroundController {
 	}
 
 	@GetMapping("/{userId}")
-	public BaseResponse<List<BackgroundResponseDto>> getUserBackgrounds(@PathVariable Long userId) throws
-			BaseException {
+	public BaseResponse<List<BackgroundResponseDto>> getUserBackgrounds(
+			HttpServletRequest request)
+			throws BaseException {
 		try {
+			Long userId = (Long)request.getAttribute("userId");
 			List<BackgroundResponseDto> result = backgroundService.getUserBackgrounds(userId);
 			return new BaseResponse<>(result);
 		} catch (Exception e) {
@@ -76,15 +79,17 @@ public class BackgroundController {
 
 	@DeleteMapping("/{backgroundId}")
 	public BaseResponse<ModifyBackgroundTitleResponse> deleteBackground(
+			HttpServletRequest request,
 			@PathVariable Long backgroundId,
-			@RequestBody DeleteBackgroundRequest request) throws BaseException {
+			@RequestBody DeleteBackgroundRequest deleteBackgroundRequest) throws BaseException {
 
-		if (!request.isValidUserId()) {
+		if (!deleteBackgroundRequest.isValidUserId()) {
 			throw new BaseException(INVALID_USER_JWT);
 		}
 
 		try {
-			backgroundService.deleteBackground(backgroundId, request.getUserId());
+			Long userId = (Long)request.getAttribute("userId");
+			backgroundService.deleteBackground(backgroundId, userId);
 			return new BaseResponse<>(SUCCESS);
 		} catch (Exception e) {
 			throw new BaseException(DELETE_BACKGROUND_ERROR);

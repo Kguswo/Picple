@@ -1,15 +1,15 @@
 package com.ssafy.picple.domain.user.dto.response;
 
-import com.ssafy.picple.domain.user.entity.User;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.List;
-
 @Getter
 @Setter
+@AllArgsConstructor
 @NoArgsConstructor
-public class UserListResponse {
-    private List<User> users;
+public class ModifyConfirmResponse {
+    private String email;
+    private String nickname;
 }

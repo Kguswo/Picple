@@ -1,11 +1,13 @@
 package com.ssafy.picple.domain.boardlike.service;
 
+import static com.ssafy.picple.config.baseResponse.BaseResponseStatus.*;
+
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.ssafy.picple.config.baseResponse.BaseResponseStatus;
+import com.ssafy.picple.config.baseResponse.BaseException;
 import com.ssafy.picple.domain.board.entity.Board;
 import com.ssafy.picple.domain.board.repository.BoardRepository;
 import com.ssafy.picple.domain.boardlike.entity.BoardLike;
@@ -17,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class BoardLikeServiceImpl implements BoardLikeService {
 
 	private final BoardLikeRepository boardLikeRepository;
@@ -26,11 +29,11 @@ public class BoardLikeServiceImpl implements BoardLikeService {
 	// 좋아요 및 숫자 1 증가
 	@Transactional
 	@Override
-	public void likePhoto(Long boardId, Long userId) {
+	public void likePhoto(Long boardId, Long userId) throws BaseException {
 		User user = userRepository.findById(userId)
-				.orElseThrow(() -> new RuntimeException(BaseResponseStatus.GET_USER_EMPTY.getMessage()));
+				.orElseThrow(() -> new BaseException(GET_USER_EMPTY));
 		Board board = boardRepository.findById(boardId)
-				.orElseThrow(() -> new RuntimeException(BaseResponseStatus.RESPONSE_ERROR.getMessage()));
+				.orElseThrow(() -> new BaseException(RESPONSE_ERROR));
 
 		Optional<BoardLike> existingLike = boardLikeRepository.findByBoardIdAndUserId(boardId, userId);
 
@@ -46,7 +49,7 @@ public class BoardLikeServiceImpl implements BoardLikeService {
 				boardLikeRepository.save(updatedLike);
 				boardRepository.increaseHit(boardId);
 			} else {
-				throw new RuntimeException(BaseResponseStatus.ALREADY_LIKED.getMessage());
+				throw new BaseException(ALREADY_LIKED);
 			}
 		} else { // 좋아요 여부 존재하지 않으면 새로 생성
 			BoardLike newLike = BoardLike.builder()
@@ -62,11 +65,11 @@ public class BoardLikeServiceImpl implements BoardLikeService {
 	// 좋아요 취소 및 숫자 1 감소
 	@Transactional
 	@Override
-	public void unlikePhoto(Long boardId, Long userId) {
+	public void unlikePhoto(Long boardId, Long userId) throws BaseException {
 		User user = userRepository.findById(userId)
-				.orElseThrow(() -> new RuntimeException(BaseResponseStatus.GET_USER_EMPTY.getMessage()));
+				.orElseThrow(() -> new BaseException(GET_USER_EMPTY));
 		Board board = boardRepository.findById(boardId)
-				.orElseThrow(() -> new RuntimeException(BaseResponseStatus.RESPONSE_ERROR.getMessage()));
+				.orElseThrow(() -> new BaseException(RESPONSE_ERROR));
 
 		Optional<BoardLike> existingLike = boardLikeRepository.findByBoardIdAndUserId(boardId, userId);
 
@@ -82,10 +85,10 @@ public class BoardLikeServiceImpl implements BoardLikeService {
 				boardLikeRepository.save(updatedLike);
 				boardRepository.decreaseHit(boardId);
 			} else {
-				throw new RuntimeException(BaseResponseStatus.ALREADY_UNLIKED.getMessage());
+				throw new BaseException(ALREADY_UNLIKED);
 			}
 		} else { // 좋아요 여부 존재하지 않을시 취소하지 못하기 때문에
-			throw new RuntimeException(BaseResponseStatus.GET_LIKE_EMPTY.getMessage());
+			throw new BaseException(GET_LIKE_EMPTY);
 		}
 	}
 
