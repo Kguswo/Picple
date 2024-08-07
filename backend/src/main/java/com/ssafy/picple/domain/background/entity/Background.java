@@ -22,7 +22,7 @@ public class Background {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@Column(nullable = false, length = 45)
+	@Column(nullable = false, length = 60)
 	private String backgroundTitle;
 
 	@Column(nullable = false, columnDefinition = "TINYINT(1) DEFAULT 0")
