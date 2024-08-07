@@ -32,6 +32,8 @@ public class FileUploadService {
 			ObjectMapper mapper = new ObjectMapper();
 			if (command.equals("ai")) {
 				AIBackgroundResponse response = mapper.readValue(responseBody, AIBackgroundResponse.class);
+				// 번역된 프롬프트 확인용 콘솔 출력문
+				System.out.println("prompt: " + response.getData().get(0).getRevised_prompt());
 				return response.getData().get(0).getB64_json();
 			} else {
 				LocalFileUploadResponse response = mapper.readValue(responseBody, LocalFileUploadResponse.class);

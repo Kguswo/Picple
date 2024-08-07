@@ -90,9 +90,11 @@ public class BackgroundServiceImpl implements BackgroundService {
 
 		// S3에 업로드
 		String backgroundUrl = s3Service.uploadBase64ImageToS3(base64Image, fileName);
+		
+		// 생성된 사진 확인용 콘솔 출력문
+		System.out.println("backgroundUrl: " + backgroundUrl);
 
 		// 데이터베이스에 저장
-
 		Background background = Background.builder()
 				.backgroundTitle(fileName)
 				.backgroundUrl(backgroundUrl)
