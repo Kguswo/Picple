@@ -88,22 +88,14 @@ const toggleDropdown = () => {
 };
 
 const downloadPhoto = async () => {
-	// try {
-	// 	const data = await calendarDownloadApi(currentPhoto.value.id);
-	// 	console.log(data);
-	// 	if (!data.isSuccess) {
-	// 		await Swal.fire({ icon: 'error', title: '다운로드에 실패하였습니다.', width: 600 });
-	// 		return;
-	// 	}
-	// 	const url = window.URL.createObjectURL(new Blob([data]));
-	// 	const link = document.createElement('a');
-	// 	link.href = url;
-	// 	link.setAttribute('download', '다운로드.jpg');
-	// 	document.body.appendChild(link);
-	// 	link.click();
-	// 	document.body.removeChild(link);
-	// 	window.URL.revokeObjectURL(url);
-	// } catch (error) {}
+	try {
+		const data = await calendarDownloadApi(currentPhoto.value.id);
+		if (!data.isSuccess) {
+			await Swal.fire({ icon: 'error', title: '다운로드에 실패하였습니다.', width: 600 });
+			return;
+		}
+		await Swal.fire({ icon: 'success', title: '다운로드가 완료되었습니다.', width: 600 });
+	} catch (error) {}
 };
 
 const sharePhoto = async () => {
