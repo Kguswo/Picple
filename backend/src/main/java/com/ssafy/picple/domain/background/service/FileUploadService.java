@@ -31,9 +31,6 @@ public class FileUploadService {
 			ObjectMapper mapper = new ObjectMapper();
 			AIBackgroundResponse response = mapper.readValue(responseBody, AIBackgroundResponse.class);
 
-			// 번역된 프롬프트 확인용 콘솔 출력문
-			System.out.println("prompt: " + response.getData().get(0).getRevised_prompt());
-
 			return response.getData().get(0).getB64_json();
 		} catch (JsonProcessingException e) {
 			// JSON 파싱 오류 처리
