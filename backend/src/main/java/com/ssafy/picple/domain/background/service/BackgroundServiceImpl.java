@@ -31,7 +31,7 @@ public class BackgroundServiceImpl implements BackgroundService {
 	private final BackgroundRepository backgroundRepository;
 	private final UserRepository userRepository;
 	private final BackgroundUserRepository backgroundUserRepository;
-	private final LocalFileService localFileService;
+	private final FileUploadService fileUploadService;
 
 	@Override
 	public List<BackgroundResponseDto> getDefaultBackgrounds() throws BaseException {
@@ -61,7 +61,7 @@ public class BackgroundServiceImpl implements BackgroundService {
 		try {
 			// 프롬프트를 통해 AI API를 사용하여 사진 생성
 			String[] result = openAIService.createAIBackground(prompt);
-			saveBackground(userId, result);
+			saveBackgroundToDB(userId, result[0], result[1]);
 
 		} catch (Exception e) {
 			// 예외 처리
@@ -74,22 +74,16 @@ public class BackgroundServiceImpl implements BackgroundService {
 	@Transactional
 	public void createLocalBackground(Long userId, MultipartFile file) throws BaseException {
 		try {
-			String[] result = localFileService.createLocalImageBackground(file);
-			saveBackground(userId, result);
+			String fileName = fileUploadService.generateFileName("local", ".png");
+			String backgroundUrl = s3Service.uploadMultipartFileImageToS3(file, fileName);
+			saveBackgroundToDB(userId, backgroundUrl, fileName);
 
 		} catch (Exception e) {
-			// e.printStackTrace();
 			throw new BaseException(BACKGROUND_UPLOAD_ERROR);
 		}
 	}
 
-	private void saveBackground(Long userId, String[] result) throws BaseException {
-		String base64Image = result[0];
-		String fileName = result[1];
-
-		// S3에 업로드
-		String backgroundUrl = s3Service.uploadBase64ImageToS3(base64Image, fileName);
-
+	private void saveBackgroundToDB(Long userId, String backgroundUrl, String fileName) throws BaseException {
 		// 데이터베이스에 저장
 		Background background = Background.builder()
 				.backgroundTitle(fileName)
