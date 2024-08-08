@@ -5,6 +5,10 @@ import com.ssafy.picple.domain.background.entity.Background;
 import lombok.Getter;
 import lombok.experimental.SuperBuilder;
 
+/**
+ * 배경 삭제에 대한 응답 DTO
+ */
+
 @Getter
 @SuperBuilder
 public class DeleteBackgroundResponse extends BackgroundResponseDto {
