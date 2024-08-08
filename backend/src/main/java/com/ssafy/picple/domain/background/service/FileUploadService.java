@@ -38,10 +38,6 @@ public class FileUploadService {
 		}
 	}
 
-	public String parseLocalBackgroundImage(Mono<String> result) throws BaseException {
-		return result.block();
-	}
-
 	/**
 	 * 파일 이름 생성 메서드
 	 *

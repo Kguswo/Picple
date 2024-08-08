@@ -1,10 +1,6 @@
 package com.ssafy.picple.util;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.Base64;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -51,27 +47,6 @@ public class S3Service {
 	 * @return 파일의 URL
 	 */
 	public String getFileUrl(String fileName) {
-		return amazonS3.getUrl(bucketName, fileName).toString();
-	}
-
-	/**
-	 * 이미지 URL을 S3에 저장하는 메서드
-	 *
-	 * @param imageUrl 이미지 URL
-	 * @param fileName 저장할 파일 이름
-	 * @return 업로드된 이미지의 URL
-	 */
-	public String uploadImageFromUrlToS3(String imageUrl, String fileName) throws IOException {
-		URL url = new URL(imageUrl);
-		HttpURLConnection connection = (HttpURLConnection)url.openConnection();
-		connection.setRequestMethod("GET");
-		InputStream inputStream = connection.getInputStream();
-
-		ObjectMetadata metadata = new ObjectMetadata();
-		metadata.setContentLength(connection.getContentLength());
-		metadata.setContentType(connection.getContentType());
-
-		amazonS3.putObject(new PutObjectRequest(bucketName, fileName, inputStream, metadata));
 		return amazonS3.getUrl(bucketName, fileName).toString();
 	}
 }
