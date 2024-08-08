@@ -7,7 +7,7 @@ import {
 	calendarDownloadApi,
 	calendarShareApi,
 } from '@/api/calendarApi';
-import Swal from 'sweetalert2';
+import { alertConfirm, alertResult } from '@/api/baseApi';
 
 const props = defineProps({
 	selectedDate: String,
@@ -25,41 +25,33 @@ const leftButton = ref(null);
 const rightButton = ref(null);
 const modalDiv = ref(null);
 
-onMounted(() => {
-	getDailyList();
+onMounted(async () => {
+	await getDailyList();
 	modalDiv.value.focus();
 });
 
 watch(currentIndex, () => getCurrentPhoto());
 
 const getDailyList = async () => {
-	try {
-		const data = await calendarDailyListApi(props.selectedDate);
-		if (!data.isSuccess) {
-			await Swal.fire({ icon: 'error', title: '캘린더 조회에 실패하였습니다.', width: 600 });
-			return;
-		}
-		dailyList.value = data.result;
-		getCurrentPhoto();
-	} catch (error) {}
+	const { data } = await calendarDailyListApi(props.selectedDate);
+	if (!data.isSuccess) {
+		await alertResult(false, '조회에 실패하였습니다.');
+		return;
+	}
+	dailyList.value = data.result;
+	getCurrentPhoto();
 };
 
 const saveContent = async () => {
 	isDropdownOpen.value = false;
 	const calendarId = currentPhoto.value.id;
-	try {
-		const data = await calendarContentApi(calendarId, description.value);
-		if (!data.isSuccess) {
-			await Swal.fire({ icon: 'error', title: '저장에 실패하였습니다.', width: 600 });
-			return;
-		}
-		currentPhoto.value.content = description.value;
-		await Swal.fire({
-			icon: 'success',
-			title: '저장이 완료되었습니다.',
-			width: 600,
-		});
-	} catch (error) {}
+	const { data } = await calendarContentApi(calendarId, description.value);
+	if (!data.isSuccess) {
+		await alertResult(false, '저장에 실패하였습니다.');
+		return;
+	}
+	currentPhoto.value.content = description.value;
+	await alertResult(true, '저장이 완료되었습니다.');
 };
 
 const getCurrentPhoto = () => {
@@ -88,63 +80,43 @@ const toggleDropdown = () => {
 };
 
 const downloadPhoto = async () => {
-	try {
-		const data = await calendarDownloadApi(currentPhoto.value.id);
-		if (!data.isSuccess) {
-			await Swal.fire({ icon: 'error', title: '다운로드에 실패하였습니다.', width: 600 });
-			return;
-		}
-		await Swal.fire({ icon: 'success', title: '다운로드가 완료되었습니다.', width: 600 });
-	} catch (error) {}
+	const { data } = await calendarDownloadApi(currentPhoto.value.id);
+	if (!data.isSuccess) {
+		await alertResult(true, '다운로드에 실패하였습니다.');
+		return;
+	}
+	await alertResult(true, '다운로드가 완료되었습니다.');
 };
 
 const sharePhoto = async () => {
-	try {
-		const { value: accept } = await Swal.fire({
-			title: '사진을 게시판에 공유하시겠습니까?',
-			confirmButtonText: `Continue&nbsp;<i class="fa fa-arrow-right"></i>`,
-			showCancelButton: true,
-			width: 700,
-		});
-		if (accept) {
-			const data = await calendarShareApi(currentPhoto.value.id);
-			if (!data.isSuccess) {
-				await Swal.fire({ icon: 'error', title: `${data.message}`, width: 600 });
+	const { value: accept } = await alertConfirm('사진을 게시판에 공유하시겠습니까?');
+	if (accept) {
+		const { data } = await calendarShareApi(currentPhoto.value.id);
+		if (!data.isSuccess) {
+			if (data.code == import.meta.env.VITE_ALREADY_SHARED) {
+				await alertResult(false, '이미 공유된 사진입니다.');
 				return;
 			}
-			await Swal.fire({
-				icon: 'success',
-				title: '공유가 완료되었습니다.',
-				width: 600,
-			});
+			await alertResult(false, '공유에 실패하였습니다.');
+			return;
 		}
-	} catch (error) {}
+		await alertResult(true, '공유가 완료되었습니다.');
+	}
 };
 
 const deletePhoto = async () => {
-	try {
-		const { value: accept } = await Swal.fire({
-			title: '사진을 정말 삭제하시겠습니까?',
-			confirmButtonText: `Continue&nbsp;<i class="fa fa-arrow-right"></i>`,
-			showCancelButton: true,
-			width: 700,
-		});
-		if (accept) {
-			const data = await calendarDeleteApi(currentPhoto.value.id);
-			if (!data.isSuccess) {
-				await Swal.fire({ icon: 'error', title: '삭제에 실패하였습니다.', width: 600 });
-				return;
-			}
-			await Swal.fire({
-				icon: 'success',
-				title: '삭제가 완료되었습니다.',
-				width: 600,
-			});
-			dailyList.value.splice(currentIndex.value--, 1);
-			nextPhoto();
-			getCurrentPhoto();
+	const { value: accept } = await alertConfirm('사진을 정말 삭제하시겠습니까?');
+	if (accept) {
+		const { data } = await calendarDeleteApi(currentPhoto.value.id);
+		if (!data.isSuccess) {
+			await alertResult(false, '삭제에 실패하였습니다.');
+			return;
 		}
-	} catch (error) {}
+		await alertResult(true, '삭제가 완료되었습니다.');
+		dailyList.value.splice(currentIndex.value--, 1);
+		nextPhoto();
+		getCurrentPhoto();
+	}
 };
 
 const handleKeyup = (event) => {
