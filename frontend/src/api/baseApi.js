@@ -6,6 +6,7 @@ export const axiosAuth = axios.create({ withCredentials: true });
 
 axios.interceptors.response.use(
 	async (response) => {
+		console.log(response.data);
 		return response;
 	},
 	async (error) => {

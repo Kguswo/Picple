@@ -15,6 +15,10 @@ const signupApi = (email, password, nickname) => {
 	});
 };
 
+const sendAuthNumberByFindApi = (email) => {
+	return axios.post(`${usersBaseUrl}/mail/find`, { email });
+};
+
 const sendAuthNumberApi = (email) => {
 	return axios.post(`${usersBaseUrl}/mail`, { email });
 };
@@ -48,6 +52,7 @@ const deleteAccountApi = () => {
 export {
 	loginApi,
 	signupApi,
+	sendAuthNumberByFindApi,
 	sendAuthNumberApi,
 	verifyAuthNumberApi,
 	modifyAccountApi,
