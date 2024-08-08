@@ -1,5 +1,6 @@
 package com.ssafy.picple.domain.calendar.entity;
 
+import com.ssafy.picple.config.BaseTimeEntity;
 import com.ssafy.picple.domain.photo.entity.Photo;
 import com.ssafy.picple.domain.user.entity.User;
 
@@ -21,11 +22,11 @@ import lombok.NoArgsConstructor;
 @Getter
 @Table(name = "calendar")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Calendar {
+public class Calendar extends BaseTimeEntity {
 
 	@Id
-	@Column(name = "calendar_id")
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "calendar_id")
 	private Long id;
 
 	@ManyToOne(fetch = FetchType.LAZY)

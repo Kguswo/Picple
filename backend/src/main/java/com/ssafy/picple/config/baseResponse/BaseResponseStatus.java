@@ -18,7 +18,7 @@ public enum BaseResponseStatus {
 	INVALID_JWT(false, 2002, "유효하지 않은 JWT입니다."),
 	INVALID_USER_JWT(false, 2003, "권한이 없는 유저의 접근입니다."),
 	JWT_GET_USER_ERROR(false, 2004, "User 권한 인증 중 에러가 발생하였습니다."),
-	JWT_KEY_GENERATE_ERROR(false, 2004, "User 권한 인증 중 에러가 발생하였습니다."),
+	JWT_KEY_GENERATE_ERROR(false, 2005, "JWT 토큰 발행 중 에러가 발생하였습니다."),
 
 	/**
 	 * 3000 : Response 오류
@@ -38,13 +38,34 @@ public enum BaseResponseStatus {
 	// about user service
 	GET_USER_EMPTY(false, 3016, "등록된 유저가 없습니다."),
 	FAILED_USER_SIGNUP(false, 3017, "등록된 유저가 없습니다."),
-	NOT_FOUND_USER(false, 3018, "값을 불러오는데 실패하였습니다."),
+	NOT_FOUND_USER(false, 3018, "유저 정보가 없습니다."),
 	INVALID_PASSWORD(false, 3019, "비밀번호가 일치하지 않습니다."),
+	PASSWORD_ENCRYPTION_ERROR(false, 3020, "암호화된 비밀번호가 일치하지 않습니다."),
+	ERROR_MODIFY_NICKNAME(false, 3021, "닉네임 변경 중 오류가 발생하였습니다."),
+	ERROR_MODIFY_PASSWORD(false, 3022, "비밀번호 변경 중 오류가 발생하였습니다."),
+	EMPTY_REQUEST_PASSWORD(false, 3023, "비밀번호를 입력해주세요."),
 
 	// 3100 ~~ 3199 : 김현재
+	// boardlike
 	GET_LIKE_EMPTY(false, 3101, "좋아요 기록이 없습니다."),
 	ALREADY_LIKED(false, 3102, "이미 좋아요 한 상태입니다."),
-	ALREADY_UNLIKED(false, 3102, "이미 좋아요 한 상태입니다."),
+	ALREADY_UNLIKED(false, 3103, "이미 좋아요하지 않은 상태입니다."),
+
+	// photo
+	GET_PHOTO_EMPTY(false, 3110, "해당 사진이 없습니다."),
+	ALREADY_SHARED(false, 3111, "이미 공유된 사진입니다."),
+	FILE_UPLOAD_ERROR(false, 3120, "파일 업로드 중 오류가 발생했습니다."),
+	FILE_DOWNLOAD_ERROR(false, 3121, "파일 다운로드 중 오류가 발생했습니다."),
+	FILE_DELETE_ERROR(false, 3122, "파일 삭제 중 오류가 발생했습니다."),
+	FILE_NOT_FOUND_ERROR(false, 3123, "파일을 찾을 수 없습니다."),
+
+	// calendar
+	GET_CALENDAR_EMPTY(false, 3130, "캘린더에 일치하는 항목이 없습니다."),
+	GET_PHOTO_USER_EMPTY(false, 3140, "photoUser에 일치하는 항목이 없습니다."),
+	NOT_EQUAL_USER_ID(false, 3141, "로그인 한 유저와 캘린더 작성자가 일치하지 않습니다."),
+
+	// board
+	GET_BOARD_EMPTY(false, 3150, "유효하지 않은 boardId값입니다"),
 
 	// 3200 ~~ 3299 : 염규영
 	INVALID_BACKGROUND_ID(false, 3202, "올바르지 않은 배경화면 ID입니다."),
