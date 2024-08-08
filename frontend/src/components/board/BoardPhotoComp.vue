@@ -165,7 +165,8 @@ const closeModal = () => {
 
 .heart {
 	&:active {
-		transform: translateY(-4px);
+		transform: translateY(-5px);
+		transition: transform 0.3s ease;
 	}
 }
 </style>
