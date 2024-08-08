@@ -1,513 +1,170 @@
 <script setup>
-import WhiteBoardComp from '@/components/common/WhiteBoardComp.vue';
-import BoothBack from '@/components/booth/BoothBackComp.vue';
-import { useBoothStore } from '@/stores/boothStore';
-import { usePhotoStore } from '@/stores/photoStore';
-import { RouterView, useRouter, useRoute } from 'vue-router';
-import { ref, onMounted, onUnmounted, computed, provide } from 'vue';
-import InitializationService from '@/assets/js/showView/InitializationService';
-import PhotoService from '@/assets/js/showView/PhotoService';
+import { ref, onMounted, onUnmounted } from 'vue';
+import router from '@/router';
+
 import WebSocketService from '@/services/WebSocketService';
-import WebRTCService from '@/services/WebRTCService';
-import OpenViduService from '@/assets/js/showView/OpenViduService';
 
-import videoOn from '@/assets/icon/video_on.png';
-import videoOff from '@/assets/icon/video_off.png';
-import microOn from '@/assets/icon/micro_on.png';
-import microOff from '@/assets/icon/micro_off.png';
+import axios from 'axios';
+import { OpenVidu } from 'openvidu-browser';
 
-// Vue Router 설정
-const route = useRoute();
-const router = useRouter();
+import { useBoothStore } from '@/stores/boothStore';
 
-// Store 설정
-const photoStore = usePhotoStore();
 const boothStore = useBoothStore();
 
-// OpenVidu 관련 변수
+// OpenVidu 객체와 세션을 저장할 ref 생성
+const OV = ref(null);
+const session = ref(null);
+
+// 로컬 스트림(publisher)과 원격 참가자 스트림(subscribers)을 저장할 ref 생성
 const publisher = ref(null);
-const FIXED_SESSION_ID = route.params.boothId || 'defaultSessionId';
+const subscribers = ref([]);
 
-// 참가자 및 피어 관리를 위한 ref
-const participants = ref([]);
-const peers = ref([]);
+// 고정된 세션 ID 설정
+const FIXED_SESSION_ID = 'myFixedSessionId';
 
-// 라우팅 함수
-const navigateTo = (path) => {
-    router.push({ name: path });
-};
+// 세션 참가 함수
+const joinSession = async () => {
+    try {
+        // OpenVidu 객체 생성
+        OV.value = new OpenVidu();
 
-// 배경 이미지 계산된 속성
-const bgImage = computed(() => boothStore.bgImage);
+        // 새 세션 초기화
+        session.value = OV.value.initSession();
 
-// 컴포넌트 타입 (배경 선택 / 사진 보기) 관리
-const showtype = ref(1);
+        // 새 참가자가 들어왔을 때의 이벤트 핸들러
+        session.value.on('streamCreated', ({ stream }) => {
+            // 새 스트림을 구독하고 subscribers 배열에 추가
+            console.log('새로운 스트림 생성됨:', stream.streamId);
+            const subscriber = session.value.subscribe(stream);
+            subscribers.value.push(subscriber);
+        });
 
-// 컴포넌트 변경 함수
-const changeComponent = () => {
-    showtype.value = showtype.value === 1 ? 2 : 1;
-    navigateTo(showtype.value === 1 ? 'background' : 'showphoto');
-    console.log('컴포넌트 변경:', showtype.value === 1 ? '배경 선택' : '사진 보기');
-};
+        // 참가자가 나갔을 때의 이벤트 핸들러
+        session.value.on('streamDestroyed', ({ stream }) => {
+            // 나간 참가자의 스트림을 subscribers 배열에서 제거
+            console.log('스트림 제거됨:', stream.streamId);
+            const index = subscribers.value.findIndex((sub) => sub.stream.streamId === stream.streamId);
+            if (index >= 0) {
+                subscribers.value.splice(index, 1);
+            }
+        });
 
-// 컨트롤 표시 여부
-const showControls = ref(false);
+        // 세션 연결을 위한 토큰 얻기
+        const token = await getToken();
 
-// 컨트롤 토글 함수
-const toggleControls = () => {
-    showControls.value = !showControls.value;
-};
+        // 세션에 연결
+        await session.value.connect(token);
 
-// 컨트롤 클릭 이벤트 처리
-const handleControlClick = (event) => {
-    event.stopPropagation();
-};
+        // 사용 가능한 비디오 장치 가져오기
+        const devices = await OV.value.getDevices();
+        const videoDevices = devices.filter((device) => device.kind === 'videoinput');
 
-// 부스 액션 객체 (provide/inject 패턴을 위한)
-const boothActions = {
-    changeImage: async (image) => {
-        try {
-            await WebSocketService.send({
-                type: 'change_background',
-                boothId: route.params.boothId,
-                backgroundImage: image,
-            });
-            boothStore.setBgImage(image);
-        } catch (error) {
-            console.error('배경 변경 실패:', error);
-        }
-    },
-    takePhoto: () => PhotoService.takePhoto(),
-    exitphoto: async () => {
-        console.log('exitphoto 호출 시도');
-        const shouldExit = await PhotoService.exitphoto();
-        console.log('exitphoto 결과:', shouldExit);
-        if (shouldExit) {
-            console.log('라우터 이동 시작');
-            router.push('/selectTemp');
+        // Publisher 옵션 설정
+        const publisherOptions = {
+            audioSource: undefined, // 기본 오디오 소스 사용
+            videoSource: videoDevices.length > 0 ? videoDevices[0].deviceId : undefined, // 첫 번째 비디오 장치 사용
+            publishAudio: true, // 오디오 발행
+            publishVideo: true, // 비디오 발행
+            resolution: '640x480', // 해상도 설정
+            frameRate: 30, // 프레임 레이트 설정
+            insertMode: 'APPEND', // 비디오 삽입 모드
+            mirror: true, // 미러링 비활성화
+        };
+
+        // 로컬 웹캠 스트림 생성
+        publisher.value = await OV.value.initPublisherAsync(undefined, publisherOptions);
+
+        // 로컬 스트림을 세션에 게시
+        await session.value.publish(publisher.value);
+
+        // 세션 연결이 완료되면 화면 페이지로 이동
+        router.push({ name: 'videoDisplay', params: { sessionId: FIXED_SESSION_ID } });
+    } catch (error) {
+        console.error('세션 참가 중 오류 발생:', error);
+        if (error.name === 'DEVICE_ACCESS_DENIED') {
+            alert('카메라 또는 마이크 접근이 거부되었습니다. 브라우저 설정에서 권한을 확인해주세요.');
         } else {
-            console.log('라우터 이동 취소');
+            alert(`오류 발생: ${error.message}`);
         }
-    },
-    images: () => PhotoService.images,
+    }
 };
 
-// 부스 액션을 자식 컴포넌트에 제공
-provide('boothActions', boothActions);
+// 고정된 세션 ID를 사용하여 토큰 얻기
+const getToken = async () => {
+    try {
+        // 먼저 고정된 세션 ID로 토큰을 얻으려고 시도
+        const response = await axios.post(
+            `https://localhost:4443/openvidu/api/sessions/${FIXED_SESSION_ID}/connection`,
+            {},
+            {
+                headers: {
+                    Authorization: 'Basic ' + btoa('OPENVIDUAPP:MY_SECRET'),
+                    'Content-Type': 'application/json',
+                },
+            },
+        );
+        return response.data.token;
+    } catch (error) {
+        if (error.response && error.response.status === 404) {
+            // 세션이 없으면 새로 생성
+            await createSession(FIXED_SESSION_ID);
+            // 세션 생성 후 다시 토큰 얻기 시도
+            return getToken();
+        }
+        throw error;
+    }
+};
 
-// 비디오 및 캔버스 요소 ref
-const videoElement = ref(null);
-const canvasElement = ref(null);
+// 고정된 세션 ID로 새 세션 생성
+const createSession = async (sessionId) => {
+    await axios.post(
+        'https://localhost:4443/openvidu/api/sessions',
+        { customSessionId: sessionId },
+        {
+            headers: {
+                Authorization: 'Basic ' + btoa('OPENVIDUAPP:MY_SECRET'),
+                'Content-Type': 'application/json',
+            },
+        },
+    );
+};
 
-// 컴포넌트 마운트 시 실행되는 함수
-onMounted(async () => {
-    // WebSocket 및 WebRTC 서비스 초기화
+onMounted(() => {
     WebSocketService.setBoothStore(boothStore);
     WebSocketService.on('background_info', (message) => {
         boothStore.setBgImage(message.backgroundImage);
     });
-    WebSocketService.on('new-peer', handleNewPeer);
-    WebSocketService.on('peer-left', handlePeerLeft);
-    WebRTCService.onRemoteStream = handleRemoteStream;
-
-    // 비디오 및 캔버스 요소 초기화
-    if (videoElement.value && canvasElement.value) {
-        InitializationService.setVideoElement(videoElement.value);
-        InitializationService.setCanvasElement(canvasElement.value);
-        await InitializationService.initialize(router, route, boothStore, photoStore);
-    } else {
-        console.error('videoElement 또는 canvasElement가 설정되지 않았습니다.');
-    }
-    if (videoElement.value) {
-        videoElement.value.style.transform = 'scaleX(-1)';
-    }
-    if (canvasElement.value) {
-        canvasElement.value.style.transform = 'scaleX(-1)';
-    }
-
-    // WebRTC 초기화
-    await initializeWebRTC();
-
-    // OpenVidu 세션 초기화
-    try {
-        publisher.value = await OpenViduService.initializeSession(FIXED_SESSION_ID);
-        if (videoElement.value) {
-            videoElement.value.srcObject = publisher.value.stream.getMediaStream();
-        }
-    } catch (error) {
-        console.error('OpenVidu 세션 초기화 실패:', error);
-    }
 });
 
-// 컴포넌트 언마운트 시 실행되는 함수
 onUnmounted(() => {
-    InitializationService.cleanup();
-    WebSocketService.off('new-peer', handleNewPeer);
-    WebSocketService.off('peer-left', handlePeerLeft);
-    WebRTCService.disconnect();
-
-    // OpenVidu 세션 정리
-    OpenViduService.disconnectSession();
+    // 세션이 존재하면 연결 해제
+    if (session.value) {
+        session.value.disconnect();
+    }
 });
-
-// WebRTC 초기화 함수
-const initializeWebRTC = async () => {
-    await WebRTCService.initializeLocalStream();
-    if (videoElement.value) {
-        videoElement.value.srcObject = WebRTCService.localStream;
-    }
-};
-
-// 새로운 피어 처리 함수
-const handleNewPeer = async (peerId) => {
-    const peerConnection = await WebRTCService.createPeerConnection(peerId);
-    peers.value.push({ id: peerId, connection: peerConnection });
-};
-
-// 피어 퇴장 처리 함수
-const handlePeerLeft = (peerId) => {
-    const index = peers.value.findIndex((peer) => peer.id === peerId);
-    if (index !== -1) {
-        peers.value.splice(index, 1);
-    }
-};
-
-// 원격 스트림 처리 함수
-const handleRemoteStream = (peerId, stream) => {
-    const peer = peers.value.find((p) => p.id === peerId);
-    if (peer) {
-        peer.stream = stream;
-        const videoElement = document.querySelector(`#video-${peerId}`);
-        if (videoElement) {
-            videoElement.srcObject = stream;
-        }
-    }
-};
-
-// 배경 이미지 변경 함수
-const changeImage = async (image) => {
-    await boothActions.changeImage(image);
-};
-
-// 비디오 관련 ref들
-const videoWidth = ref(213);
-const videoHeight = ref(160);
-const videoContainerRef = ref(null);
-const videoPosition = ref({ x: 0, y: 0 });
-const videoScale = ref(1);
-const videoRotation = ref(0);
-const isDragging = ref(false);
-const startPosition = ref({ x: 0, y: 0 });
-const isFocused = ref(false);
-const isMirrored = ref(true);
-const isvideoOn = ref(true);
-const isMicroOn = ref(true);
-
-// 포커스 처리 함수
-const handleFocus = () => {
-    isFocused.value = true;
-};
-
-const handleBlur = () => {
-    isFocused.value = false;
-};
-
-// 사진 촬영 함수
-const takePhoto = async () => {
-    console.log('takePhoto 함수 호출');
-    await PhotoService.takePhoto();
-};
-
-// 사진 촬영 종료 및 템플릿 선택 페이지로 이동 함수
-const exitphoto = async () => {
-    console.log('exitphoto 호출 시도');
-    const shouldExit = await PhotoService.exitphoto();
-    console.log('exitphoto 결과:', shouldExit);
-    if (shouldExit) {
-        console.log('라우터 이동 시작');
-        router.push('/selectTemp');
-    } else {
-        console.log('라우터 이동 취소');
-    }
-};
-
-// 중앙 인디케이터 스타일 계산
-const centerIndicatorStyle = computed(() => ({
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    width: '10px',
-    height: '1px',
-    backgroundColor: isFocused.value ? 'gray' : 'lightgray',
-    transform: 'translate(-50%, -50%)',
-}));
-
-// 비디오 스타일 계산
-const videoStyle = computed(() => ({
-    position: 'absolute',
-    left: '50%',
-    top: '50%',
-    transform: `translate(-50%, -50%) translate(${videoPosition.value.x}px, ${videoPosition.value.y}px) scale(${videoScale.value}) rotate(${videoRotation.value}deg)`,
-    cursor: isDragging.value ? 'grabbing' : 'grab',
-    border: isFocused.value ? '2px dashed gray' : '2px dashed lightgray',
-    width: `${videoWidth.value}px`,
-    height: `${videoHeight.value}px`,
-}));
-
-// 드래그 시작 함수
-const startDrag = (event) => {
-    isDragging.value = true;
-    startPosition.value = {
-        x: event.clientX - videoPosition.value.x,
-        y: event.clientY - videoPosition.value.y,
-    };
-};
-
-// 드래그 중 함수
-const onDrag = (event) => {
-    if (!isDragging.value) return;
-    const dx = event.clientX - startPosition.value.x;
-    const dy = event.clientY - startPosition.value.y;
-    videoPosition.value = { x: dx, y: dy };
-};
-
-// 드래그 종료 함수
-const stopDrag = () => {
-    isDragging.value = false;
-};
-
-// 미러링 토글 함수
-const toggleMirror = () => {
-    isMirrored.value = !isMirrored.value;
-    const transform = isMirrored.value ? 'scaleX(-1)' : 'scaleX(1)';
-    if (videoElement.value) {
-        videoElement.value.style.transform = transform;
-    }
-    if (canvasElement.value) {
-        canvasElement.value.style.transform = transform;
-    }
-};
-
-// 카메라 토글 함수
-const toggleCamera = () => {
-    isvideoOn.value = !isvideoOn.value;
-    if (InitializationService.videoElement) {
-        InitializationService.videoElement.srcObject.getVideoTracks().forEach((track) => {
-            track.enabled = isvideoOn.value;
-        });
-    }
-};
-
-// 마이크 토글 함수
-const toggleMicro = () => {
-    isMicroOn.value = !isMicroOn.value;
-    if (InitializationService.videoElement) {
-        InitializationService.videoElement.srcObject.getAudioTracks().forEach((track) => {
-            track.enabled = isMicroOn.value;
-        });
-    }
-};
-
-const { isLoading } = InitializationService;
-const { remainPicCnt, images } = PhotoService;
 </script>
-
 <template>
-    <WhiteBoardComp class="whiteboard-area-booth">
-        <div
-            v-if="isLoading"
-            class="loading-overlay"
-        >
-            <img
-                src="@/assets/img/common/loading.gif"
-                alt="Loading..."
-            />
+    <div id="app">
+        <h1>OpenVidu 테스트 애플리케이션</h1>
+        <div>
+            <h1>OpenVidu 화상 회의</h1>
+            <button @click="joinSession">세션 참가</button>
         </div>
-        <div class="booth-content">
-            <div class="booth-top-div">
-                <div>남은 사진 수: {{ remainPicCnt }}/10</div>
-                <div class="close-btn">
-                    <button
-                        class="close"
-                        @click="navigateTo('main')"
-                    >
-                        나가기
-                    </button>
-                </div>
-            </div>
-
-            <div class="booth-content-main">
-                <BoothBack class="booth-camera-box">
-                    <div
-                        ref="captureArea"
-                        :style="{ backgroundImage: `url(${bgImage})` }"
-                        class="photo-zone"
-                        @focus="handleFocus"
-                        @blur="handleBlur"
-                        tabindex="0"
-                    >
-                        <div
-                            class="video-container"
-                            ref="videoContainerRef"
-                            :style="videoStyle"
-                            @mousedown="startDrag"
-                            @mousemove="onDrag"
-                            @mouseup="stopDrag"
-                            @mouseleave="stopDrag"
-                            @click="toggleControls"
-                            tabindex="0"
-                        >
-                            <div class="video-item">
-                                <canvas
-                                    ref="canvasElement"
-                                    :width="videoWidth"
-                                    :height="videoHeight"
-                                ></canvas>
-                                <video
-                                    ref="videoElement"
-                                    autoplay
-                                    muted
-                                    :width="videoWidth"
-                                    :height="videoHeight"
-                                    style="display: none"
-                                ></video>
-                                <div :style="centerIndicatorStyle"></div>
-                                <p>You</p>
-                            </div>
-                        </div>
-                        <div
-                            v-if="showControls"
-                            class="controls"
-                            @click="handleControlClick"
-                        >
-                            <button
-                                class="close-controls"
-                                @click="toggleControls"
-                            >
-                                X
-                            </button>
-                            <label>
-                                Rotate
-                                <input
-                                    type="range"
-                                    v-model="videoRotation"
-                                    min="0"
-                                    max="360"
-                                />
-                            </label>
-                            <label>
-                                Scale
-                                <input
-                                    type="range"
-                                    v-model="videoScale"
-                                    min="0.5"
-                                    max="2"
-                                    step="0.01"
-                                />
-                            </label>
-                        </div>
-                    </div>
-
-                    <div class="remote-streams">
-                        <div
-                            v-for="peer in peers"
-                            :key="peer.id"
-                            class="video-item"
-                        >
-                            <video
-                                :id="`video-${peer.id}`"
-                                autoplay
-                                playsinline
-                            ></video>
-                            <p>{{ peer.id }}</p>
-                        </div>
-                    </div>
-
-                    <div class="create-btn">
-                        <div class="left-btn">
-                            <button
-                                class="circle-btn"
-                                @click="toggleMicro"
-                            >
-                                <img
-                                    :src="isMicroOn ? microOn : microOff"
-                                    alt="M"
-                                />
-                            </button>
-                            <button
-                                class="circle-btn"
-                                @click="toggleCamera"
-                            >
-                                <img
-                                    :src="isvideoOn ? videoOn : videoOff"
-                                    alt="Toggle Camera"
-                                />
-                            </button>
-                            <button
-                                class="ract-btn"
-                                @click="toggleMirror"
-                            >
-                                반전
-                            </button>
-                        </div>
-
-                        <button
-                            @click="takePhoto"
-                            class="take-photo"
-                        >
-                            <img
-                                src="@/assets/icon/camera.png"
-                                alt=""
-                            />
-                        </button>
-                        <div class="right-btn">
-                            <button
-                                class="ract-btn"
-                                @click="exitphoto"
-                            >
-                                템플릿 선택
-                            </button>
-                        </div>
-                    </div>
-                </BoothBack>
-
-                <BoothBack class="booth-select-box">
-                    <div class="select-box-top">
-                        <button
-                            class="prev-btn"
-                            @click="changeComponent"
-                        >
-                            &lt;
-                        </button>
-                        <div class="box-name">
-                            <p v-if="showtype === 1">배경선택</p>
-                            <p v-if="showtype === 2">사진보기</p>
-                        </div>
-                        <button
-                            class="next-btn"
-                            @click="changeComponent"
-                        >
-                            &gt;
-                        </button>
-                    </div>
-
-                    <div class="select-text-box">
-                        <RouterView
-                            v-if="showtype === 1"
-                            @update="changeImage"
-                        ></RouterView>
-                        <RouterView
-                            v-else
-                            :images="images"
-                        >
-                        </RouterView>
-                    </div>
-                </BoothBack>
-            </div>
-        </div>
-    </WhiteBoardComp>
+    </div>
 </template>
 
-<style scoped>
-@import url('@/assets/css/shootView.css');
+<style>
+#app {
+    font-family: Avenir, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-align: center;
+    color: #2c3e50;
+    margin-top: 60px;
+}
+
+button {
+    padding: 10px 20px;
+    font-size: 16px;
+}
 </style>
