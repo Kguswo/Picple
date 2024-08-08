@@ -1,10 +1,13 @@
 package com.ssafy.picple.util;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Base64;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ObjectMetadata;
@@ -34,6 +37,22 @@ public class S3Service {
 		ByteArrayInputStream inputStream = new ByteArrayInputStream(imageBytes);
 		ObjectMetadata metadata = new ObjectMetadata();
 		metadata.setContentLength(imageBytes.length);
+		metadata.setContentType("image/png"); // 이미지는 png일 가능성이 높음
+
+		amazonS3.putObject(new PutObjectRequest(bucketName, fileName, inputStream, metadata));
+		return amazonS3.getUrl(bucketName, fileName).toString();
+	}
+
+	/**
+	 * 사용자의 로컬 사진(MultipartFile)을 S3에 저장하는 메서드
+	 *
+	 * @param file MultipartFile, 로컬 파일
+	 * @param fileName 파일 이름
+	 */
+	public String uploadMultipartFileImageToS3(MultipartFile file, String fileName) throws IOException {
+		InputStream inputStream = file.getInputStream();
+		ObjectMetadata metadata = new ObjectMetadata();
+		metadata.setContentLength(file.getSize());
 		metadata.setContentType("image/png"); // 이미지는 png일 가능성이 높음
 
 		amazonS3.putObject(new PutObjectRequest(bucketName, fileName, inputStream, metadata));
