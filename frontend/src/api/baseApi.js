@@ -2,48 +2,72 @@ import axios from 'axios';
 import Swal from 'sweetalert2';
 import router from '@/router';
 
-export const instance = axios.create({
-	baseURL: import.meta.env.VITE_API_URL,
-	withCredentials: true,
-});
+export const axiosAuth = axios.create({ withCredentials: true });
 
-instance.interceptors.request.use(
-	(config) => {
-		config.headers.Authorization = `Bearer ${localStorage.getItem('accessToken')}`;
-		return config;
-	},
-	(error) => {
-		return Promise.reject(error);
-	},
-);
-
-instance.interceptors.response.use(
+axios.interceptors.response.use(
 	async (response) => {
-		const data = response.data;
-		console.log(data);
-		if (data.code == import.meta.env.VITE_NOT_FOUND_USER) {
-			await Swal.fire({ icon: 'error', title: '아이디 또는 비밀번호가 일치하지 않습니다.', width: 700 });
-			return new Promise(() => {});
-		}
-		if (data.code == import.meta.env.VITE_INVALID_JWT) {
-			await instance.post(`${instance.defaults.baseURL}/users/refresh-token`);
-			return new Promise(() => {});
-		}
-		if (data.code == import.meta.env.VITE_INVALID_REFRESH_TOKEN) {
-			await Swal.fire({ icon: 'error', title: '로그인이 필요합니다.', width: 600 });
-			router.push({ name: 'login' });
-			return new Promise(() => {});
-		}
-		if (response.config.url === import.meta.env.VITE_REFRESH_URL) {
-			localStorage.setItem('accessToken', response.data.result);
-			instance.request(response.config);
-		}
-		return data;
+		return response;
 	},
 	async (error) => {
-		const { config, response } = error;
-		console.log(config, response);
 		await Swal.fire({ icon: 'error', title: '서버에 문제가 발생했습니다[503].', width: 600 });
 		return new Promise(() => {});
 	},
 );
+
+axiosAuth.interceptors.request.use(
+	(config) => {
+		config.headers['X-ACCESS-TOKEN'] = localStorage.getItem('accessToken');
+		return config;
+	},
+	(error) => {},
+);
+
+axiosAuth.interceptors.response.use(
+	async (response) => {
+		const { config, data } = response;
+
+		if (data.code == import.meta.env.VITE_CODE_INVALID_JWT) {
+			const accessToken = await tokenRefresh();
+			if (accessToken) {
+				localStorage.setItem('accessToken', accessToken);
+				config.headers['X-ACCESS-TOKEN'] = localStorage.getItem('accessToken');
+				return axiosAuth(config);
+			}
+			await Swal.fire({ icon: 'error', title: '로그인이 필요합니다.', width: 600 });
+			router.push({ name: 'login' });
+			return new Promise(() => {});
+		}
+		return response;
+	},
+	async (error) => {
+		await Swal.fire({ icon: 'error', title: '서버에 문제가 발생했습니다[503].', width: 600 });
+		return new Promise(() => {});
+	},
+);
+
+const tokenRefresh = async () => {
+	const { data } = await axios.post(
+		`${import.meta.env.VITE_API_REFRESH}`,
+		{},
+		{
+			withCredentials: true,
+		},
+	);
+	if (data.code == import.meta.env.VITE_CODE_SUCCESS) {
+		return data.result;
+	}
+	return null;
+};
+
+export const alertResult = async (isSuccess, title) => {
+	await Swal.fire({ icon: isSuccess ? 'success' : 'error', title, width: 700 });
+};
+
+export const alertConfirm = async (title) => {
+	return await Swal.fire({
+		title,
+		confirmButtonText: `Continue&nbsp;<i class="fa fa-arrow-right"></i>`,
+		showCancelButton: true,
+		width: 700,
+	});
+};
