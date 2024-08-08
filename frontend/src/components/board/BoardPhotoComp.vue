@@ -2,8 +2,8 @@
 import { ref } from 'vue';
 import BoardModalComp from '@/components/board/BoardModalComp.vue';
 import { boardDeleteApi, boardLikeApi } from '@/api/boardApi';
-import Swal from 'sweetalert2';
 import router from '@/router';
+import { alertConfirm, alertResult } from '@/api/baseApi';
 
 const props = defineProps({
 	board: Object,
@@ -12,38 +12,34 @@ const props = defineProps({
 const isModalOpen = ref(false);
 
 const toggleLike = async () => {
-	try {
-		const data = await boardLikeApi(props.board.id);
-		if (!data.isSuccess) {
-			await Swal.fire({ icon: 'error', title: `${data.message}`, width: 600 });
-			return;
-		}
-		if (props.board.liked) {
-			--props.board.hit;
-			props.board.liked = false;
-		} else {
-			++props.board.hit;
-			props.board.liked = true;
-		}
-	} catch (error) {}
+	const { data } = await boardLikeApi(props.board.id);
+	if (!data.isSuccess) {
+		await alertResult(false, '오류가 발생하였습니다.');
+		return;
+	}
+	if (props.board.liked) {
+		--props.board.hit;
+		props.board.liked = false;
+	} else {
+		++props.board.hit;
+		props.board.liked = true;
+	}
 };
 
 const deleteBoard = async () => {
-	const { value: accept } = await Swal.fire({
-		title: '정말 게시글을 삭제하시겠습니까?',
-		confirmButtonText: `Continue&nbsp;<i class="fa fa-arrow-right"></i>`,
-		showCancelButton: true,
-	});
+	const { value: accept } = await alertConfirm('정말 게시글을 삭제하시겠습니까?');
 	if (accept) {
-		try {
-			const data = await boardDeleteApi(props.board.id);
-			if (!data.isSuccess) {
-				await Swal.fire({ icon: 'error', title: '게시글 삭제에 실패하였습니다.', width: 600 });
+		const { data } = await boardDeleteApi(props.board.id);
+		if (!data.isSuccess) {
+			if (data.code == import.meta.env.VITE_REQUEST_ERROR) {
+				await alertResult(false, '게시글은 작성만 삭제할 수 있습니다.');
 				return;
 			}
-			await Swal.fire({ icon: 'success', title: '게시글이 삭제되었습니다.', width: 600 });
-			router.go(0);
-		} catch (error) {}
+			await alertResult(false, '게시글 삭제에 실패하였습니다.');
+			return;
+		}
+		await alertResult(true, '게시글이 삭제되었습니다.');
+		router.go(0);
 	}
 };
 
