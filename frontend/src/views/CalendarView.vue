@@ -7,6 +7,7 @@ import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { calendarMonthlyCountApi } from '@/api/calendarApi';
 import { formatDate } from '@/assets/js/date';
+import { alertResult } from '@/api/baseApi';
 
 const monthlyCount = ref({});
 const attributes = ref([]);
@@ -24,21 +25,19 @@ const getMonthlyCount = async () => {
 	const month = now.getMonth() + 1;
 	const endDate = new Date(year, month, 0).getDate();
 
-	try {
-		const data = await calendarMonthlyCountApi(year, month, endDate);
-		if (!data.isSuccess) {
-			await Swal.fire({ icon: 'error', title: '캘린더 조회에 실패하였습니다.', width: 600 });
-			return;
+	const { data } = await calendarMonthlyCountApi(year, month, endDate);
+	if (!data.isSuccess) {
+		await alertResult(false, '조회에 실패하였습니다.');
+		return;
+	}
+	data.result.forEach((count, index) => {
+		if (count) {
+			monthlyCount.value[`${year}-${month}-${index + 1}`] = {
+				count,
+				dot: getRandomColor(),
+			};
 		}
-		data.result.forEach((count, index) => {
-			if (count) {
-				monthlyCount.value[`${year}-${month}-${index + 1}`] = {
-					count,
-					dot: getRandomColor(),
-				};
-			}
-		});
-	} catch (error) {}
+	});
 };
 
 const updateAttributes = () => {
