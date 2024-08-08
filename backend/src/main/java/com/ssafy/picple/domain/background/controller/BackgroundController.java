@@ -10,16 +10,15 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.ssafy.picple.config.baseResponse.BaseException;
 import com.ssafy.picple.config.baseResponse.BaseResponse;
+import com.ssafy.picple.domain.background.dto.request.CreateAIBackgroundRequest;
 import com.ssafy.picple.domain.background.dto.request.DeleteBackgroundRequest;
-import com.ssafy.picple.domain.background.dto.request.InsertAIBackgroundRequest;
 import com.ssafy.picple.domain.background.dto.response.BackgroundResponseDto;
-import com.ssafy.picple.domain.background.dto.response.InsertBackgroundResponse;
 import com.ssafy.picple.domain.background.dto.response.ModifyBackgroundTitleResponse;
 import com.ssafy.picple.domain.background.service.BackgroundService;
 
@@ -56,30 +55,26 @@ public class BackgroundController {
 		}
 	}
 
+	// response 프론트에 넘겨줄지 의논 필요
 	@PostMapping("/ai/{userId}")
-	public BaseResponse<InsertBackgroundResponse> insertAiBackground(
-			HttpServletRequest request,
-			@RequestBody InsertAIBackgroundRequest aiBackgroundRequest) throws BaseException {
-		try {
-			Long userId = (Long)request.getAttribute("userId");
-			backgroundService.insertAIBackground(userId, aiBackgroundRequest.getPrompt());
-			return new BaseResponse<>(SUCCESS);
-		} catch (Exception e) {
-			throw new BaseException(AI_BACKGROUND_GENERATION_ERROR);
-		}
+	public BaseResponse<Object> createAiBackground(
+			@PathVariable Long userId,
+			@RequestBody CreateAIBackgroundRequest request) throws BaseException {
+
+		backgroundService.createAIBackground(userId, request.getPrompt());
+
+		return new BaseResponse<>(SUCCESS);
 	}
 
+	// response 프론트에 넘겨줄지 의논 필요
 	@PostMapping("/local/{userId}")
-	public BaseResponse<InsertBackgroundResponse> insertLocalBackground(
-			HttpServletRequest request,
-			@RequestParam("file") MultipartFile file) throws BaseException {
-		try {
-			Long userId = (Long)request.getAttribute("userId");
-			backgroundService.insertLocalBackground(userId, file);
-			return new BaseResponse<>(SUCCESS);
-		} catch (Exception e) {
-			throw new BaseException(LOCAL_BACKGROUND_UPLOAD_ERROR);
-		}
+	public BaseResponse<Object> createLocalBackground(
+			@PathVariable Long userId,
+			@RequestPart("file") MultipartFile file) throws BaseException {
+
+		backgroundService.createLocalBackground(userId, file);
+
+		return new BaseResponse<>(SUCCESS);
 	}
 
 	@DeleteMapping("/{backgroundId}")

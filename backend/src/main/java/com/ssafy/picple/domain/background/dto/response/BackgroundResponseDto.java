@@ -13,11 +13,11 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 public class BackgroundResponseDto {
 
-	protected Long id;
-	protected String backgroundTitle;
-	protected String imageUrl;
-	protected Boolean isDefault;
-	protected Boolean isDeleted;
+	private Long id;
+	private String backgroundTitle;
+	private String imageUrl;
+	private Boolean isDefault;
+	private Boolean isDeleted;
 
 	public static BackgroundResponseDto backgroundResponseDto(Background background) {
 		return BackgroundResponseDto.builder()
