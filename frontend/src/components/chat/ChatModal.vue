@@ -50,7 +50,7 @@ export default {
 			}
 		},
 		connect() {
-			const socket = new SockJS('http://localhost:8080/ws');
+			const socket = new SockJS('http://localhost:8080/ws/booth/$(this.boothId)');
 			this.stompClient = Stomp.over(socket);
 			this.stompClient.connect({}, this.onConnected, this.onError);
 		},

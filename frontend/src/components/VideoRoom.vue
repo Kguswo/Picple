@@ -1,7 +1,22 @@
 <script setup>
+import { ref, onMounted, onUnmounted, watch } from 'vue';
 import axios from 'axios';
 import { OpenVidu } from 'openvidu-browser';
-import { ref, onMounted, onUnmounted } from 'vue';
+
+const props = defineProps({
+	username: {
+		type: String,
+		required: true,
+	},
+});
+
+// username prop 변경 감지
+watch(
+	() => props.username,
+	(newUsername) => {
+		console.log('Username changed:', newUsername);
+	},
+);
 
 // OpenVidu 객체와 세션을 저장할 ref 생성
 const OV = ref(null);
@@ -32,7 +47,7 @@ const sendMessage = () => {
 	if (newMessage.value.trim() && session.value) {
 		const messageData = {
 			message: newMessage.value,
-			userId: session.value.connection.connectionId,
+			username: props.username,
 			timestamp: new Date().getTime(),
 		};
 		session.value.signal({
@@ -40,6 +55,20 @@ const sendMessage = () => {
 			type: 'chat',
 		});
 		newMessage.value = '';
+	}
+};
+
+// 채팅 메시지 수신 이벤트 핸들러 수정
+const setupChatHandler = () => {
+	if (session.value) {
+		session.value.on('signal:chat', (event) => {
+			const messageData = JSON.parse(event.data);
+			chatMessages.value.push({
+				message: messageData.message,
+				username: messageData.username || '익명', // username 필드 사용
+				timestamp: messageData.timestamp,
+			});
+		});
 	}
 };
 
@@ -71,14 +100,15 @@ const joinSession = async () => {
 		// 채팅 메시지 수신 이벤트 핸들러 추가
 		session.value.on('signal:chat', (event) => {
 			const messageData = JSON.parse(event.data);
-			chatMessages.value.push(messageData);
+			// chatMessages.value.push(messageData);
 		});
 
 		// 세션 연결을 위한 토큰 얻기
 		const token = await getToken();
 
 		// 세션에 연결
-		await session.value.connect(token);
+		await session.value.connect(token, { clientData: props.username });
+		setupChatHandler();
 
 		// 사용 가능한 비디오 장치 가져오기
 		const devices = await OV.value.getDevices();
@@ -155,7 +185,7 @@ const createSession = async (sessionId) => {
 
 // 컴포넌트가 마운트될 때 실행될 로직
 onMounted(() => {
-	// 필요한 초기화 로직
+	console.log('VideoRoom mounted. Username:', props.username);
 });
 
 // 컴포넌트가 언마운트될 때 실행될 로직
@@ -169,6 +199,7 @@ onUnmounted(() => {
 <template>
 	<div>
 		<h1>OpenVidu 화상 회의</h1>
+		<p>현재 사용자: {{ username }}</p>
 		<button @click="joinSession">세션 참가</button>
 
 		<div class="video-container">
@@ -219,7 +250,7 @@ onUnmounted(() => {
 					:key="msg.timestamp"
 					class="chat-message"
 				>
-					<strong>{{ msg.userId }}</strong
+					<strong>{{ msg.username }}</strong
 					>: {{ msg.message }}
 				</div>
 			</div>
@@ -257,7 +288,7 @@ video {
 
 .chat-modal {
 	position: fixed;
-	bottom: 80px;
+	bottom: 90px;
 	right: 20px;
 	width: 300px;
 	height: 400px;
@@ -285,17 +316,23 @@ video {
 
 .chat-input input {
 	flex-grow: 1;
-	margin-right: 10px;
+	margin-right: 6px;
+	height: 32px;
+	padding-left: 6px;
+}
+
+.chat-input button {
+	width: 48px;
 }
 
 .chat-icon {
 	position: fixed;
 	bottom: 20px;
 	right: 20px;
-	background-color: #007bff; /* 밝은 색상으로 변경 */
+	background-color: #007bff;
 	color: white;
 	border: none;
-	border-radius: 10px; /* 사각형으로 변경 */
+	border-radius: 10px;
 	width: 60px;
 	height: 60px;
 	display: flex;
