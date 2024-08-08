@@ -41,7 +41,7 @@ const login = async () => {
 		router.go(0);
 		return;
 	}
-	userStore.setAccessToken(data.result);
+	userStore.setUserInfo(data.result);
 	router.push({ name: 'main' });
 };
 

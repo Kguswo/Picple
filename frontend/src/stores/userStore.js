@@ -9,29 +9,29 @@ export const useUserStore = defineStore(
 		const userNickname = ref('');
 		const verifiedEmail = ref('');
 
-		const setAccessToken = (accessToken) => {
+		const setUserInfo = (accessToken) => {
 			localStorage.setItem('accessToken', accessToken);
 			const token = jwtDecode(accessToken);
 			userEmail.value = token.sub;
 			userNickname.value = token.nickname;
 		};
 
-		const resetUser = () => {
+		const resetUserInfo = () => {
 			userEmail.value = '';
 			userNickname.value = '';
 			localStorage.removeItem('accessToken');
 		};
 
 		const changeNickname = (nickname) => {
-			user.value.nickname = nickname;
+			userNickname.value = nickname;
 		};
 
 		return {
 			userEmail,
 			userNickname,
 			verifiedEmail,
-			setAccessToken,
-			resetUser,
+			setUserInfo,
+			resetUserInfo,
 			changeNickname,
 		};
 	},
