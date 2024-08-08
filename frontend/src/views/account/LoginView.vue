@@ -36,12 +36,7 @@ const login = async () => {
 
 	try {
 		const data = await loginApi(email.value.value, password.value.value);
-		if (!data.isSuccess) {
-			await Swal.fire({ icon: 'error', title: '로그인에 실패하였습니다.', width: 600 });
-			return;
-		}
-		userStore.setUser(email.value.value, data.result.nickname);
-		localStorage.setItem('accessToken', data.result.accessToken);
+		localStorage.setItem('accessToken', data.result);
 		router.push({ name: 'main' });
 	} catch (error) {}
 };
