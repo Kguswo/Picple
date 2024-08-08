@@ -10,6 +10,7 @@ import { useUserStore } from '@/stores/userStore';
 import { loginApi } from '@/api/userApi';
 import { useFormStore } from '@/stores/formStore';
 import { storeToRefs } from 'pinia';
+import { alertResult } from '@/api/baseApi';
 
 const userStore = useUserStore();
 const formStore = useFormStore();
@@ -34,11 +35,14 @@ const login = async () => {
 
 	setCookie('saveId', email.value.value, '1d', isChecked.value);
 
-	try {
-		const data = await loginApi(email.value.value, password.value.value);
-		localStorage.setItem('accessToken', data.result);
-		router.push({ name: 'main' });
-	} catch (error) {}
+	const { data } = await loginApi(email.value.value, password.value.value);
+	if (!data.isSuccess) {
+		await alertResult(false, '아이디 또는 비밀번호가 일치하지 않습니다.');
+		router.go(0);
+		return;
+	}
+	userStore.setAccessToken(data.result);
+	router.push({ name: 'main' });
 };
 
 const setCookie = (key, value, expireTime, isChecked) => {
