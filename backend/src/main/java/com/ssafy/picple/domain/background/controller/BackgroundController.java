@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -19,10 +19,8 @@ import com.ssafy.picple.config.baseResponse.BaseResponse;
 import com.ssafy.picple.domain.background.dto.request.CreateAIBackgroundRequest;
 import com.ssafy.picple.domain.background.dto.request.DeleteBackgroundRequest;
 import com.ssafy.picple.domain.background.dto.response.BackgroundResponseDto;
-import com.ssafy.picple.domain.background.dto.response.CreateBackgroundResponse;
 import com.ssafy.picple.domain.background.dto.response.ModifyBackgroundTitleResponse;
 import com.ssafy.picple.domain.background.service.BackgroundService;
-import com.ssafy.picple.domain.background.service.OpenAIService;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -57,26 +55,26 @@ public class BackgroundController {
 		}
 	}
 
+	// response 프론트에 넘겨줄지 의논 필요
 	@PostMapping("/ai/{userId}")
-	public BaseResponse<String[]> createAiBackground(
+	public BaseResponse<Object> createAiBackground(
+			@PathVariable Long userId,
 			@RequestBody CreateAIBackgroundRequest request) throws BaseException {
 
-		String[] imageUrl = openAIService.createBackground(request.getPrompt());
+		backgroundService.createAIBackground(userId, request.getPrompt());
 
-		return new BaseResponse<>(imageUrl);
+		return new BaseResponse<>(SUCCESS);
 	}
 
-	// 수정 필요
+	// response 프론트에 넘겨줄지 의논 필요
 	@PostMapping("/local/{userId}")
-	public BaseResponse<CreateBackgroundResponse> createLocalBackground(
+	public BaseResponse<Object> createLocalBackground(
 			@PathVariable Long userId,
-			@RequestParam("file") MultipartFile file) throws BaseException {
-		try {
-			backgroundService.createLocalBackground(userId, file);
-			return new BaseResponse<>(SUCCESS);
-		} catch (Exception e) {
-			throw new BaseException(LOCAL_BACKGROUND_UPLOAD_ERROR);
-		}
+			@RequestPart("file") MultipartFile file) throws BaseException {
+
+		backgroundService.createLocalBackground(userId, file);
+
+		return new BaseResponse<>(SUCCESS);
 	}
 
 	@DeleteMapping("/{backgroundId}")

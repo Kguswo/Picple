@@ -31,6 +31,7 @@ public class BackgroundServiceImpl implements BackgroundService {
 	private final BackgroundRepository backgroundRepository;
 	private final UserRepository userRepository;
 	private final BackgroundUserRepository backgroundUserRepository;
+	private final FileUploadService fileUploadService;
 
 	@Override
 	public List<BackgroundResponseDto> getDefaultBackgrounds() throws BaseException {
@@ -54,53 +55,51 @@ public class BackgroundServiceImpl implements BackgroundService {
 		}
 	}
 
-	// 테스트 필요
 	@Override
 	@Transactional
 	public void createAIBackground(Long userId, String prompt) throws BaseException {
 		try {
 			// 프롬프트를 통해 AI API를 사용하여 사진 생성
-			String[] result = openAIService.createBackground(prompt);
-			String base64Image = result[0];
-			String fileName = result[1];
-
-			// S3에 업로드
-			s3Service.uploadBase64ImageToS3(base64Image, fileName);
-
-			// 데이터베이스에 저장
-			Background background = Background.builder()
-					.backgroundTitle(fileName)
-					.backgroundUrl(base64Image)
-					.build();
-			backgroundRepository.save(background);
-
-			// Background와 User의 관계 저장
-			User user = userRepository.findById(userId)
-					.orElseThrow(() -> new BaseException(NOT_FOUND_USER));
-
-			BackgroundUser backgroundUser = BackgroundUser.builder()
-					.background(background)
-					.user(user)
-					.build();
-			backgroundUserRepository.save(backgroundUser);
+			String[] result = openAIService.createAIBackground(prompt);
+			saveBackgroundToDB(userId, result[0], result[1]);
 
 		} catch (Exception e) {
 			// 예외 처리
-			throw new BaseException(AI_BACKGROUND_GENERATION_ERROR);
+			throw new BaseException(BACKGROUND_UPLOAD_ERROR);
 		}
 	}
 
-	// 수정 필요
+	// 테스트 필요
 	@Override
 	@Transactional
 	public void createLocalBackground(Long userId, MultipartFile file) throws BaseException {
 		try {
-			// TODO: 파일 업로드 로직 구현
-			Background background = new Background("temp_title", "temp_url");
-			backgroundRepository.save(background);
+			String fileName = fileUploadService.generateFileName("local", ".png");
+			String backgroundUrl = s3Service.uploadMultipartFileImageToS3(file, fileName);
+			saveBackgroundToDB(userId, backgroundUrl, fileName);
+
 		} catch (Exception e) {
-			throw new BaseException(LOCAL_BACKGROUND_UPLOAD_ERROR);
+			throw new BaseException(BACKGROUND_UPLOAD_ERROR);
 		}
+	}
+
+	private void saveBackgroundToDB(Long userId, String backgroundUrl, String fileName) throws BaseException {
+		// 데이터베이스에 저장
+		Background background = Background.builder()
+				.backgroundTitle(fileName)
+				.backgroundUrl(backgroundUrl)
+				.build();
+		backgroundRepository.save(background);
+
+		// Background와 User의 관계 저장
+		User user = userRepository.findById(userId)
+				.orElseThrow(() -> new BaseException(NOT_FOUND_USER));
+
+		BackgroundUser backgroundUser = BackgroundUser.builder()
+				.background(background)
+				.user(user)
+				.build();
+		backgroundUserRepository.save(backgroundUser);
 	}
 
 	@Override

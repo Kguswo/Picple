@@ -47,7 +47,7 @@ dependencies {
     // thymeleaf
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
     implementation 'nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect'
-    //AWS
+    // AWS
     implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-aws', version: '2.2.6.RELEASE'
     // OpenAI
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
