@@ -1,5 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import WebSocketService from '@/services/WebSocketService';
+import { useUserStore } from '@/stores/userStore';
+import { alertResult } from '@/api/baseApi';
 
 const router = createRouter({
 	history: createWebHistory(import.meta.env.BASE_URL),
@@ -118,20 +120,31 @@ const router = createRouter({
 // WebSocket 연결이 필요한 라우트 목록
 const websocketRoutes = ['createbooth', 'booth', 'boothCode', 'selectTemp', 'insertImg'];
 
-router.beforeEach(async (to, from, next) => {
-	if (websocketRoutes.includes(to.name)) {
-		if (!WebSocketService.isConnected()) {
-			try {
-				await WebSocketService.connect('ws://localhost:8080/ws');
-			} catch (error) {
-				console.error('Failed to connect to WebSocket:', error);
-				// 에러 처리
-			}
-		}
-	} else if (websocketRoutes.includes(from.name) && !websocketRoutes.includes(to.name)) {
-		WebSocketService.close();
+router.beforeEach(async (to, from) => {
+	const userStore = useUserStore();
+
+	if (to.meta.authRequired && !userStore.isLogined) {
+		await alertResult(false, '로그인이 필요합니다.');
+		return { name: 'login' };
 	}
-	next();
+
+	if ((to.meta.notAuthRequired && userStore.isLogined) || (to.meta.emailRequired && !userStore.verifiedEmail)) {
+		await alertResult(false, '잘못된 접근입니다.');
+		return { name: 'main' };
+	}
+
+	// if (websocketRoutes.includes(to.name)) {
+	// 	if (!WebSocketService.isConnected()) {
+	// 		try {
+	// 			await WebSocketService.connect('ws://localhost:8080/ws');
+	// 		} catch (error) {
+	// 			console.error('Failed to connect to WebSocket:', error);
+	// 			// 에러 처리
+	// 		}
+	// 	}
+	// } else if (websocketRoutes.includes(from.name) && !websocketRoutes.includes(to.name)) {
+	// 	WebSocketService.close();
+	// }
 });
 
 export default router;

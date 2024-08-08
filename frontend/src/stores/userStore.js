@@ -8,18 +8,21 @@ export const useUserStore = defineStore(
 		const userEmail = ref('');
 		const userNickname = ref('');
 		const verifiedEmail = ref('');
+		const isLogined = ref(false);
 
 		const setUserInfo = (accessToken) => {
 			localStorage.setItem('accessToken', accessToken);
 			const token = jwtDecode(accessToken);
 			userEmail.value = token.sub;
 			userNickname.value = token.nickname;
+			isLogined.value = true;
 		};
 
 		const resetUserInfo = () => {
+			localStorage.removeItem('accessToken');
 			userEmail.value = '';
 			userNickname.value = '';
-			localStorage.removeItem('accessToken');
+			isLogined.value = false;
 		};
 
 		const changeNickname = (nickname) => {
@@ -30,6 +33,7 @@ export const useUserStore = defineStore(
 			userEmail,
 			userNickname,
 			verifiedEmail,
+			isLogined,
 			setUserInfo,
 			resetUserInfo,
 			changeNickname,
@@ -38,7 +42,7 @@ export const useUserStore = defineStore(
 	{
 		persist: {
 			key: 'userInfo',
-			paths: ['userEmail', 'userNickname'],
+			paths: ['userEmail', 'userNickname', 'isLogined'],
 		},
 	},
 );
