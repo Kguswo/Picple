@@ -40,7 +40,7 @@ public class Board extends BaseTimeEntity {
 	@Column(nullable = false)
 	private int hit;
 
-	@Column(nullable = false)
+	@Column(nullable = false, columnDefinition = "TINYINT(1) DEFAULT 0")
 	private boolean isDeleted;
 
 	@Builder

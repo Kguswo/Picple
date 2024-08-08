@@ -32,6 +32,7 @@ public class User extends BaseTimeEntity {
 	@Column(nullable = false, length = 21)
 	private String nickname;
 
+	@Column(nullable = false, columnDefinition = "TINYINT(1) DEFAULT 0")
 	private boolean isDeleted;
 
 	@Builder

@@ -25,14 +25,14 @@ public class Background {
 	@Column(nullable = false, length = 60)
 	private String backgroundTitle;
 
+	@Column(name = "background_url", nullable = false)
+	private String backgroundUrl;
+
 	@Column(nullable = false, columnDefinition = "TINYINT(1) DEFAULT 0")
 	private Boolean isDefault;
 
 	@Column(nullable = false, columnDefinition = "TINYINT(1) DEFAULT 0")
 	private Boolean isDeleted;
-
-	@Column(nullable = false)
-	private String backgroundUrl;
 
 	@Builder
 	public Background(String backgroundTitle, String backgroundUrl) {
