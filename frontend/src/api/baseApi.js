@@ -30,7 +30,7 @@ axiosAuth.interceptors.response.use(
 			const accessToken = await tokenRefresh();
 			if (accessToken) {
 				localStorage.setItem('accessToken', accessToken);
-				config.headers['X-ACCESS-TOKEN'] = localStorage.getItem('accessToken');
+				config.headers['X-ACCESS-TOKEN'] = accessToken;
 				return axiosAuth(config);
 			}
 			await Swal.fire({ icon: 'error', title: '로그인이 필요합니다.', width: 600 });
@@ -69,5 +69,19 @@ export const alertConfirm = async (title) => {
 		confirmButtonText: `Continue&nbsp;<i class="fa fa-arrow-right"></i>`,
 		showCancelButton: true,
 		width: 700,
+	});
+};
+
+export const alertCheckBox = async (title, inputPlaceholder, inputValidator) => {
+	return await Swal.fire({
+		title,
+		input: 'checkbox',
+		inputValue: 0,
+		inputPlaceholder,
+		confirmButtonText: `Continue&nbsp;<i class="fa fa-arrow-right"></i>`,
+		showCancelButton: true,
+		inputValidator: (result) => {
+			return !result && inputValidator;
+		},
 	});
 };

@@ -21,7 +21,7 @@ const logout = async () => {
 		await alertResult(false, '로그아웃에 실패하였습니다.');
 		return;
 	}
-	userStore.resetUser();
+	userStore.resetUserInfo();
 	if (route.name !== 'main') {
 		router.push({ name: 'main' });
 		return;

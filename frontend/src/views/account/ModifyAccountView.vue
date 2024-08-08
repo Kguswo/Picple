@@ -9,19 +9,20 @@ import { useUserStore } from '@/stores/userStore';
 import { storeToRefs } from 'pinia';
 import { deleteAccountApi, modifyAccountApi } from '@/api/userApi';
 import { useFormStore } from '@/stores/formStore';
+import { alertCheckBox, alertResult } from '@/api/baseApi';
 
 const router = useRouter();
 const userStore = useUserStore();
 const formStore = useFormStore();
 
-const { user } = storeToRefs(userStore);
+const { userEmail, userNickname } = storeToRefs(userStore);
 const { nickname, nicknameField } = storeToRefs(formStore);
 formStore.initForm([nickname], [nicknameField]);
-nickname.value.value = user.value.nickname;
+nickname.value.value = userNickname.value;
 
 const modifyAccount = async () => {
 	nicknameField.value.message = validateNicknamePattern(nickname.value.value);
-	if (nickname.value.value === user.value.nickname) {
+	if (nickname.value.value === userNickname.value) {
 		nicknameField.value.message = setFormMessage('기존 닉네임과 동일합니다.', true);
 	}
 
@@ -29,50 +30,32 @@ const modifyAccount = async () => {
 		return;
 	}
 
-	try {
-		const data = await modifyAccountApi(nickname.value.value);
-		if (!data.isSuccess) {
-			await Swal.fire({ icon: 'error', title: '닉네임 변경에 실패하였습니다.', width: 600 });
-			return;
-		}
-		userStore.changeNickname(nickname.value.value);
-		await Swal.fire({
-			icon: 'success',
-			title: '닉네임이 변경되었습니다.',
-			width: 600,
-		});
-		router.push({ name: 'main' });
-	} catch (error) {}
+	const { data } = await modifyAccountApi(nickname.value.value);
+	if (!data.isSuccess) {
+		await alertResult(false, '닉네임 변경에 실패하였습니다.');
+		return;
+	}
+	userStore.changeNickname(nickname.value.value);
+	await alertResult(true, '닉네임이 변경되었습니다.');
+	router.push({ name: 'main' });
 };
 
 const deleteAccount = async () => {
-	try {
-		const { value: accept } = await Swal.fire({
-			title: '정말 회원을 탈퇴하시겠습니까?',
-			input: 'checkbox',
-			inputValue: 0,
-			inputPlaceholder: `탈퇴 시 서비스를 이용하지 못합니다. 동의하십니까?`,
-			confirmButtonText: `Continue&nbsp;<i class="fa fa-arrow-right"></i>`,
-			showCancelButton: true,
-			inputValidator: (result) => {
-				return !result && '회원탈퇴는 동의가 필요합니다.';
-			},
-		});
-		if (accept) {
-			const data = await deleteAccountApi();
-			if (!data.isSuccess) {
-				await Swal.fire({ icon: 'error', title: '회원탈퇴에 실패하였습니다.', width: 600 });
-				return;
-			}
-			userStore.resetUser();
-			await Swal.fire({
-				icon: 'success',
-				title: '회원탈퇴가 완료되었습니다.',
-				width: 600,
-			});
-			router.push({ name: 'main' });
+	const { value: accept } = await alertCheckBox(
+		'정말 회원을 탈퇴하시겠습니까?',
+		`탈퇴 시 서비스를 이용하지 못합니다. 동의하십니까?`,
+		'회원탈퇴는 동의가 필요합니다.',
+	);
+	if (accept) {
+		const { data } = await deleteAccountApi();
+		if (!data.isSuccess) {
+			await alertResult(false, '회원탈퇴에 실패하였습니다.');
+			return;
 		}
-	} catch (error) {}
+		userStore.resetUserInfo();
+		await alertResult(true, '회원탈퇴가 완료되었습니다.');
+		router.push({ name: 'main' });
+	}
 };
 </script>
 
@@ -86,7 +69,7 @@ const deleteAccount = async () => {
 				<input
 					type="text"
 					class="form-input has-content background-color-disabled"
-					:value="user.email"
+					:value="userEmail"
 					disabled
 				/>
 				<label class="form-label">이메일</label>
