@@ -1,13 +1,14 @@
-import { instance } from '@/api/baseApi';
+import { axiosAuth } from '@/api/baseApi';
+import axios from 'axios';
 
-const usersBaseUrl = instance.defaults.baseURL + '/users';
+const usersBaseUrl = import.meta.env.VITE_API_USER;
 
 const loginApi = (email, password) => {
-	return instance.post(`${usersBaseUrl}/login`, { email, password });
+	return axios.post(`${usersBaseUrl}/login`, { email, password }, { withCredentials: true });
 };
 
 const signupApi = (email, password, nickname) => {
-	return instance.post(`${usersBaseUrl}/sign-up`, {
+	return axios.post(`${usersBaseUrl}/sign-up`, {
 		email,
 		password,
 		nickname,
@@ -15,27 +16,29 @@ const signupApi = (email, password, nickname) => {
 };
 
 const sendAuthNumberApi = (email) => {
-	return instance.post(`${usersBaseUrl}/mail`, { email });
+	return axios.post(`${usersBaseUrl}/mail`, { email });
 };
 
 const verifyAuthNumberApi = (email, authNumber) => {
-	return instance.post(`${usersBaseUrl}/mailcheck`, { email, authNumber });
+	return axios.post(`${usersBaseUrl}/mailcheck`, { email, authNumber });
 };
 
 const modifyAccountApi = (nickname) => {
-	return instance.patch(`${usersBaseUrl}/modify/nickname`, { nickname });
+	return axiosAuth.patch(`${usersBaseUrl}/modify/nickname`, { nickname });
 };
 
 const modifyPasswordApi = (oldPassword, newPassword) => {
-	return instance.patch(`${usersBaseUrl}/modify/password`, { oldPassword, newPassword });
+	return axios.patch(`${usersBaseUrl}/modify/password`, { oldPassword, newPassword });
 };
 
-const logoutApi = () => {
-	return instance.post(`${usersBaseUrl}/logout`);
+const logoutApi = (email) => {
+	return axiosAuth.post(`${usersBaseUrl}/logout`, {
+		email,
+	});
 };
 
 const deleteAccountApi = () => {
-	return instance.delete(`${usersBaseUrl}`);
+	return axiosAuth.delete(`${usersBaseUrl}`);
 };
 
 export {

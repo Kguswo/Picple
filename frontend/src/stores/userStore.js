@@ -1,26 +1,25 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
+import { jwtDecode } from 'jwt-decode';
 
 export const useUserStore = defineStore(
 	'userStore',
 	() => {
-		const user = ref({
-			email: '',
-			nickname: '',
-		});
-
+		const userEmail = ref('');
+		const userNickname = ref('');
 		const verifiedEmail = ref('');
 
-		const setUser = (email, nickname) => {
-			user.value.email = email;
-			user.value.nickname = nickname;
+		const setAccessToken = (accessToken) => {
+			localStorage.setItem('accessToken', accessToken);
+			const token = jwtDecode(accessToken);
+			userEmail.value = token.sub;
+			userNickname.value = token.nickname;
 		};
 
 		const resetUser = () => {
-			user.value.email = '';
-			user.value.nickname = '';
+			userEmail.value = '';
+			userNickname.value = '';
 			localStorage.removeItem('accessToken');
-			localStorage.removeItem('user');
 		};
 
 		const changeNickname = (nickname) => {
@@ -28,17 +27,18 @@ export const useUserStore = defineStore(
 		};
 
 		return {
-			user,
+			userEmail,
+			userNickname,
 			verifiedEmail,
-			setUser,
+			setAccessToken,
 			resetUser,
 			changeNickname,
 		};
 	},
 	{
 		persist: {
-			key: 'user',
-			paths: ['user'],
+			key: 'userInfo',
+			paths: ['userEmail', 'userNickname'],
 		},
 	},
 );
