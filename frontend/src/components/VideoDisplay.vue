@@ -69,6 +69,9 @@ const initializeBackgroundRemoval = async (videoElement, canvasElement) => {
     await new Promise((resolve) => {
         const checkVideo = () => {
             if (videoElement.readyState >= 2 && videoElement.videoWidth > 0 && videoElement.videoHeight > 0) {
+                // 캔버스 크기를 비디오 크기에 맞춤
+                canvasElement.width = videoElement.videoWidth;
+                canvasElement.height = videoElement.videoHeight;
                 resolve();
             } else {
                 requestAnimationFrame(checkVideo);
@@ -76,10 +79,6 @@ const initializeBackgroundRemoval = async (videoElement, canvasElement) => {
         };
         checkVideo();
     });
-
-    // 캔버스 크기를 비디오 크기에 맞춤
-    canvasElement.width = videoElement.videoWidth;
-    canvasElement.height = videoElement.videoHeight;
 
     try {
         const newBackgroundRemoval = new VideoBackgroundRemoval();
@@ -106,7 +105,7 @@ const joinSession = async () => {
         console.log('세션 초기화됨');
 
         // 새 참가자가 들어왔을 때의 이벤트 핸들러
-        state.session.on('streamCreated', ({ stream }) => {
+        state.session.on('streamCreated', async ({ stream }) => {
             console.log('새 스트림 생성됨:', stream.streamId);
             const subscriber = state.session.subscribe(stream);
             state.subscribers.push(subscriber);
@@ -152,8 +151,7 @@ const joinSession = async () => {
             videoSource: videoDevices.length > 0 ? videoDevices[0].deviceId : undefined, // 첫 번째 비디오 장치 사용
             publishAudio: true, // 오디오 발행
             publishVideo: true, // 비디오 발행
-            resolution: performanceSettings.resolution, // 해상도 설정
-            frameRate: performanceSettings.frameRate, // 프레임 레이트 설정
+            videoConstraints: videoConstraints.value, // 해상도와 프레임 레이트 설정
             insertMode: 'APPEND', // 삽입 모드
             mirror: false, // 미러링 비활성화
         };
@@ -166,16 +164,18 @@ const joinSession = async () => {
         await state.session.publish(state.publisher);
         console.log('로컬 스트림이 세션에 게시됨');
 
-        // 로컬 비디오 스트림 설정 및 배경 제거 적용
-        nextTick(async () => {
-            if (myVideo.value && myCanvas.value && state.publisher.stream && state.publisher.stream.getMediaStream()) {
-                console.log('로컬 비디오 스트림 설정 및 배경 제거 적용 중');
-                myVideo.value.srcObject = state.publisher.stream.getMediaStream();
+        // 퍼블리셔 비디오 스트림 설정 및 배경 제거 적용
+        if (myVideo.value && myCanvas.value && state.publisher.stream) {
+            console.log('로컬 비디오 스트림 설정 및 배경 제거 적용 중');
+            myVideo.value.srcObject = state.publisher.stream.getMediaStream();
+
+            myVideo.value.onloadedmetadata = async () => {
+                console.log('로컬 비디오 메타데이터 로드 완료');
                 await initializeBackgroundRemoval(myVideo.value, myCanvas.value);
-            } else {
-                console.error('로컬 비디오 스트림 설정 또는 배경 제거 적용 실패');
-            }
-        });
+            };
+        } else {
+            console.error('로컬 비디오 스트림 설정 또는 배경 제거 적용 실패');
+        }
     } catch (error) {
         console.error('세션 참가 중 오류 발생:', error);
         if (error.name === 'DEVICE_ACCESS_DENIED') {
@@ -228,20 +228,22 @@ const createSession = async (sessionId) => {
 
 // 성능 모니터링 함수 (옵션)
 const monitorPerformance = () => {
-    if (state.publisher && state.publisher.stream) {
-        const stats = state.publisher.stream.getStats();
-        stats
-            .then((results) => {
-                results.forEach((report) => {
-                    if (report.type === 'outbound-rtp' && report.kind === 'video') {
-                        console.log('현재 프레임 레이트:', report.framesPerSecond);
-                        console.log('현재 비트레이트:', report.bitrateMean);
-                    }
+    if (state.publisher && state.publisher.stream && state.publisher.stream.getRTCPeerConnection) {
+        const pc = state.publisher.stream.getRTCPeerConnection();
+        if (pc) {
+            pc.getStats(null)
+                .then((stats) => {
+                    stats.forEach((report) => {
+                        if (report.type === 'outbound-rtp' && report.kind === 'video') {
+                            console.log('현재 프레임 레이트:', report.framesPerSecond);
+                            console.log('현재 비트레이트:', report.bitrateMean);
+                        }
+                    });
+                })
+                .catch((error) => {
+                    console.error('성능 통계 가져오기 실패:', error);
                 });
-            })
-            .catch((error) => {
-                console.error('성능 통계 가져오기 실패:', error);
-            });
+        }
     }
 };
 
@@ -305,7 +307,6 @@ const { publisher, subscribers } = toRefs(state);
                                     :id="`video-${sub.stream.streamId}`"
                                     :width="320"
                                     :height="240"
-                                    :srcObject="sub.stream.getMediaStream()"
                                     autoplay
                                     playsinline
                                     style="display: none"
