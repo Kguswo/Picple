@@ -27,8 +27,12 @@ const modifyAccountApi = (nickname) => {
 	return axiosAuth.patch(`${usersBaseUrl}/modify/nickname`, { nickname });
 };
 
+const modifyPasswordByFindApi = (email, newPassword) => {
+	return axiosAuth.patch(`${usersBaseUrl}/reset-password`, { email, newPassword });
+};
+
 const modifyPasswordApi = (oldPassword, newPassword) => {
-	return axios.patch(`${usersBaseUrl}/modify/password`, { oldPassword, newPassword });
+	return axiosAuth.patch(`${usersBaseUrl}/modify/password`, { oldPassword, newPassword });
 };
 
 const logoutApi = (email) => {
@@ -47,6 +51,7 @@ export {
 	sendAuthNumberApi,
 	verifyAuthNumberApi,
 	modifyAccountApi,
+	modifyPasswordByFindApi,
 	modifyPasswordApi,
 	deleteAccountApi,
 	logoutApi,
