@@ -4,6 +4,7 @@ import BoardPhotoComp from '@/components/board/BoardPhotoComp.vue';
 import Page from '@/components/common/PageComp.vue';
 import { onMounted, ref } from 'vue';
 import { boardListApi, boardSortApi } from '@/api/boardApi';
+import { alertResult } from '@/api/baseApi';
 
 const boardList = ref([]);
 const sortArrow = ref('');
@@ -15,14 +16,12 @@ onMounted(() => {
 });
 
 const getBoardList = async () => {
-	try {
-		const data = await boardListApi();
-		if (!data.isSuccess) {
-			await Swal.fire({ icon: 'error', title: '게시판 조회에 실패하였습니다.', width: 600 });
-			return;
-		}
-		boardList.value = data.result;
-	} catch (error) {}
+	const { data } = await boardListApi();
+	if (!data.isSuccess) {
+		await alertResult(false, '게시판 조회에 실패하였습니다.');
+		return;
+	}
+	boardList.value = data.result;
 };
 
 const toggleSort = (criteria) => {
@@ -40,19 +39,17 @@ const toggleSort = (criteria) => {
 };
 
 const sortBoards = async (criteria) => {
-	try {
-		const data = await boardSortApi(
-			nickname.value,
-			criteria,
-			prevCriteria.value !== criteria || sortArrow.value !== '↓' ? false : true,
-		);
-		if (!data.isSuccess) {
-			await Swal.fire({ icon: 'error', title: '게시글 정렬에 실패하였습니다.', width: 600 });
-			return;
-		}
-		boardList.value = data.result;
-		toggleSort(criteria);
-	} catch (error) {}
+	const { data } = await boardSortApi(
+		nickname.value,
+		criteria,
+		prevCriteria.value !== criteria || sortArrow.value !== '↓' ? false : true,
+	);
+	if (!data.isSuccess) {
+		await alertResult(false, '게시글 정렬에 실패하였습니다.');
+		return;
+	}
+	boardList.value = data.result;
+	toggleSort(criteria);
 };
 
 const searchByNickname = async () => {
@@ -60,18 +57,16 @@ const searchByNickname = async () => {
 	prevCriteria.value = '';
 
 	if (!nickname.value) {
-		getBoardList();
+		await getBoardList();
 		return;
 	}
 
-	try {
-		const data = await boardSortApi(nickname.value, 'createdAt', false);
-		if (!data.isSuccess) {
-			await Swal.fire({ icon: 'error', title: '사용자 검색에 실패하였습니다.', width: 600 });
-			return;
-		}
-		boardList.value = data.result;
-	} catch (error) {}
+	const { data } = await boardSortApi(nickname.value, 'createdAt', false);
+	if (!data.isSuccess) {
+		await alertResult(false, '사용자 검색에 실패하였습니다.');
+		return;
+	}
+	boardList.value = data.result;
 };
 </script>
 
