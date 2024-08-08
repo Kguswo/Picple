@@ -23,7 +23,7 @@ formStore.initForm(
 );
 const { verifiedEmail } = storeToRefs(userStore);
 
-const verifyInputField = () => {
+const validateInputField = () => {
 	oldPasswordField.value.message = !oldPassword.value.value
 		? setFormMessage('기존 비밀번호를 입력하세요.', true)
 		: setFormMessage('', false);
@@ -58,7 +58,7 @@ const modify = async (data) => {
 };
 
 const modifyPassordByFind = async () => {
-	if (!verifyInputField()) {
+	if (!validateInputField()) {
 		return;
 	}
 	const { data } = await modifyPasswordByFindApi(verifiedEmail.value, newPassword.value.value);
@@ -66,7 +66,7 @@ const modifyPassordByFind = async () => {
 };
 
 const modifyPassword = async () => {
-	if (!verifyInputField()) {
+	if (!validateInputField()) {
 		return;
 	}
 	const { data } = await modifyPasswordApi(oldPassword.value.value, newPassword.value.value);
