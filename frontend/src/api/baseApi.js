@@ -2,7 +2,7 @@ import axios from 'axios';
 import Swal from 'sweetalert2';
 import router from '@/router';
 
-const instance = axios.create({
+export const instance = axios.create({
 	baseURL: import.meta.env.VITE_API_URL,
 });
 
