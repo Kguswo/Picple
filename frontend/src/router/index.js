@@ -142,7 +142,7 @@ router.beforeEach(async (to, from) => {
 	if (websocketRoutes.includes(to.name)) {
 		if (!WebSocketService.isConnected()) {
 			try {
-				await WebSocketService.connect('ws://localhost:8080/ws');
+				await WebSocketService.connect(import.meta.env.VITE_WS);
 			} catch (error) {
 				console.error('Failed to connect to WebSocket:', error);
 				// 에러 처리

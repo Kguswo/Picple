@@ -13,8 +13,8 @@ import microOff from '@/assets/icon/micro_off.png';
 import { useBoothStore } from '@/stores/boothStore';
 
 // OpenVidu 서버 설정
-const OPENVIDU_SERVER_URL = 'https://localhost:4443';
-const OPENVIDU_SERVER_SECRET = 'MY_SECRET';
+const OPENVIDU_SERVER_URL = import.meta.env.VITE_API_OPENVIDU_SERVER;
+const OPENVIDU_SERVER_SECRET = import.meta.env.VITE_OPENVIDU_SERVER_SECRET;
 
 const boothStore = useBoothStore();
 
@@ -145,7 +145,7 @@ const joinSession = async (sessionId) => {
 const handleCreateBooth = async () => {
 	try {
 		if (!WebSocketService.isConnected()) {
-			await WebSocketService.connect('ws://localhost:8080/ws');
+			await WebSocketService.connect(import.meta.env.VITE_WS);
 		}
 		const boothId = await WebSocketService.createBooth();
 		console.log('Created booth with ID:', boothId);
@@ -203,7 +203,7 @@ onMounted(async () => {
 		videoElement.value.style.transform = 'scaleX(-1)';
 
 		// WebSocket 연결
-		await WebSocketService.connect('ws://localhost:8080/ws');
+		await WebSocketService.connect(import.meta.env.VITE_WS);
 	} catch (error) {
 		console.error('Error accessing webcam:', error);
 		console.error('Failed to connect to WebSocket:', error);

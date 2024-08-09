@@ -4,6 +4,7 @@ import { useRoute } from 'vue-router';
 import { OpenVidu } from 'openvidu-browser';
 import axios from 'axios';
 import { useBoothStore } from '@/stores/boothStore';
+import { useUserStore } from '@/stores/userStore';
 
 import { SelfieSegmentation } from '@mediapipe/selfie_segmentation';
 import { Camera } from '@mediapipe/camera_utils';
@@ -18,8 +19,8 @@ const props = defineProps({
 });
 
 // OpenVidu 서버 설정
-const OPENVIDU_SERVER_URL = 'https://localhost:4443';
-const OPENVIDU_SERVER_SECRET = 'MY_SECRET';
+const OPENVIDU_SERVER_URL = import.meta.env.VITE_API_OPENVIDU_SERVER;
+const OPENVIDU_SERVER_SECRET = import.meta.env.VITE_OPENVIDU_SERVER_SECRET;
 
 // OpenVidu 객체와 세션을 저장할 ref 생성
 const OV = new OpenVidu();
@@ -406,7 +407,8 @@ const handleStreamCreated = async ({ stream }) => {
 
 const isChatOpen = ref(false);
 
-const username = ref('User' + Date.now()); // 임시 사용자 이름
+const userStore = useUserStore();
+const username = ref(userStore.userNickname);
 
 const toggleChat = () => {
 	isChatOpen.value = !isChatOpen.value;
@@ -485,7 +487,7 @@ onUnmounted(() => {
 			채팅창
 		</button>
 		<ChatModal
-			v-if="isChatOpen"
+			v-show="isChatOpen"
 			:username="username"
 			:session="session"
 			@close="toggleChat"
