@@ -1,7 +1,5 @@
 package com.ssafy.picple.domain.background.dto.response;
 
-import com.ssafy.picple.domain.background.entity.Background;
-
 import lombok.Data;
 
 /**

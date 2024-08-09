@@ -3,8 +3,6 @@ package com.ssafy.picple.domain.background.dto.response;
 import com.ssafy.picple.domain.background.entity.Background;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 /**
  * BackgroundResponseDto 클래스
