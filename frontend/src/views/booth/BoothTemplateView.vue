@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch } from 'vue';
+import { ref, watch, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import WhiteBoardComp from '@/components/common/WhiteBoardComp.vue';
 import BoothBack from '@/components/booth/BoothBackComp.vue';
@@ -32,7 +32,10 @@ const templateImages = {
 	4: [temp_2x2_4x3_481x360],
 };
 
+const isNextDisabled = computed(() => !selectedImage?.value);
+
 const photos = ref([]);
+
 watch(
 	() => photoStore.photoList,
 	(newList) => {
@@ -89,7 +92,7 @@ const extractInfoFromFilename = (filename) => {
 };
 
 const goToNext = () => {
-	if (selectedImage.value) {
+	if (selectedImage?.value) {
 		const imageInfo = extractInfoFromFilename(selectedImage.value);
 		console.log(`다음 화면으로 이동: 템플릿: ${selectedTemplate.value}, 이미지: ${selectedImage.value}`);
 		console.log('다음 화면으로 이동할 때 이미지 리스트:', photos.value);
@@ -140,14 +143,16 @@ watch(
 						<div class="selected-template">
 							<div class="template-images">
 								<div
-									v-for="image in imagesToShow.value"
+									v-for="image in imagesToShow"
 									:key="image"
 									class="image-wrapper"
 									@click="selectImage(image)"
 								>
 									<img
 										:src="image"
-										:class="{ selected: selectedImage.value === image }"
+										:class="{
+											selected: selectedImage === image,
+										}"
 										alt="Template Image"
 									/>
 								</div>
@@ -156,7 +161,7 @@ watch(
 								<button @click="goToPrevious">이전</button>
 								<button
 									@click="goToNext"
-									:disabled="!selectedImage.value"
+									:disabled="isNextDisabled"
 								>
 									다음
 								</button>
