@@ -1,4 +1,4 @@
-package com.ssafy.picple.config.baseResponse;
+package com.ssafy.picple.config.baseresponse;
 
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;

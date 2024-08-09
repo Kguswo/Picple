@@ -4,7 +4,7 @@ import java.io.FileNotFoundException;
 import java.time.LocalDate;
 import java.util.List;
 
-import com.ssafy.picple.config.baseResponse.BaseException;
+import com.ssafy.picple.config.baseresponse.BaseException;
 import com.ssafy.picple.domain.calendar.dto.CalendarDto;
 
 public interface CalendarService {
