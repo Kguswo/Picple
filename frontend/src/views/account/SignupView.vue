@@ -4,7 +4,6 @@ import FormInputComp from '@/components/form/FormInputComp.vue';
 import FormButtonComp from '@/components/form/FormButtonComp.vue';
 import { validatePasswordPattern, validateNicknamePattern, validatePasswordConfirm } from '@/assets/js/validation';
 import { useRouter } from 'vue-router';
-import Swal from 'sweetalert2';
 import { signupApi } from '@/api/userApi';
 import { useUserStore } from '@/stores/userStore';
 import { storeToRefs } from 'pinia';
@@ -36,15 +35,14 @@ const signup = async () => {
 		return;
 	}
 
-	try {
-		const data = await signupApi(userStore.verifiedEmail, password.value.value, nickname.value.value);
-		if (!data) {
-			return;
-		}
-		verifiedEmail.value = '';
-		await Swal.fire({ icon: 'success', title: '회원가입이 완료되었습니다.', width: 600 });
-		router.push({ name: 'main' });
-	} catch (error) {}
+	const { data } = await signupApi(verifiedEmail, password.value.value, nickname.value.value);
+	if (!data.isSuccess) {
+		await alertResult(false, '회원가입에 실패하였습니다.');
+		return;
+	}
+	verifiedEmail.value = '';
+	await alertResult(true, '회원가입이 완료되었습니다.');
+	router.push({ name: 'main' });
 };
 </script>
 
