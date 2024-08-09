@@ -27,8 +27,7 @@ const join = async () => {
 		await WebSocketService.joinBooth(boothCode.value.value);
 		// 부스 참여 성공 시 BoothShootView로 이동
 		router.push({
-			name: 'boothShoot',
-			params: { boothId: boothCode.value.value },
+			path: `/booth/${boothCode.value.value}`,
 		});
 	} catch (error) {
 		// 에러 처리
