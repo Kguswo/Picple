@@ -1,100 +1,149 @@
+<script setup>
+import { ref, watch, nextTick } from 'vue';
+
+const props = defineProps({
+	username: {
+		type: String,
+		required: true,
+	},
+	session: {
+		type: Object,
+		required: true,
+	},
+});
+
+const emit = defineEmits(['close']);
+
+const chatMessages = ref([]);
+const newMessage = ref('');
+
+// 채팅 메시지 수신 이벤트 핸들러
+const setupChatHandler = () => {
+	if (props.session) {
+		props.session.on('signal:chat', (event) => {
+			const messageData = JSON.parse(event.data);
+			chatMessages.value.push({
+				message: messageData.message,
+				username: messageData.username || '익명',
+				timestamp: messageData.timestamp,
+			});
+			nextTick(() => {
+				scrollToBottom();
+			});
+		});
+	}
+};
+
+// 자동 스크롤
+const scrollToBottom = () => {
+	const chatContent = document.querySelector('.chat-content');
+	if (chatContent) {
+		chatContent.scrollTop = chatContent.scrollHeight;
+	}
+};
+
+// 메시지 전송 메서드
+const sendMessage = () => {
+	if (newMessage.value.trim() && props.session) {
+		const messageData = {
+			message: newMessage.value,
+			username: props.username,
+			timestamp: new Date().getTime(),
+		};
+		props.session.signal({
+			data: JSON.stringify(messageData),
+			type: 'chat',
+		});
+		newMessage.value = '';
+	}
+};
+
+watch(
+	() => props.session,
+	(newSession) => {
+		if (newSession) {
+			setupChatHandler();
+		}
+	},
+	{ immediate: true },
+);
+</script>
+
 <template>
-	<div>
-		<button @click="openChat">채팅 열기</button>
-		<div
-			v-if="isChatOpen"
-			class="chat-modal"
-		>
-			<div class="chat-content">
-				<div
-					v-for="(msg, index) in messages"
-					:key="index"
-				>
-					{{ msg.sender }}: {{ msg.content }}
-				</div>
+	<div class="chat-modal">
+		<div class="chat-content">
+			<div
+				v-for="msg in chatMessages"
+				:key="msg.timestamp"
+				class="chat-message"
+			>
+				<strong>{{ msg.username }}</strong
+				>: {{ msg.message }}
 			</div>
+		</div>
+		<div class="chat-input">
 			<input
 				v-model="newMessage"
 				@keyup.enter="sendMessage"
 				placeholder="메시지 입력..."
 			/>
-			<button @click="sendMessage">보내기</button>
-			<button @click="closeChat">닫기</button>
+			<button @click="sendMessage">전송</button>
 		</div>
+		<button
+			class="close-button"
+			@click="$emit('close')"
+		>
+			닫기
+		</button>
 	</div>
 </template>
-
-<script>
-import SockJS from 'sockjs-client';
-import Stomp from 'webstomp-client';
-
-export default {
-	data() {
-		return {
-			isChatOpen: false,
-			stompClient: null,
-			newMessage: '',
-			messages: [],
-			username: '',
-		};
-	},
-	methods: {
-		openChat() {
-			this.isChatOpen = true;
-			this.connect();
-		},
-		closeChat() {
-			this.isChatOpen = false;
-			if (this.stompClient) {
-				this.stompClient.disconnect();
-			}
-		},
-		connect() {
-			const socket = new SockJS('http://localhost:8080/ws/booth/$(this.boothId)');
-			this.stompClient = Stomp.over(socket);
-			this.stompClient.connect({}, this.onConnected, this.onError);
-		},
-		onConnected() {
-			this.stompClient.subscribe('/topic/public', this.onMessageReceived);
-			this.username = prompt('사용자 이름을 입력하세요:');
-			this.stompClient.send('/app/chat.addUser', JSON.stringify({ sender: this.username, type: 'JOIN' }), {});
-		},
-		onError(error) {
-			console.log('STOMP error', error);
-		},
-		onMessageReceived(payload) {
-			const message = JSON.parse(payload.body);
-			this.messages.push(message);
-		},
-		sendMessage() {
-			if (this.newMessage && this.stompClient) {
-				const chatMessage = {
-					sender: this.username,
-					content: this.newMessage,
-					type: 'CHAT',
-				};
-				this.stompClient.send('/app/chat.sendMessage', JSON.stringify(chatMessage), {});
-				this.newMessage = '';
-			}
-		},
-	},
-};
-</script>
 
 <style scoped>
 .chat-modal {
 	position: fixed;
-	top: 50%;
-	left: 50%;
-	transform: translate(-50%, -50%);
+	bottom: 90px;
+	right: 20px;
+	width: 300px;
+	height: 400px;
 	background-color: white;
-	padding: 20px;
 	border: 1px solid #ccc;
-	box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+	border-radius: 8px;
+	display: flex;
+	flex-direction: column;
 }
+
 .chat-content {
-	height: 300px;
+	flex-grow: 1;
 	overflow-y: auto;
-	margin-bottom: 10px;
+	padding: 10px;
+}
+
+.chat-message {
+	margin-bottom: 5px;
+}
+
+.chat-input {
+	display: flex;
+	padding: 10px;
+}
+
+.chat-input input {
+	flex-grow: 1;
+	margin-right: 6px;
+	height: 32px;
+	padding-left: 6px;
+}
+
+.chat-input button {
+	width: 48px;
+}
+
+.close-button {
+	position: absolute;
+	top: 10px;
+	right: 10px;
+	background: none;
+	border: none;
+	cursor: pointer;
 }
 </style>
