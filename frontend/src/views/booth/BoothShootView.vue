@@ -8,7 +8,6 @@ import { ref, onMounted, onUnmounted, computed, provide } from 'vue';
 import InitializationService from '@/assets/js/showView/InitializationService';
 import PhotoService from '@/assets/js/showView/PhotoService';
 import WebSocketService from '@/services/WebSocketService';
-import Swal from 'sweetalert2';
 
 import videoOn from '@/assets/icon/video_on.png';
 import videoOff from '@/assets/icon/video_off.png';
@@ -80,6 +79,10 @@ const videoElement = ref(null);
 const canvasElement = ref(null);
 
 onMounted(async () => {
+	WebSocketService.setBoothStore(boothStore);
+	WebSocketService.on('background_info', (message) => {
+		boothStore.setBgImage(message.backgroundImage);
+	});
 	if (videoElement.value && canvasElement.value) {
 		InitializationService.setVideoElement(videoElement.value);
 		InitializationService.setCanvasElement(canvasElement.value);
