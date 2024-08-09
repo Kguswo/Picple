@@ -8,6 +8,7 @@ import { signupApi } from '@/api/userApi';
 import { useUserStore } from '@/stores/userStore';
 import { storeToRefs } from 'pinia';
 import { useFormStore } from '@/stores/formStore';
+import { alertResult } from '@/api/baseApi';
 
 const router = useRouter();
 const userStore = useUserStore();
