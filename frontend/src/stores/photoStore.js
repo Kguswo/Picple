@@ -1,21 +1,20 @@
 import { ref } from 'vue';
 import { defineStore } from 'pinia';
-import { ref } from 'vue';
 
 export const usePhotoStore = defineStore('photo', () => {
-    const photoList = ref([]);
+	const photoList = ref([]);
 
-    const setPhotoList = (photos) => {
-        photoList.value = photos;
-    };
+	const setPhotoList = (photos) => {
+		photoList.value = photos;
+	};
 
-    const clearPhotoList = () => {
-        photoList.value = [];
-    };
+	const clearPhotoList = () => {
+		photoList.value = [];
+	};
 
-    return {
-        photoList,
-        setPhotoList,
-        clearPhotoList,
-    };
+	return {
+		photoList,
+		setPhotoList,
+		clearPhotoList,
+	};
 });

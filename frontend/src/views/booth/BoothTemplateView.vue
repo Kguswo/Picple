@@ -72,12 +72,6 @@ const shuffleArray = (array) => {
 		[shuffledArray[i], shuffledArray[j]] = [shuffledArray[j], shuffledArray[i]];
 	}
 	return shuffledArray;
-	let shuffledArray = array.slice();
-	for (let i = shuffledArray.length - 1; i > 0; i--) {
-		const j = Math.floor(Math.random() * (i + 1));
-		[shuffledArray[i], shuffledArray[j]] = [shuffledArray[j], shuffledArray[i]];
-	}
-	return shuffledArray;
 };
 
 const imagesToShow = ref([]);
@@ -96,14 +90,6 @@ watch(
 );
 
 const extractInfoFromFilename = (filename) => {
-	const parts = filename.split('_');
-	const [photoCount, ratio, size] = parts.slice(1);
-	const [width, height] = size.split('x').map(Number);
-	return {
-		photoCount: photoCount.split('x').map(Number),
-		ratio: ratio.split('x').map(Number),
-		size: { width, height },
-	};
 	const parts = filename.split('_');
 	const [photoCount, ratio, size] = parts.slice(1);
 	const [width, height] = size.split('x').map(Number);
@@ -133,8 +119,6 @@ const goToNext = () => {
 };
 
 const goToPrevious = () => {
-	photoStore.clearPhotoList();
-	router.push('/booth');
 	photoStore.clearPhotoList();
 	router.push('/booth');
 };
