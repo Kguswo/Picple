@@ -133,18 +133,18 @@ router.beforeEach(async (to, from) => {
 		return { name: 'main' };
 	}
 
-	// if (websocketRoutes.includes(to.name)) {
-	// 	if (!WebSocketService.isConnected()) {
-	// 		try {
-	// 			await WebSocketService.connect('ws://localhost:8080/ws');
-	// 		} catch (error) {
-	// 			console.error('Failed to connect to WebSocket:', error);
-	// 			// 에러 처리
-	// 		}
-	// 	}
-	// } else if (websocketRoutes.includes(from.name) && !websocketRoutes.includes(to.name)) {
-	// 	WebSocketService.close();
-	// }
+	if (websocketRoutes.includes(to.name)) {
+		if (!WebSocketService.isConnected()) {
+			try {
+				await WebSocketService.connect('ws://localhost:8080/ws');
+			} catch (error) {
+				console.error('Failed to connect to WebSocket:', error);
+				// 에러 처리
+			}
+		}
+	} else if (websocketRoutes.includes(from.name) && !websocketRoutes.includes(to.name)) {
+		WebSocketService.close();
+	}
 });
 
 export default router;
