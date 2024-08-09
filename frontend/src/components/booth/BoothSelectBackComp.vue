@@ -1,14 +1,22 @@
 <script setup>
 import { ref, defineEmits, defineProps, onMounted, inject } from 'vue';
 
-const boothActions = inject('boothActions');
+const boothActions = inject('boothActions', {
+	changeImage: () => console.warn('changeImage not provided'),
+});
 
 const props = defineProps({
 	boothId: String,
 });
 
 const selectBackground = (image) => {
-	boothActions.changeImage(image);
+	if (typeof boothActions.changeImage === 'function') {
+		boothActions.changeImage(image);
+	} else {
+		console.error('changeImage is not a function');
+		// 대체 동작 수행
+		emit('update', image);
+	}
 };
 
 onMounted(() => {

@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, watch } from 'vue';
+import { ref, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import WhiteBoardComp from '@/components/common/WhiteBoardComp.vue';
 import BoothBack from '@/components/booth/BoothBackComp.vue';
@@ -32,14 +32,24 @@ const templateImages = {
 	4: [temp_2x2_4x3_481x360],
 };
 
-const photos = photoStore.photoList;
+const photos = ref([]);
+watch(
+	() => photoStore.photoList,
+	(newList) => {
+		photos.value = newList;
+	},
+	{ immediate: true },
+);
+console.log('BoothTemplateView에서 불러온 이미지 리스트:', photos.value);
 
 const selectTemplate = (template) => {
+	console.log(`템플릿 선택됨: ${template.key}`);
 	selectedTemplate.value = template.key;
 	selectedImage.value = null;
 };
 
 const selectImage = (image) => {
+	console.log(`이미지 선택됨: ${image}`);
 	selectedImage.value = image;
 };
 
@@ -52,22 +62,17 @@ const shuffleArray = (array) => {
 	return shuffledArray;
 };
 
-const imagesToShow = computed(() => {
-	let images = [];
-	if (selectedTemplate.value === 'all') {
-		images = Object.values(templateImages).flat();
-	} else {
-		images = templateImages[selectedTemplate.value] || [];
-	}
-	return shuffleArray(images);
-});
-
+const imagesToShow = ref([]);
 watch(
 	selectedTemplate,
 	(newVal) => {
+		let images = [];
 		if (newVal === 'all') {
-			imagesToShow.value = shuffleArray(Object.values(templateImages).flat());
+			images = Object.values(templateImages).flat();
+		} else {
+			images = templateImages[newVal] || [];
 		}
+		imagesToShow.value = shuffleArray(images);
 	},
 	{ immediate: true },
 );
@@ -86,6 +91,8 @@ const extractInfoFromFilename = (filename) => {
 const goToNext = () => {
 	if (selectedImage.value) {
 		const imageInfo = extractInfoFromFilename(selectedImage.value);
+		console.log(`다음 화면으로 이동: 템플릿: ${selectedTemplate.value}, 이미지: ${selectedImage.value}`);
+		console.log('다음 화면으로 이동할 때 이미지 리스트:', photos.value);
 		router.push({
 			name: 'insertImg',
 			params: {
@@ -133,16 +140,14 @@ watch(
 						<div class="selected-template">
 							<div class="template-images">
 								<div
-									v-for="image in imagesToShow"
+									v-for="image in imagesToShow.value"
 									:key="image"
 									class="image-wrapper"
 									@click="selectImage(image)"
 								>
 									<img
 										:src="image"
-										:class="{
-											selected: selectedImage === image,
-										}"
+										:class="{ selected: selectedImage.value === image }"
 										alt="Template Image"
 									/>
 								</div>
@@ -151,7 +156,7 @@ watch(
 								<button @click="goToPrevious">이전</button>
 								<button
 									@click="goToNext"
-									:disabled="!selectedImage"
+									:disabled="!selectedImage.value"
 								>
 									다음
 								</button>

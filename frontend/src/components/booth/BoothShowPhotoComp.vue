@@ -1,18 +1,27 @@
 <script setup>
-import { ref, defineProps, onMounted, inject } from 'vue';
+import { ref, defineProps, defineEmits, onMounted, inject, watch } from 'vue';
 
 const boothActions = inject('boothActions');
-const images = ref(boothActions.images);
+
+const props = defineProps({
+	boothId: String,
+	images: Array,
+});
+
+const emit = defineEmits(['update']);
+
+const images = ref(props.images || []);
+
+watch(
+	() => props.images,
+	(newImages) => {
+		images.value = newImages || [];
+	},
+);
 
 onMounted(() => {
 	console.log('BoothShowPhoto 호출됨');
 });
-
-const props = defineProps({
-	images: Array,
-});
-
-images.value = props.images;
 
 const showModal = ref(false);
 const imgUrl = ref('');
