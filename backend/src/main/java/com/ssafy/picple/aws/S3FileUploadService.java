@@ -1,4 +1,4 @@
-package com.ssafy.picple.AwsS3;
+package com.ssafy.picple.aws;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
