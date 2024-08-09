@@ -41,12 +41,15 @@ const backgroundImages = ref([
 	'https://marketplace.canva.com/EAD2xI0GoM0/1/0/1600w/canva-%ED%95%98%EB%8A%98-%EC%95%BC%EC%99%B8-%EC%9E%90%EC%97%B0-%EC%98%81%EA%B0%90-%EC%9D%B8%EC%9A%A9%EB%AC%B8-%EB%8D%B0%EC%8A%A4%ED%81%AC%ED%86%B1-%EB%B0%B0%EA%B2%BD%ED%99%94%EB%A9%B4-rssvAb9JL4I.jpg',
 ]);
 
+// 파일 입력 요소 참조
 const fileInput = ref(null);
 
+// 파일 업로드를 위한 메서드
 const triggerFileUpload = () => {
 	fileInput.value.click(); // 파일 입력 요소 클릭
 };
 
+// 파일 업로드 처리
 const fileUpload = (event) => {
 	const files = event.target.files;
 	if (files.length > 0) {
