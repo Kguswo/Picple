@@ -1,9 +1,9 @@
-import { ref } from "vue";
-import WebSocketService from "@/services/WebSocketService";
-import WebRTCService from "@/services/WebRTCService";
-import { Camera } from "@mediapipe/camera_utils";
-import { SelfieSegmentation } from "@mediapipe/selfie_segmentation";
-import Swal from "sweetalert2";
+import { ref } from 'vue';
+import WebSocketService from '@/services/WebSocketService';
+import WebRTCService from '@/services/WebRTCService';
+import { Camera } from '@mediapipe/camera_utils';
+import { SelfieSegmentation } from '@mediapipe/selfie_segmentation';
+import Swal from 'sweetalert2';
 
 class InitializationService {
     constructor() {
@@ -17,7 +17,7 @@ class InitializationService {
     }
 
     async initialize(router, route, boothStore, photoStore) {
-        console.log("shootView Mounted!");
+        console.log('shootView Mounted!');
         const startTime = Date.now();
 
         this.boothStore = boothStore; // boothStore 저장
@@ -44,13 +44,13 @@ class InitializationService {
                 this.isLoading.value = false;
             }, remainingTime);
         } catch (error) {
-            console.error("Error in component initialization:", error);
+            console.error('Error in component initialization:', error);
         }
     }
 
     async initializeWebSocketAndMedia() {
         if (!WebSocketService.isConnected()) {
-            await WebSocketService.connect("ws://localhost:8080/ws");
+            await WebSocketService.connect('ws://localhost:8080/ws');
         }
 
         try {
@@ -62,23 +62,23 @@ class InitializationService {
             if (this.videoElement) {
                 this.videoElement.srcObject = mediaStream;
                 this.videoElement.onloadedmetadata = async () => {
-                    console.log("Video metadata loaded");
+                    console.log('Video metadata loaded');
                     await this.loadSelfieSegmentation();
                     this.videoElement.play();
 
-                    this.videoElement.style.transform = "scaleX(-1)";
-                    this.canvasElement.style.transform = "scaleX(-1)";
+                    this.videoElement.style.transform = 'scaleX(-1)';
+                    this.canvasElement.style.transform = 'scaleX(-1)';
                 };
             } else {
-                console.error("Video element not found");
+                console.error('Video element not found');
             }
         } catch (error) {
-            console.error("Failed to acquire camera feed:", error);
+            console.error('Failed to acquire camera feed:', error);
             await Swal.fire({
-                title: "카메라 접근 권한이 필요합니다",
-                text: "카메라 사용을 위해 브라우저 설정에서 권한을 허용해주세요.",
-                icon: "warning",
-                confirmButtonText: "확인",
+                title: '카메라 접근 권한이 필요합니다',
+                text: '카메라 사용을 위해 브라우저 설정에서 권한을 허용해주세요.',
+                icon: 'warning',
+                confirmButtonText: '확인',
             });
         }
     }
@@ -88,15 +88,11 @@ class InitializationService {
         if (this.videoElement) {
             this.videoElement.srcObject = WebRTCService.localStream;
         } else {
-            console.error(
-                "Video element not found during WebRTC initialization"
-            );
+            console.error('Video element not found during WebRTC initialization');
         }
 
         WebRTCService.onRemoteStream = (participantId, stream) => {
-            const participant = WebSocketService.participants.find(
-                (p) => p.id === participantId
-            );
+            const participant = WebSocketService.participants.find((p) => p.id === participantId);
             if (participant) {
                 participant.stream = stream;
             }
@@ -104,9 +100,9 @@ class InitializationService {
     }
 
     async loadSelfieSegmentation() {
-        console.log("Loading Selfie Segmentation model");
-        if (typeof SelfieSegmentation === "undefined") {
-            console.error("SelfieSegmentation is not defined.");
+        console.log('Loading Selfie Segmentation model');
+        if (typeof SelfieSegmentation === 'undefined') {
+            console.error('SelfieSegmentation is not defined.');
             return;
         }
 
@@ -120,17 +116,15 @@ class InitializationService {
                 modelSelection: 1,
                 selfieMode: false,
             });
-            this.selfieSegmentationInstance.onResults(
-                this.onResults.bind(this)
-            );
-            console.log("Selfie Segmentation model loaded successfully");
+            this.selfieSegmentationInstance.onResults(this.onResults.bind(this));
+            console.log('Selfie Segmentation model loaded successfully');
         } catch (error) {
-            console.error("Error initializing SelfieSegmentation:", error);
+            console.error('Error initializing SelfieSegmentation:', error);
         }
     }
 
     async initializeSelfieSegmentation() {
-        console.log("Initializing Selfie Segmentation");
+        console.log('Initializing Selfie Segmentation');
         this.selfieSegmentation = new SelfieSegmentation({
             locateFile: (file) => {
                 return `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file}`;
@@ -161,22 +155,15 @@ class InitializationService {
     }
 
     setupEventListeners(boothStore) {
-        WebSocketService.on("participant_joined", (message) => {
-            boothStore.setParticipants([
-                ...boothStore.participants,
-                message.participant,
-            ]);
+        WebSocketService.on('participant_joined', (message) => {
+            boothStore.setParticipants([...boothStore.participants, message.participant]);
         });
 
-        WebSocketService.on("participant_left", (message) => {
-            boothStore.setParticipants(
-                boothStore.participants.filter(
-                    (p) => p.id !== message.participantId
-                )
-            );
+        WebSocketService.on('participant_left', (message) => {
+            boothStore.setParticipants(boothStore.participants.filter((p) => p.id !== message.participantId));
         });
 
-        WebSocketService.on("background_changed", (message) => {
+        WebSocketService.on('background_changed', (message) => {
             boothStore.setBgImage(message.backgroundImage);
         });
     }
@@ -184,31 +171,21 @@ class InitializationService {
     onResults(results) {
         if (!results || !results.segmentationMask || !results.image) return;
 
-        const canvasCtx = this.canvasElement.getContext("2d");
+        const canvasCtx = this.canvasElement.getContext('2d');
         canvasCtx.save();
-        canvasCtx.clearRect(
-            0,
-            0,
-            this.canvasElement.width,
-            this.canvasElement.height
-        );
+        canvasCtx.clearRect(0, 0, this.canvasElement.width, this.canvasElement.height);
 
-        const tempCanvas = document.createElement("canvas");
+        const tempCanvas = document.createElement('canvas');
         tempCanvas.width = results.segmentationMask.width;
         tempCanvas.height = results.segmentationMask.height;
-        const tempCtx = tempCanvas.getContext("2d");
+        const tempCtx = tempCanvas.getContext('2d');
         tempCtx.drawImage(results.segmentationMask, 0, 0);
 
-        tempCtx.filter = "blur(4px)";
+        tempCtx.filter = 'blur(4px)';
         tempCtx.drawImage(tempCanvas, 0, 0);
-        tempCtx.filter = "none";
+        tempCtx.filter = 'none';
 
-        const imageData = tempCtx.getImageData(
-            0,
-            0,
-            tempCanvas.width,
-            tempCanvas.height
-        );
+        const imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
 
         const threshold = 128;
 
@@ -218,35 +195,23 @@ class InitializationService {
             }
         }
 
-        const maskCanvas = document.createElement("canvas");
+        const maskCanvas = document.createElement('canvas');
         maskCanvas.width = imageData.width;
         maskCanvas.height = imageData.height;
-        const maskCtx = maskCanvas.getContext("2d");
+        const maskCtx = maskCanvas.getContext('2d');
         maskCtx.putImageData(imageData, 0, 0);
 
-        canvasCtx.drawImage(
-            results.image,
-            0,
-            0,
-            this.canvasElement.width,
-            this.canvasElement.height
-        );
+        canvasCtx.drawImage(results.image, 0, 0, this.canvasElement.width, this.canvasElement.height);
 
-        canvasCtx.globalCompositeOperation = "destination-in";
-        canvasCtx.drawImage(
-            maskCanvas,
-            0,
-            0,
-            this.canvasElement.width,
-            this.canvasElement.height
-        );
+        canvasCtx.globalCompositeOperation = 'destination-in';
+        canvasCtx.drawImage(maskCanvas, 0, 0, this.canvasElement.width, this.canvasElement.height);
 
-        canvasCtx.globalCompositeOperation = "source-over";
+        canvasCtx.globalCompositeOperation = 'source-over';
         canvasCtx.restore();
     }
 
     cleanup() {
-        console.log("shootView unMounted!");
+        console.log('shootView unMounted!');
 
         if (this.camera) {
             this.camera.stop();
@@ -260,11 +225,11 @@ class InitializationService {
         WebRTCService.closeAllConnections();
         WebRTCService.disconnect();
 
-        WebSocketService.off("participant_joined");
-        WebSocketService.off("participant_left");
+        WebSocketService.off('participant_joined');
+        WebSocketService.off('participant_left');
         WebSocketService.close();
 
-        WebSocketService.off("background_changed");
+        WebSocketService.off('background_changed');
 
         this.selfieSegmentationInstance = null;
         this.videoElement = null;

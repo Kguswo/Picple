@@ -1,3 +1,10 @@
+<template>
+    <div>
+        <h1>OpenVidu 화상 회의</h1>
+        <button @click="joinSession">세션 참가</button>
+    </div>
+</template>
+
 <script setup>
 import { ref, onMounted, onUnmounted, watch } from 'vue';
 import axios from 'axios';
@@ -26,9 +33,6 @@ const session = ref(null);
 // 로컬 스트림(publisher)과 원격 참가자 스트림(subscribers)을 저장할 ref 생성
 const publisher = ref(null);
 const subscribers = ref([]);
-
-// 로컬 비디오 요소에 대한 ref 생성
-const myVideo = ref(null);
 
 // 고정된 세션 ID 설정
 const FIXED_SESSION_ID = 'myFixedSessionId';
