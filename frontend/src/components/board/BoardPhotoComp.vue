@@ -20,21 +20,19 @@ const closeModal = () => {
 };
 
 const toggleLike = async () => {
-	const data = await boardLikeApi(props.board.id);
-	if (!data) {
-		return;
-	}
-	if (!data.isSuccess) {
-		await Swal.fire({ icon: 'error', title: `${data.message}`, width: 600 });
-		return;
-	}
-	if (props.board.liked) {
-		--props.board.hit;
-		props.board.liked = false;
-	} else {
-		++props.board.hit;
-		props.board.liked = true;
-	}
+	try {
+		const data = await boardLikeApi(props.board.id);
+		if (!data) {
+			return;
+		}
+		if (props.board.liked) {
+			--props.board.hit;
+			props.board.liked = false;
+		} else {
+			++props.board.hit;
+			props.board.liked = true;
+		}
+	} catch (error) {}
 };
 
 const deleteBoard = async () => {
@@ -44,16 +42,14 @@ const deleteBoard = async () => {
 		showCancelButton: true,
 	});
 	if (accept) {
-		const data = await boardDeleteApi(props.board.id);
-		if (!data) {
-			return;
-		}
-		if (!data.isSuccess) {
-			await Swal.fire({ icon: 'error', title: `${data.message}`, width: 600 });
-			return;
-		}
-		await Swal.fire({ icon: 'success', title: '게시글이 삭제되었습니다.', width: 600 });
-		router.go(0);
+		try {
+			const data = await boardDeleteApi(props.board.id);
+			if (!data) {
+				return;
+			}
+			await Swal.fire({ icon: 'success', title: '게시글이 삭제되었습니다.', width: 600 });
+			router.go(0);
+		} catch (error) {}
 	}
 };
 </script>

@@ -4,22 +4,19 @@ import BoardPhotoComp from '@/components/board/BoardPhotoComp.vue';
 import Page from '@/components/common/PageComp.vue';
 import { onMounted, ref } from 'vue';
 import { boardSearchApi, boardSortApi } from '@/api/boardApi';
-import Swal from 'sweetalert2';
 
 const boardList = ref([]);
 const isLikeClicked = ref(false);
 const isTimeClicked = ref(false);
 
 onMounted(async () => {
-	const data = await boardSortApi('createdAt');
-	if (!data) {
-		return;
-	}
-	if (!data.isSuccess) {
-		await Swal.fire({ icon: 'error', title: `${data.message}`, width: 600 });
-		return;
-	}
-	boardList.value = data.result;
+	try {
+		const data = await boardSortApi('createdAt');
+		if (!data) {
+			return;
+		}
+		boardList.value = data.result;
+	} catch (error) {}
 });
 
 const nickname = ref('');
@@ -28,43 +25,38 @@ const searchByNickname = async () => {
 	if (!nickname.value) {
 		return;
 	}
-	const data = await boardSearchApi(nickname.value);
-	if (!data) {
-		return;
-	}
-	if (!data.isSuccess) {
-		await Swal.fire({ icon: 'error', title: `${data.message}`, width: 600 });
-		return;
-	}
-	boardList.value = data.result;
+
+	try {
+		const data = await boardSearchApi(nickname.value);
+		if (!data) {
+			return;
+		}
+		boardList.value = data.result;
+	} catch (error) {}
 };
 
 const sortByCreatedAt = async () => {
-	const data = await boardSortApi('createdAt');
-	if (!data) {
-		return;
-	}
-	if (!data.isSuccess) {
-		await Swal.fire({ icon: 'error', title: `${data.message}`, width: 600 });
-		return;
-	}
-	boardList.value = data.result;
-	isTimeClicked.value = true;
-	isLikeClicked.value = false;
+	try {
+		const data = await boardSortApi('createdAt');
+		if (!data) {
+			return;
+		}
+		boardList.value = data.result;
+		isTimeClicked.value = true;
+		isLikeClicked.value = false;
+	} catch (error) {}
 };
 
 const sortByHit = async () => {
-	const data = await boardSortApi('hit');
-	if (!data) {
-		return;
-	}
-	if (!data.isSuccess) {
-		await Swal.fire({ icon: 'error', title: `${data.message}`, width: 600 });
-		return;
-	}
-	boardList.value = data.result;
-	isLikeClicked.value = true;
-	isTimeClicked.value = false;
+	try {
+		const data = await boardSortApi('hit');
+		if (!data) {
+			return;
+		}
+		boardList.value = data.result;
+		isLikeClicked.value = true;
+		isTimeClicked.value = false;
+	} catch (error) {}
 };
 </script>
 
