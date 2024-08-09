@@ -13,9 +13,6 @@ export default defineConfig({
 	},
 	build: {
 		sourcemap: false,
-	},
-
-	build: {
 		minify: 'terser',
 		terserOptions: {
 			compress: {
@@ -23,5 +20,8 @@ export default defineConfig({
 				drop_debugger: true,
 			},
 		},
+	},
+	devServer: {
+		https: true,
 	},
 });
