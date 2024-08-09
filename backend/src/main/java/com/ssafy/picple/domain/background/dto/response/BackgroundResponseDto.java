@@ -1,35 +1,34 @@
 package com.ssafy.picple.domain.background.dto.response;
 
 import com.ssafy.picple.domain.background.entity.Background;
-
 import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.experimental.SuperBuilder;
 
 /**
- * 베이스가 되는 배경 응답 DTO
+ * BackgroundResponseDto 클래스
+ * Background 엔티티의 데이터를 응답으로 전달하기 위한 DTO
  */
 
-@Getter
-@SuperBuilder
-@NoArgsConstructor
+@Data
 @AllArgsConstructor
 public class BackgroundResponseDto {
 
 	private Long id; // 배경 ID
 	private String backgroundTitle; // 배경 제목
-	private String imageUrl; // 사진 URL
+	private String backgroundUrl; // URL
 	private Boolean isDefault; // 기본 배경 여부
 	private Boolean isDeleted; // 삭제 여부
 
+	// Background 엔티티를 DTO로 변환
 	public static BackgroundResponseDto backgroundResponseDto(Background background) {
-		return BackgroundResponseDto.builder()
-				.id(background.getId())
-				.backgroundTitle(background.getBackgroundTitle())
-				.imageUrl(background.getBackgroundUrl())
-				.isDefault(background.getIsDefault())
-				.isDeleted(background.getIsDeleted())
-				.build();
+		return new BackgroundResponseDto(
+				background.getId(),
+				background.getBackgroundTitle(),
+				background.getBackgroundUrl(),
+				background.getIsDefault(),
+				background.getIsDeleted()
+		);
 	}
 }
