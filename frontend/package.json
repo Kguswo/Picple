@@ -16,6 +16,7 @@
         "axios": "^1.7.3",
         "html2canvas": "^1.4.1",
         "openvidu-browser": "^2.22.0",
+        "jwt-decode": "^4.0.0",
         "pinia": "^2.1.7",
         "pinia-plugin-persistedstate": "^3.2.1",
         "sockjs-client": "^1.6.1",

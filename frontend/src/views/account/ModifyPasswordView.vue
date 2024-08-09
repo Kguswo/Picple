@@ -4,14 +4,16 @@ import FormInputComp from '@/components/form/FormInputComp.vue';
 import FormButtonComp from '@/components/form/FormButtonComp.vue';
 import { useRoute, useRouter } from 'vue-router';
 import { validatePasswordPattern, validatePasswordConfirm, setFormMessage } from '@/assets/js/validation';
-import Swal from 'sweetalert2';
-import { modifyPasswordApi } from '@/api/userApi';
+import { modifyPasswordApi, modifyPasswordByFindApi } from '@/api/userApi';
 import { useFormStore } from '@/stores/formStore';
 import { storeToRefs } from 'pinia';
+import { alertResult } from '@/api/baseApi';
+import { useUserStore } from '@/stores/userStore';
 
 const route = useRoute();
 const router = useRouter();
 const formStore = useFormStore();
+const userStore = useUserStore();
 
 const { oldPassword, newPassword, newPasswordConfirm, oldPasswordField, newPasswordField, newPasswordConfirmField } =
 	storeToRefs(formStore);
@@ -19,8 +21,9 @@ formStore.initForm(
 	[oldPassword, newPassword, newPasswordConfirm],
 	[oldPasswordField, newPasswordField, newPasswordConfirmField],
 );
+const { verifiedEmail } = storeToRefs(userStore);
 
-const modifyPassword = async () => {
+const validateInputField = () => {
 	oldPasswordField.value.message = !oldPassword.value.value
 		? setFormMessage('기존 비밀번호를 입력하세요.', true)
 		: setFormMessage('', false);
@@ -31,25 +34,43 @@ const modifyPassword = async () => {
 	);
 
 	if (oldPasswordField.value && formStore.focusInputField(oldPasswordField)) {
-		return;
+		return false;
 	}
 
 	if (formStore.focusInputField(newPasswordField)) {
-		return;
+		return false;
 	}
 
 	if (formStore.focusInputField(newPasswordConfirmField)) {
-		return;
+		return false;
 	}
 
-	try {
-		const data = await modifyPasswordApi(oldPassword.value.value, newPassword.value.value);
-		if (!data) {
-			return;
-		}
-		await Swal.fire({ icon: 'success', title: '비밀번호가 변경되었습니다.', width: 600 });
-		router.push({ name: 'main' });
-	} catch (error) {}
+	return true;
+};
+
+const modify = async (data) => {
+	if (!data.isSuccess) {
+		await alertResult(false, '비밀번호 변경에 실패하였습니다.');
+		return;
+	}
+	await alertResult(true, '비밀번호가 변경되었습니다.');
+	router.push({ name: 'main' });
+};
+
+const modifyPassordByFind = async () => {
+	if (!validateInputField()) {
+		return;
+	}
+	const { data } = await modifyPasswordByFindApi(verifiedEmail.value, newPassword.value.value);
+	modify(data);
+};
+
+const modifyPassword = async () => {
+	if (!validateInputField()) {
+		return;
+	}
+	const { data } = await modifyPasswordApi(oldPassword.value.value, newPassword.value.value);
+	modify(data);
 };
 </script>
 
@@ -77,7 +98,7 @@ const modifyPassword = async () => {
 
 			<FormButtonComp
 				size="big"
-				@click="modifyPassword"
+				@click="oldPasswordField ? modifyPassword : modifyPassordByFind"
 				>확인</FormButtonComp
 			>
 
