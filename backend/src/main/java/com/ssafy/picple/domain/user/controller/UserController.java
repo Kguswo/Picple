@@ -2,6 +2,7 @@ package com.ssafy.picple.domain.user.controller;
 
 import static com.ssafy.picple.config.baseResponse.BaseResponseStatus.*;
 
+import com.ssafy.picple.domain.user.dto.request.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,11 +15,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.ssafy.picple.config.baseResponse.BaseException;
 import com.ssafy.picple.config.baseResponse.BaseResponse;
 import com.ssafy.picple.config.baseResponse.BaseResponseStatus;
-import com.ssafy.picple.domain.user.dto.request.EmailCheckRequest;
-import com.ssafy.picple.domain.user.dto.request.EmailRequest;
-import com.ssafy.picple.domain.user.dto.request.LoginRequest;
-import com.ssafy.picple.domain.user.dto.request.ModifyNicknameRequest;
-import com.ssafy.picple.domain.user.dto.request.ModifyPasswordRequest;
 import com.ssafy.picple.domain.user.dto.response.LoginResponse;
 import com.ssafy.picple.domain.user.dto.response.ModifyConfirmResponse;
 import com.ssafy.picple.domain.user.dto.response.UserInfoResponse;
@@ -167,7 +163,21 @@ public class UserController {
 		return new BaseResponse<>(userService.modifyUserPassword(userId, modifyPasswordRequest));
 	}
 
-    /**
+	/**
+	 * Password 재설정 (비밀번호 찾기)
+	 * @param resetPasswordRequest
+	 * @return
+	 * @throws BaseException
+	 */
+	@PostMapping("/reset-password")
+	public BaseResponse<BaseResponseStatus> resetPassword(@RequestBody ResetPasswordRequest resetPasswordRequest) throws BaseException {
+		return new BaseResponse<>(userService.resetPassword(
+				resetPasswordRequest.getEmail(),
+				resetPasswordRequest.getPassword()
+		));
+	}
+
+	/**
      * 로그아웃
      * @param request, response
      * @return BaseResponse
