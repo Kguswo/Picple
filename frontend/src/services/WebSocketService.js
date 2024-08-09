@@ -1,3 +1,5 @@
+import { Client } from '@stomp/stompjs';
+
 class WebSocketService {
 	constructor() {
 		this.socket = null;
@@ -8,6 +10,10 @@ class WebSocketService {
 		this.shouldReconnect = true;
 		this.participants = [];
 		this.boothStore = null;
+
+		// STOMP 클라이언트 추가
+		this.stompClient = null;
+		this.stompConnected = false;
 	}
 
 	connect(url) {
@@ -58,8 +64,49 @@ class WebSocketService {
 		return this.connectionPromise;
 	}
 
+	connectStomp(url) {
+		if (this.stompConnected) {
+			console.log('STOMP already connected');
+			return Promise.resolve();
+		}
+
+		return new Promise((resolve, reject) => {
+			this.stompClient = new Client({
+				brokerURL: url,
+				onConnect: () => {
+					console.log('Connected to STOMP');
+					this.stompConnected = true;
+					this.stompClient.subscribe('/topic/public', (message) => {
+						const data = JSON.parse(message.body);
+						if (this.handlers[data.type]) {
+							this.handlers[data.type](data);
+						}
+					});
+					resolve();
+				},
+				onStompError: (frame) => {
+					console.error('STOMP error', frame);
+					this.stompConnected = false;
+					reject(new Error('STOMP connection error'));
+				},
+			});
+
+			this.stompClient.onWebSocketError = (error) => {
+				console.error('WebSocket error', error);
+				this.stompConnected = false;
+				reject(error);
+			};
+
+			this.stompClient.activate();
+		});
+	}
+
 	isConnected() {
 		return this._isConnected;
+	}
+
+	isStompConnected() {
+		return this.stompConnected;
 	}
 
 	on(type, handler) {
@@ -79,15 +126,34 @@ class WebSocketService {
 		});
 	}
 
+	sendStomp(message) {
+		if (this.stompClient && this.stompConnected) {
+			return this.stompClient.publish({
+				destination: '/app/chat.sendMessage',
+				body: JSON.stringify(message),
+			});
+		} else {
+			console.error('STOMP client is not connected');
+			return Promise.reject(new Error('STOMP client is not connected'));
+		}
+	}
+
 	close() {
 		this.shouldReconnect = false;
 		if (this.socket) {
 			console.log('WebSocket 연결 종료 호출됨');
 			this.socket.close();
 		}
+		this.closeStomp();
 	}
 
-	// boothStore를 설정하는 메서드 추가
+	closeStomp() {
+		if (this.stompClient) {
+			this.stompClient.deactivate();
+			this.stompConnected = false;
+		}
+	}
+
 	setBoothStore(store) {
 		this.boothStore = store;
 	}
