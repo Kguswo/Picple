@@ -1,38 +1,39 @@
-import { ref } from "vue";
-import WebSocketService from "@/services/WebSocketService";
-import WebRTCService from "@/services/WebRTCService";
-import { Camera } from "@mediapipe/camera_utils";
-import { SelfieSegmentation } from "@mediapipe/selfie_segmentation";
-import Swal from "sweetalert2";
+// InitializationService.js
+
+import { ref } from 'vue';
+import WebSocketService from '@/services/WebSocketService';
+import WebRTCService from '@/services/WebRTCService';
+import * as tf from '@tensorflow/tfjs';
+import * as bodyPix from '@tensorflow-models/body-pix';
+import Swal from 'sweetalert2';
 
 class InitializationService {
     constructor() {
         this.isLoading = ref(true);
-        this.selfieSegmentationInstance = null;
+        this.bodyPixModel = null; // BodyPix 모델 인스턴스
         this.camera = null;
-        this.selfieSegmentation = null;
         this.videoElement = null;
         this.canvasElement = null;
         this.boothStore = null;
     }
 
+    // 초기화 메서드
     async initialize(router, route, boothStore, photoStore) {
-        console.log("shootView Mounted!");
+        console.log('shootView 마운트!');
         const startTime = Date.now();
 
-        this.boothStore = boothStore; // boothStore 저장
-        WebSocketService.setBoothStore(boothStore); // WebSocketService에 boothStore 설정
+        this.boothStore = boothStore;
+        WebSocketService.setBoothStore(boothStore);
 
         try {
             await this.initializeWebSocketAndMedia();
             await this.initializeWebRTC();
-            await this.initializeSelfieSegmentation();
+            await this.initializeBodyPix(); // BodyPix 초기화
             this.setupEventListeners(boothStore);
 
             const participants = WebSocketService.participants || [];
             boothStore.setParticipants(participants);
 
-            // boothId가 route.params에 있다면 joinBooth 호출
             if (route.params.boothId) {
                 await WebSocketService.joinBooth(route.params.boothId);
             }
@@ -44,13 +45,15 @@ class InitializationService {
                 this.isLoading.value = false;
             }, remainingTime);
         } catch (error) {
-            console.error("Error in component initialization:", error);
+            console.error('초기화 중 오류 발생:', error);
+            // 오류 처리 로직 추가
         }
     }
 
+    // WebSocket 및 미디어 초기화
     async initializeWebSocketAndMedia() {
         if (!WebSocketService.isConnected()) {
-            await WebSocketService.connect("ws://localhost:8080/ws");
+            await WebSocketService.connect('ws://localhost:8080/ws');
         }
 
         try {
@@ -62,211 +65,134 @@ class InitializationService {
             if (this.videoElement) {
                 this.videoElement.srcObject = mediaStream;
                 this.videoElement.onloadedmetadata = async () => {
-                    console.log("Video metadata loaded");
-                    await this.loadSelfieSegmentation();
+                    console.log('비디오 메타데이터 로드됨');
                     this.videoElement.play();
-
-                    this.videoElement.style.transform = "scaleX(-1)";
-                    this.canvasElement.style.transform = "scaleX(-1)";
+                    this.videoElement.style.transform = 'scaleX(-1)';
+                    this.canvasElement.style.transform = 'scaleX(-1)';
+                    await this.initializeBodyPix();
                 };
             } else {
-                console.error("Video element not found");
+                console.error('비디오 요소를 찾을 수 없음');
             }
         } catch (error) {
-            console.error("Failed to acquire camera feed:", error);
+            console.error('카메라 피드 획득 실패:', error);
             await Swal.fire({
-                title: "카메라 접근 권한이 필요합니다",
-                text: "카메라 사용을 위해 브라우저 설정에서 권한을 허용해주세요.",
-                icon: "warning",
-                confirmButtonText: "확인",
+                title: '카메라 접근 권한이 필요합니다',
+                text: '카메라 사용을 위해 브라우저 설정에서 권한을 허용해주세요.',
+                icon: 'warning',
+                confirmButtonText: '확인',
             });
         }
     }
 
+    // WebRTC 초기화
     async initializeWebRTC() {
         await WebRTCService.initializeLocalStream();
         if (this.videoElement) {
             this.videoElement.srcObject = WebRTCService.localStream;
         } else {
-            console.error(
-                "Video element not found during WebRTC initialization"
-            );
+            console.error('WebRTC 초기화 중 비디오 요소를 찾을 수 없음');
         }
 
         WebRTCService.onRemoteStream = (participantId, stream) => {
-            const participant = WebSocketService.participants.find(
-                (p) => p.id === participantId
-            );
+            const participant = WebSocketService.participants.find((p) => p.id === participantId);
             if (participant) {
                 participant.stream = stream;
             }
         };
     }
 
-    async loadSelfieSegmentation() {
-        console.log("Loading Selfie Segmentation model");
-        if (typeof SelfieSegmentation === "undefined") {
-            console.error("SelfieSegmentation is not defined.");
-            return;
-        }
-
+    // BodyPix 모델 초기화
+    async initializeBodyPix() {
+        console.log('BodyPix 모델 로딩 중');
+        console.log('비디오 크기:', this.videoElement.videoWidth, 'x', this.videoElement.videoHeight);
         try {
-            this.selfieSegmentationInstance = new SelfieSegmentation({
-                locateFile: (file) => {
-                    return `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file}`;
-                },
+            this.bodyPixModel = await bodyPix.load({
+                architecture: 'MobileNetV1',
+                outputStride: 16,
+                multiplier: 0.75,
+                quantBytes: 2,
             });
-            this.selfieSegmentationInstance.setOptions({
-                modelSelection: 1,
-                selfieMode: false,
-            });
-            this.selfieSegmentationInstance.onResults(
-                this.onResults.bind(this)
-            );
-            console.log("Selfie Segmentation model loaded successfully");
+            console.log('BodyPix 모델 로드 성공');
+            this.startBodyPixSegmentation();
         } catch (error) {
-            console.error("Error initializing SelfieSegmentation:", error);
+            console.error('BodyPix 초기화 오류:', error);
         }
     }
 
-    async initializeSelfieSegmentation() {
-        console.log("Initializing Selfie Segmentation");
-        this.selfieSegmentation = new SelfieSegmentation({
-            locateFile: (file) => {
-                return `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file}`;
-            },
-        });
-
-        this.selfieSegmentation.setOptions({
-            modelSelection: 1,
-            selfieMode: false,
-        });
-
-        this.selfieSegmentation.onResults(this.onResults.bind(this));
-
-        if (this.videoElement) {
-            this.camera = new Camera(this.videoElement, {
-                onFrame: async () => {
-                    if (this.selfieSegmentation) {
-                        await this.selfieSegmentation.send({
-                            image: this.videoElement,
-                        });
-                    }
-                },
-                width: 640, // 너비 설정
-                height: 480, // 높이 설정
-            });
-            this.camera.start();
-        }
+    // BodyPix 세그멘테이션 시작
+    startBodyPixSegmentation() {
+        const segmentPerson = async () => {
+            if (
+                this.videoElement &&
+                this.canvasElement &&
+                this.bodyPixModel &&
+                this.videoElement.videoWidth > 0 &&
+                this.videoElement.videoHeight > 0
+            ) {
+                const segmentation = await this.bodyPixModel.segmentPerson(this.videoElement);
+                this.drawSegmentation(segmentation);
+            }
+            requestAnimationFrame(segmentPerson);
+        };
+        segmentPerson();
     }
 
+    // 세그멘테이션 결과 그리기
+    drawSegmentation(segmentation) {
+        const canvas = this.canvasElement;
+        const ctx = canvas.getContext('2d');
+        canvas.width = this.videoElement.width;
+        canvas.height = this.videoElement.height;
+
+        // 원본 비디오 프레임 그리기
+        ctx.drawImage(this.videoElement, 0, 0, canvas.width, canvas.height);
+
+        // 세그멘테이션 마스크 적용
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const pixel = imageData.data;
+        for (let i = 0; i < pixel.length; i += 4) {
+            if (segmentation.data[i / 4] === 0) {
+                pixel[i + 3] = 0; // 배경 부분을 투명하게 설정
+            }
+        }
+        ctx.putImageData(imageData, 0, 0);
+    }
+
+    // 이벤트 리스너 설정
     setupEventListeners(boothStore) {
-        WebSocketService.on("participant_joined", (message) => {
-            boothStore.setParticipants([
-                ...boothStore.participants,
-                message.participant,
-            ]);
+        WebSocketService.on('participant_joined', (message) => {
+            boothStore.setParticipants([...boothStore.participants, message.participant]);
         });
 
-        WebSocketService.on("participant_left", (message) => {
-            boothStore.setParticipants(
-                boothStore.participants.filter(
-                    (p) => p.id !== message.participantId
-                )
-            );
+        WebSocketService.on('participant_left', (message) => {
+            boothStore.setParticipants(boothStore.participants.filter((p) => p.id !== message.participantId));
         });
 
-        WebSocketService.on("background_changed", (message) => {
+        WebSocketService.on('background_changed', (message) => {
             boothStore.setBgImage(message.backgroundImage);
         });
     }
 
-    onResults(results) {
-        if (!results || !results.segmentationMask || !results.image) return;
-
-        const canvasCtx = this.canvasElement.getContext("2d");
-        canvasCtx.save();
-        canvasCtx.clearRect(
-            0,
-            0,
-            this.canvasElement.width,
-            this.canvasElement.height
-        );
-
-        const tempCanvas = document.createElement("canvas");
-        tempCanvas.width = results.segmentationMask.width;
-        tempCanvas.height = results.segmentationMask.height;
-        const tempCtx = tempCanvas.getContext("2d");
-        tempCtx.drawImage(results.segmentationMask, 0, 0);
-
-        tempCtx.filter = "blur(4px)";
-        tempCtx.drawImage(tempCanvas, 0, 0);
-        tempCtx.filter = "none";
-
-        const imageData = tempCtx.getImageData(
-            0,
-            0,
-            tempCanvas.width,
-            tempCanvas.height
-        );
-
-        const threshold = 128;
-
-        for (let i = 0; i < imageData.data.length; i += 4) {
-            if (imageData.data[i] < threshold) {
-                imageData.data[i + 3] = 0;
-            }
-        }
-
-        const maskCanvas = document.createElement("canvas");
-        maskCanvas.width = imageData.width;
-        maskCanvas.height = imageData.height;
-        const maskCtx = maskCanvas.getContext("2d");
-        maskCtx.putImageData(imageData, 0, 0);
-
-        canvasCtx.drawImage(
-            results.image,
-            0,
-            0,
-            this.canvasElement.width,
-            this.canvasElement.height
-        );
-
-        canvasCtx.globalCompositeOperation = "destination-in";
-        canvasCtx.drawImage(
-            maskCanvas,
-            0,
-            0,
-            this.canvasElement.width,
-            this.canvasElement.height
-        );
-
-        canvasCtx.globalCompositeOperation = "source-over";
-        canvasCtx.restore();
-    }
-
+    // 정리 메서드
     cleanup() {
-        console.log("shootView unMounted!");
+        console.log('shootView 언마운트!');
 
         if (this.camera) {
             this.camera.stop();
-            this.camera = null; // 참조 해제
-        }
-        if (this.selfieSegmentation) {
-            this.selfieSegmentation.close();
-            this.selfieSegmentation = null; // 참조 해제
+            this.camera = null;
         }
 
         WebRTCService.closeAllConnections();
         WebRTCService.disconnect();
 
-        WebSocketService.off("participant_joined");
-        WebSocketService.off("participant_left");
+        WebSocketService.off('participant_joined');
+        WebSocketService.off('participant_left');
         WebSocketService.close();
 
-        WebSocketService.off("background_changed");
+        WebSocketService.off('background_changed');
 
-        this.selfieSegmentationInstance = null;
+        this.bodyPixModel = null;
         this.videoElement = null;
         this.canvasElement = null;
     }
