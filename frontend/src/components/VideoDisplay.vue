@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted, nextTick } from 'vue';
 import { useRoute } from 'vue-router';
 import { OpenVidu } from 'openvidu-browser';
 import axios from 'axios';
@@ -7,6 +7,8 @@ import { useBoothStore } from '@/stores/boothStore';
 
 import { SelfieSegmentation } from '@mediapipe/selfie_segmentation';
 import { Camera } from '@mediapipe/camera_utils';
+
+import VideoBackgroundRemoval from '@/assets/js/showView/VideoBackgroundRemoval';
 
 // Booth 스토어 사용
 const boothStore = useBoothStore();
@@ -40,36 +42,15 @@ const myVideo = ref(null);
 // 구독자 비디오 엘리먼트를 저장할 ref 배열 생성
 const subscriberVideos = ref([]);
 
+// 구독자 캔버스 엘리먼트를 저장할 ref 배열 생성
+const subscriberCanvases = ref([]);
+
 // 라우터에서 세션 ID를 가져옴
 const route = useRoute();
 const sessionId = route.params.sessionId;
 
 // Selfie Segmentation 객체 생성
 let selfieSegmentation;
-
-// 세션 ID로 토큰 얻기
-const getToken = async (sessionId) => {
-    try {
-        const response = await axios.post(
-            `${OPENVIDU_SERVER_URL}/openvidu/api/sessions/${sessionId}/connection`,
-            {},
-            {
-                headers: {
-                    Authorization: 'Basic ' + btoa('OPENVIDUAPP:' + OPENVIDU_SERVER_SECRET),
-                    'Content-Type': 'application/json',
-                },
-            },
-        );
-        console.log('토큰 획득:', response.data.token);
-        return response.data.token;
-    } catch (error) {
-        console.error('토큰 획득 중 오류 발생:', error);
-        if (error.response && error.response.status === 404) {
-            console.log('세션을 찾을 수 없음');
-        }
-        throw error;
-    }
-};
 
 // 세션 참가 함수
 const joinExistingSession = async () => {
@@ -95,9 +76,39 @@ const joinExistingSession = async () => {
         session.value = OV.value.initSession();
 
         // 이벤트 핸들러 설정
-        session.value.on('streamCreated', handleStreamCreated);
-        session.value.on('streamDestroyed', handleStreamDestroyed);
-        session.value.on('connectionStateChanged', handleConnectionStateChanged);
+        session.value.on('streamCreated', async ({ stream }) => {
+            console.log('새 스트림 생성됨:', stream.streamId);
+            const subscriber = await session.value.subscribe(stream);
+            console.log('구독 완료');
+            console.log('반환된 subscriber:', subscriber);
+
+            // 구독자 및 스트림을 저장
+            subscribers.value.push({ subscriber });
+            console.log('subscribers에 추가 완료. 현재 길이:', subscribers.value.length);
+
+            // 새 참가자의 비디오에 배경 제거 적용
+            nextTick(async () => {
+                const video = document.getElementById(`video-${subscriber.stream.streamId}`);
+                const canvas = document.getElementById(`canvas-${subscriber.stream.streamId}`);
+                if (video && canvas) {
+                    console.log('새 참가자에게 배경 제거 적용 중');
+                    await initializeBackgroundRemoval(video, canvas);
+                } else {
+                    console.error('새 참가자의 비디오 또는 캔버스 요소를 찾을 수 없습니다');
+                }
+            });
+        });
+
+        // 참가자가 나갔을 때의 이벤트 핸들러
+        session.value.on('streamDestroyed', ({ stream }) => {
+            console.log('스트림 제거됨:', stream.streamId);
+            const index = subscribers.value.findIndex((sub) => sub.stream.streamId === stream.streamId);
+            if (index >= 0) {
+                subscribers.value.splice(index, 1);
+                subscriberVideos.value.splice(index, 1);
+                subscriberCanvases.value.splice(index, 1);
+            }
+        });
 
         console.log('세션에 연결 중');
         try {
@@ -267,154 +278,37 @@ const applySegmentation = (streamRef) => {
     console.log('카메라 시작됨');
 };
 
-const applySegmentationToSubscriber = (subscriber, videoElement) => {
-    console.log('%c applySegmentationToSubscriber 시작', 'background: #222; color: #bada55');
-    console.log('subscriber:', subscriber);
-    console.log('videoElement:', videoElement);
-
-    const mediaStream = subscriber.stream.getMediaStream();
-    if (!mediaStream) {
-        console.error('%c MediaStream을 가져올 수 없습니다', 'background: red; color: white');
+// 배경 제거 초기화 함수
+const initializeBackgroundRemoval = async (videoElement, canvasElement) => {
+    if (!videoElement || !canvasElement) {
+        console.error('비디오 또는 캔버스 요소를 찾을 수 없습니다');
         return;
     }
-    console.log('mediaStream:', mediaStream);
 
-    const canvasElement = document.createElement('canvas');
-    const canvasCtx = canvasElement.getContext('2d');
-    console.log('캔버스 엘리먼트 생성:', canvasElement);
-
-    canvasElement.width = videoElement.videoWidth;
-    canvasElement.height = videoElement.videoHeight;
-    console.log('캔버스 크기:', canvasElement.width, 'x', canvasElement.height);
-
-    console.log('%c SelfieSegmentation 객체 생성 전', 'background: #222; color: #bada55');
-    const subscriberSegmentation = new SelfieSegmentation({
-        locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file}`,
-    });
-    console.log('SelfieSegmentation 객체:', subscriberSegmentation);
-
-    subscriberSegmentation.setOptions({
-        modelSelection: 1,
-    });
-    console.log('SelfieSegmentation 옵션 설정 완료');
-
-    const processFrame = async () => {
-        console.log('%c processFrame 시작', 'background: #222; color: #bada55');
-        if (videoElement.readyState === videoElement.HAVE_ENOUGH_DATA) {
-            canvasCtx.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
-            await subscriberSegmentation.send({ image: canvasElement });
-            console.log('프레임 처리 완료');
-        } else {
-            console.log('비디오 데이터 불충분');
-        }
-        requestAnimationFrame(processFrame);
-    };
-
-    subscriberSegmentation.onResults((results) => {
-        console.log('%c onResults 콜백 실행', 'background: #222; color: #bada55');
-        canvasCtx.save();
-        canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-        canvasCtx.drawImage(results.segmentationMask, 0, 0, canvasElement.width, canvasElement.height);
-        canvasCtx.globalCompositeOperation = 'source-in';
-        canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
-        canvasCtx.restore();
-
-        const imageCapture = new ImageCapture(mediaStream.getVideoTracks()[0]);
-        imageCapture
-            .grabFrame()
-            .then((imageBitmap) => {
-                canvasCtx.drawImage(imageBitmap, 0, 0, canvasElement.width, canvasElement.height);
-                console.log('프레임 그리기 완료');
-            })
-            .catch((error) => {
-                console.error('프레임 캡처 중 오류:', error);
-            });
-
-        // 처리된 프레임을 비디오 엘리먼트에 적용
-        const processedStream = canvasElement.captureStream();
-        const processedVideoTrack = processedStream.getVideoTracks()[0];
-
-        if (subscriber.webRtcPeer && subscriber.webRtcPeer.peerConnection) {
-            const sender = subscriber.webRtcPeer.peerConnection.getSenders().find((s) => s.track.kind === 'video');
-            if (sender) {
-                sender
-                    .replaceTrack(processedVideoTrack)
-                    .then(() => {
-                        console.log('비디오 트랙 교체 성공');
-                    })
-                    .catch((error) => {
-                        console.error('비디오 트랙 교체 실패:', error);
-                    });
+    // 비디오 스트림이 시작될 때까지 대기
+    await new Promise((resolve) => {
+        const checkVideo = () => {
+            if (videoElement.readyState >= 2 && videoElement.videoWidth > 0 && videoElement.videoHeight > 0) {
+                // 캔버스 크기를 비디오 크기에 맞춤
+                canvasElement.width = videoElement.videoWidth;
+                canvasElement.height = videoElement.videoHeight;
+                resolve();
             } else {
-                console.log('비디오 sender를 찾을 수 없습니다');
+                requestAnimationFrame(checkVideo);
             }
-        } else {
-            console.log('subscriber.webRtcPeer 또는 peerConnection이 없습니다');
-        }
+        };
+        checkVideo();
     });
-
-    console.log('%c processFrame 호출', 'background: #222; color: #bada55');
-    processFrame();
-
-    console.log('%c applySegmentationToSubscriber 완료', 'background: #222; color: #bada55');
-};
-
-// 새 스트림 생성 처리 함수
-const handleStreamCreated = async ({ stream }) => {
-    console.log('%c handleStreamCreated 시작', 'background: #222; color: #bada55');
-    console.log('스트림 ID:', stream.streamId);
 
     try {
-        // 구독자 생성
-        const subscriber = await session.value.subscribe(stream);
-        console.log('%c 구독 완료', 'background: #222; color: #bada55');
-        console.log('반환된 subscriber:', subscriber);
-
-        // 이벤트 핸들러를 구독자 생성 후에 바로 등록
-        subscriber.on('videoElementCreated', (event) => {
-            console.log('%c videoElementCreated 이벤트 발생', 'background: #222; color: #bada55');
-            console.log('비디오 엘리먼트:', event.element);
-
-            // 비디오 엘리먼트를 배열에 추가
-            subscriberVideos.value.push(event.element);
-            console.log('subscriberVideos에 추가 완료. 현재 길이:', subscriberVideos.value.length);
-        });
-
-        subscriber.on('streamPlaying', (event) => {
-            console.log('%c streamPlaying 이벤트 발생', 'background: #222; color: #bada55');
-            console.log('스트림 ID:', stream.streamId);
-
-            // 이 시점에서 비디오 엘리먼트가 실제로 재생 중입니다
-            const videoElement = subscriber.videos[0].video;
-            console.log('비디오 엘리먼트:', videoElement);
-
-            console.log('%c applySegmentationToSubscriber 호출 전', 'background: #222; color: #bada55');
-            applySegmentationToSubscriber(subscriber, videoElement);
-        });
-
-        // 구독자 및 스트림을 저장
-        subscribers.value.push({ subscriber, stream });
-        console.log('subscribers에 추가 완료. 현재 길이:', subscribers.value.length);
-    } catch (e) {
-        console.error('%c 구독 중 에러 발생', 'background: red; color: white', e);
-        console.error('에러:', e);
+        const newBackgroundRemoval = new VideoBackgroundRemoval();
+        await newBackgroundRemoval.initialize();
+        newBackgroundRemoval.startProcessing(videoElement, canvasElement);
+        videoStarted.value = true;
+        return newBackgroundRemoval;
+    } catch (error) {
+        console.error('MediaPipe 초기화 중 오류 발생:', error);
     }
-
-    console.log('%c handleStreamCreated 완료', 'background: #222; color: #bada55');
-};
-
-// 스트림 제거 처리 함수
-const handleStreamDestroyed = ({ stream }) => {
-    console.log('스트림 제거됨:', stream.streamId);
-    const index = subscribers.value.findIndex((sub) => sub.stream.streamId === stream.streamId);
-    if (index >= 0) {
-        subscribers.value.splice(index, 1);
-    }
-};
-
-// 연결 상태 변경 처리 함수
-const handleConnectionStateChanged = (event) => {
-    console.log('연결 상태 변경:', event.connectionId, event.newState);
 };
 
 // 컴포넌트가 마운트될 때 실행될 로직
@@ -452,20 +346,24 @@ onUnmounted(() => {
             <!-- 원격 참가자 비디오 스트림 -->
             <div
                 v-for="(sub, index) in subscribers"
-                :key="sub.stream.streamId"
+                :key="sub.subscriber.stream.streamId"
                 class="stream-container"
             >
                 <h3>참가자 비디오 {{ index + 1 }}</h3>
                 <video
-                    :ref="
-                        (el) => {
-                            if (el) subscriberVideos[index] = el;
-                        }
-                    "
+                    :id="`video-${sub.subscriber.stream.streamId}`"
+                    :width="320"
+                    :height="240"
                     autoplay
                     playsinline
+                    style="display: none"
                     :srcObject="sub.subscriber.stream.getMediaStream()"
                 ></video>
+                <canvas
+                    :id="`canvas-${sub.subscriber.stream.streamId}`"
+                    :width="320"
+                    :height="240"
+                ></canvas>
             </div>
         </div>
     </div>
@@ -488,6 +386,14 @@ onUnmounted(() => {
 
 /* 비디오 요소 스타일 */
 video {
+    width: 100%;
+    height: auto;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+}
+
+/* 캔버스 요소 스타일 */
+canvas {
     width: 100%;
     height: auto;
     border: 1px solid #ccc;

@@ -1,6 +1,6 @@
 import { SelfieSegmentation } from '@mediapipe/selfie_segmentation';
 
-export class VideoBackgroundRemoval {
+export default class VideoBackgroundRemoval {
     constructor() {
         this.selfieSegmentation = new SelfieSegmentation({
             locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file}`,
