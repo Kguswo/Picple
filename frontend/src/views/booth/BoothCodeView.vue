@@ -3,28 +3,38 @@ import FormComp from '@/components/form/FormComp.vue';
 import FormInputComp from '@/components/form/FormInputComp.vue';
 import FormButtonComp from '@/components/form/FormButtonComp.vue';
 import { useRouter } from 'vue-router';
-import Swal from 'sweetalert2';
-import { setFormMessage } from '@/composables/validation';
-import { useFormStore } from '@/stores/formStore';
-import { storeToRefs } from 'pinia';
+import { validateJoinBooth } from '@/stores/validation';
+import { ref } from 'vue';
+
+import { ref, onMounted } from 'vue';
+import WebSocketService from '@/services/WebSocketService';
 
 const router = useRouter();
-const formStore = useFormStore();
 
-const { boothCode, boothCodeField } = storeToRefs(formStore);
-formStore.initForm([boothCode], [boothCodeField]);
+const boothCode = ref({ type: 'text', label: '부스 코드', value: '' });
+const boothCodeField = ref(null);
 
-const verifyBoothCode = async () => {
-	boothCodeField.value.message = !boothCode.value.value
-		? setFormMessage('부스 코드가 일치하지 않습니다.', true)
-		: setFormMessage('', false);
+onMounted(() => {
+	WebSocketService.connect();
+});
 
-	if (formStore.focusInputField(boothCodeField)) {
+const join = async () => {
+	const isSuccess = validateJoinBooth(boothCodeField.value, boothCode.value.value);
+	if (!isSuccess) {
 		return;
 	}
 
-	// todo: 부스 코드 검사 api 연결
-	await Swal.fire({ icon: 'success', title: '부스 코드가 인증되었습니다.', width: 600 });
+	try {
+		await WebSocketService.joinBooth(boothCode.value.value);
+		// 부스 참여 성공 시 BoothShootView로 이동
+		router.push({
+			name: 'boothShoot',
+			params: { boothId: boothCode.value.value },
+		});
+	} catch (error) {
+		// 에러 처리
+		console.error('Failed to join booth:', error);
+	}
 };
 
 const cancel = () => {
@@ -37,16 +47,16 @@ const cancel = () => {
 		<form
 			class="form-content"
 			@submit.prevent
-			@keyup.enter="verifyBoothCode"
+			@keyup.enter="join"
 		>
 			<FormInputComp
-				:inputParams="boothCode"
+				:params="boothCode"
 				ref="boothCodeField"
 			/>
 
 			<FormButtonComp
 				size="big"
-				@click="verifyBoothCode"
+				@click="join"
 				>확인</FormButtonComp
 			>
 			<button

@@ -10,6 +10,10 @@ import microOff from '@/assets/icon/micro_off.png';
 import { RouterView, RouterLink, useRoute, useRouter } from 'vue-router';
 import { ref, onMounted, onUnmounted } from 'vue';
 
+import WebSocketService from '@/services/WebSocketService';
+
+const boothCode = ref('');
+
 // 비디오 표현을 위한 변수
 const videoElement = ref(null);
 let mediaStream = null;
@@ -27,6 +31,10 @@ const navigateTo = (name) => {
 	router.push({ name });
 };
 
+onMounted(() => {
+	WebSocketService.connect();
+});
+
 onMounted(async () => {
 	console.log('Create Booth 페이지 호출되었습니다');
 	const startTime = Date.now();
@@ -39,8 +47,11 @@ onMounted(async () => {
 		videoElement.value.srcObject = mediaStream;
 		// 비디오 요소에 거울모드 적용
 		videoElement.value.style.transform = 'scaleX(-1)';
+
+		await WebSocketService.connect('ws://localhost:8080/signal');
 	} catch (error) {
 		console.error('Error accessing webcam:', error);
+		console.error('Failed to connect to WebSocket:', error);
 	}
 
 	// 최소 1.5초 동안 로딩 화면 표시
@@ -99,6 +110,39 @@ const toggleMicro = () => {
 		mediaStream.getAudioTracks().forEach((track) => {
 			track.enabled = false; // 오디오  트랙을 비활성화
 		});
+	}
+};
+
+const createBooth = () => {
+	WebSocketService.createBooth();
+	// Wait for booth_created message
+	const unwatch = watch(
+		() => WebSocketService.boothId.value,
+		(newBoothId) => {
+			if (newBoothId) {
+				boothCode.value = newBoothId;
+				unwatch();
+				router.push({
+					name: 'boothShoot',
+					params: { boothId: newBoothId },
+				});
+			}
+		},
+	);
+};
+
+const handleCreateBooth = async () => {
+	try {
+		if (!WebSocketService.isConnected()) {
+			await WebSocketService.connect('ws://localhost:8080/signal');
+		}
+		const boothId = await WebSocketService.createBooth();
+		console.log('Created booth with ID:', boothId);
+		// 여기서 부스 생성 후의 로직을 추가하세요 (예: 부스 화면으로 이동)
+		router.push({ name: 'boothShoot', params: { boothId } });
+	} catch (error) {
+		console.error('Failed to create booth:', error);
+		// 에러 처리 로직 추가
 	}
 };
 </script>
@@ -168,7 +212,7 @@ const toggleMicro = () => {
 						<div class="right-btn">
 							<button
 								class="ract-btn"
-								@click="navigateTo('background')"
+								@click="handleCreateBooth"
 							>
 								생성
 							</button>
