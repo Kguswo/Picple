@@ -3,56 +3,70 @@ import WhiteBoardComp from '@/components/common/WhiteBoardComp.vue';
 import BoardPhotoComp from '@/components/board/BoardPhotoComp.vue';
 import Page from '@/components/common/PageComp.vue';
 import { onMounted, ref } from 'vue';
-import { boardSearchApi, boardSortApi } from '@/api/boardApi';
-import Swal from 'sweetalert2';
+import { boardListApi, boardSortApi } from '@/api/boardApi';
+import { alertResult } from '@/api/baseApi';
 
 const boardList = ref([]);
-const isLikeClicked = ref(false);
-const isTimeClicked = ref(false);
-
-onMounted(async () => {
-	const data = await boardSortApi('createdAt');
-	if (!data.isSuccess) {
-		await Swal.fire({ icon: 'error', title: '게시글을 불러오지 못했습니다.', width: 600 });
-		return;
-	}
-	boardList.value = data.result;
-});
-
+const sortArrow = ref('');
+const prevCriteria = ref('');
 const nickname = ref('');
 
+onMounted(() => {
+	getBoardList();
+});
+
+const getBoardList = async () => {
+	const { data } = await boardListApi();
+	if (!data.isSuccess) {
+		await alertResult(false, '게시판 조회에 실패하였습니다.');
+		return;
+	}
+	boardList.value = data.result;
+};
+
+const toggleSort = (criteria) => {
+	if (prevCriteria.value === criteria) {
+		if (sortArrow.value !== '↓') {
+			sortArrow.value = '↓';
+			return;
+		}
+		sortArrow.value = '↑';
+		return;
+	}
+
+	sortArrow.value = '↓';
+	prevCriteria.value = criteria;
+};
+
+const sortBoards = async (criteria) => {
+	const { data } = await boardSortApi(
+		nickname.value,
+		criteria,
+		prevCriteria.value !== criteria || sortArrow.value !== '↓' ? false : true,
+	);
+	if (!data.isSuccess) {
+		await alertResult(false, '게시글 정렬에 실패하였습니다.');
+		return;
+	}
+	boardList.value = data.result;
+	toggleSort(criteria);
+};
+
 const searchByNickname = async () => {
+	sortArrow.value = '';
+	prevCriteria.value = '';
+
 	if (!nickname.value) {
+		await getBoardList();
 		return;
 	}
-	const data = await boardSearchApi(nickname.value);
-	if (!data.isSuccess) {
-		await Swal.fire({ icon: 'error', title: '검색 조회에 실패하였습니다.', width: 600 });
-		return;
-	}
-	boardList.value = data.result;
-};
 
-const sortByCreatedAt = async () => {
-	const data = await boardSortApi('createdAt');
+	const { data } = await boardSortApi(nickname.value, 'createdAt', false);
 	if (!data.isSuccess) {
-		await Swal.fire({ icon: 'error', title: '최신순 정렬에 실패하였습니다.', width: 600 });
+		await alertResult(false, '사용자 검색에 실패하였습니다.');
 		return;
 	}
 	boardList.value = data.result;
-	isTimeClicked.value = true;
-	isLikeClicked.value = false;
-};
-
-const sortByHit = async () => {
-	const data = await boardSortApi('hit');
-	if (!data.isSuccess) {
-		await Swal.fire({ icon: 'error', title: '좋아요순 정렬에 실패하였습니다.', width: 600 });
-		return;
-	}
-	boardList.value = data.result;
-	isLikeClicked.value = true;
-	isTimeClicked.value = false;
 };
 </script>
 
@@ -86,18 +100,16 @@ const sortByHit = async () => {
 
 					<div class="button-group">
 						<button
-							class="button-sort-like"
-							:class="{ clicked: isLikeClicked }"
-							@click="sortByHit"
+							@click="sortBoards('hit')"
+							:class="{ clicked: prevCriteria === 'hit' }"
 						>
-							좋아요순
+							좋아요순 <span>{{ prevCriteria === 'hit' ? sortArrow : '' }}</span>
 						</button>
 						<button
-							class="button-sort-time"
-							:class="{ clicked: isTimeClicked }"
-							@click="sortByCreatedAt"
+							@click="sortBoards('createdAt')"
+							:class="{ clicked: prevCriteria === 'createdAt' }"
 						>
-							최신순
+							최신순 <span>{{ prevCriteria === 'createdAt' ? sortArrow : '' }}</span>
 						</button>
 					</div>
 				</div>
@@ -201,21 +213,20 @@ const sortByHit = async () => {
 		color: black;
 		transition: background-color 0.3s ease;
 		cursor: pointer;
-	}
 
-	.button-sort-time,
-	.button-sort-like {
 		&:hover {
-			background-color: rgba(250, 198, 198, 0.3);
+			background-color: rgb(98, 171, 217, 0.5);
 		}
 
 		&:active {
-			transform: translateY(4px);
+			transform: translateY(5px);
+			transition: transform 0.3s ease;
 		}
 	}
 
 	.clicked {
-		background-color: rgb(250, 198, 198);
+		background-color: #62abd9;
+		color: white;
 	}
 }
 

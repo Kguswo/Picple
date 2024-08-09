@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, watch } from 'vue';
+import { ref, watch, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import WhiteBoardComp from '@/components/common/WhiteBoardComp.vue';
 import BoothBack from '@/components/booth/BoothBackComp.vue';
@@ -23,6 +23,11 @@ const templates = [
 	{ text: '2장', key: '2' },
 	{ text: '3장', key: '3' },
 	{ text: '4장', key: '4' },
+	{ text: '전체', key: 'all' },
+	{ text: '1장', key: '1' },
+	{ text: '2장', key: '2' },
+	{ text: '3장', key: '3' },
+	{ text: '4장', key: '4' },
 ];
 
 const templateImages = {
@@ -30,16 +35,33 @@ const templateImages = {
 	2: [temp_1x2_4x5_288x360],
 	3: [temp_1x3_3x4_270x360],
 	4: [temp_2x2_4x3_481x360],
+	1: [temp_1x1_4x3_479x360],
+	2: [temp_1x2_4x5_288x360],
+	3: [temp_1x3_3x4_270x360],
+	4: [temp_2x2_4x3_481x360],
 };
 
-const photos = photoStore.photoList;
+const isNextDisabled = computed(() => !selectedImage?.value);
+
+const photos = ref([]);
+
+watch(
+	() => photoStore.photoList,
+	(newList) => {
+		photos.value = newList;
+	},
+	{ immediate: true },
+);
+console.log('BoothTemplateView에서 불러온 이미지 리스트:', photos.value);
 
 const selectTemplate = (template) => {
+	console.log(`템플릿 선택됨: ${template.key}`);
 	selectedTemplate.value = template.key;
 	selectedImage.value = null;
 };
 
 const selectImage = (image) => {
+	console.log(`이미지 선택됨: ${image}`);
 	selectedImage.value = image;
 };
 
@@ -50,24 +72,25 @@ const shuffleArray = (array) => {
 		[shuffledArray[i], shuffledArray[j]] = [shuffledArray[j], shuffledArray[i]];
 	}
 	return shuffledArray;
+	let shuffledArray = array.slice();
+	for (let i = shuffledArray.length - 1; i > 0; i--) {
+		const j = Math.floor(Math.random() * (i + 1));
+		[shuffledArray[i], shuffledArray[j]] = [shuffledArray[j], shuffledArray[i]];
+	}
+	return shuffledArray;
 };
 
-const imagesToShow = computed(() => {
-	let images = [];
-	if (selectedTemplate.value === 'all') {
-		images = Object.values(templateImages).flat();
-	} else {
-		images = templateImages[selectedTemplate.value] || [];
-	}
-	return shuffleArray(images);
-});
-
+const imagesToShow = ref([]);
 watch(
 	selectedTemplate,
 	(newVal) => {
+		let images = [];
 		if (newVal === 'all') {
-			imagesToShow.value = shuffleArray(Object.values(templateImages).flat());
+			images = Object.values(templateImages).flat();
+		} else {
+			images = templateImages[newVal] || [];
 		}
+		imagesToShow.value = shuffleArray(images);
 	},
 	{ immediate: true },
 );
@@ -81,11 +104,21 @@ const extractInfoFromFilename = (filename) => {
 		ratio: ratio.split('x').map(Number),
 		size: { width, height },
 	};
+	const parts = filename.split('_');
+	const [photoCount, ratio, size] = parts.slice(1);
+	const [width, height] = size.split('x').map(Number);
+	return {
+		photoCount: photoCount.split('x').map(Number),
+		ratio: ratio.split('x').map(Number),
+		size: { width, height },
+	};
 };
 
 const goToNext = () => {
-	if (selectedImage.value) {
+	if (selectedImage?.value) {
 		const imageInfo = extractInfoFromFilename(selectedImage.value);
+		console.log(`다음 화면으로 이동: 템플릿: ${selectedTemplate.value}, 이미지: ${selectedImage.value}`);
+		console.log('다음 화면으로 이동할 때 이미지 리스트:', photos.value);
 		router.push({
 			name: 'insertImg',
 			params: {
@@ -100,6 +133,8 @@ const goToNext = () => {
 };
 
 const goToPrevious = () => {
+	photoStore.clearPhotoList();
+	router.push('/booth');
 	photoStore.clearPhotoList();
 	router.push('/booth');
 };
@@ -151,7 +186,7 @@ watch(
 								<button @click="goToPrevious">이전</button>
 								<button
 									@click="goToNext"
-									:disabled="!selectedImage"
+									:disabled="isNextDisabled"
 								>
 									다음
 								</button>
@@ -189,5 +224,5 @@ watch(
 </template>
 
 <style scoped>
-@import '@/assets/css/boothsSelectTemp.css';
+@import url('@/assets/css/boothsSelectTemp.css');
 </style>

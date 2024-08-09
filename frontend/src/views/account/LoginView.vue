@@ -2,15 +2,15 @@
 import FormComp from '@/components/form/FormComp.vue';
 import FormInputComp from '@/components/form/FormInputComp.vue';
 import FormButtonComp from '@/components/form/FormButtonComp.vue';
-import { validateEmailPattern, validatePasswordPattern } from '@/composables/validation';
+import { validateEmailPattern, validatePasswordPattern } from '@/assets/js/validation';
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import VueCookie from 'vue-cookies';
 import { useUserStore } from '@/stores/userStore';
 import { loginApi } from '@/api/userApi';
-import Swal from 'sweetalert2';
 import { useFormStore } from '@/stores/formStore';
 import { storeToRefs } from 'pinia';
+import { alertResult } from '@/api/baseApi';
 
 const userStore = useUserStore();
 const formStore = useFormStore();
@@ -34,14 +34,14 @@ const login = async () => {
 	}
 
 	setCookie('saveId', email.value.value, '1d', isChecked.value);
-	const data = await loginApi(email.value.value, password.value.value);
+
+	const { data } = await loginApi(email.value.value, password.value.value);
 	if (!data.isSuccess) {
-		await Swal.fire({ icon: 'error', title: '아이디 또는 비밀번호를 틀렸습니다.', width: 600 });
+		await alertResult(false, '아이디 또는 비밀번호가 일치하지 않습니다.');
 		router.go(0);
 		return;
 	}
-	userStore.setUser(email.value.value, data.result.nickname);
-	localStorage.setItem('accessToken', data.result.accessToken);
+	userStore.setUserInfo(data.result);
 	router.push({ name: 'main' });
 };
 

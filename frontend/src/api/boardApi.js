@@ -1,26 +1,24 @@
-import { instance, axiosGet, axiosPatch, axiosDelete } from '@/api/baseApi';
+import { axiosAuth } from '@/api/baseApi';
 
-const boardsBaseUrl = instance.defaults.baseURL + '/boards';
-const likesBaseUrl = instance.defaults.baseURL + '/likes';
+const boardsBaseUrl = import.meta.env.VITE_API_BOARD;
+const likesBaseUrl = import.meta.env.VITE_API_LIKE;
 
-const boardListApi = async () => {
-	return await axiosGet(`${boardsBaseUrl}`);
+const boardListApi = () => {
+	return axiosAuth.get(`${boardsBaseUrl}`);
 };
 
-const boardSortApi = async (criteria) => {
-	return await axiosGet(`${boardsBaseUrl}/sorted/${criteria}`);
+const boardSortApi = (nickname, criteria, sortDirection) => {
+	return axiosAuth.get(
+		`${boardsBaseUrl}/sorted?nickname=${nickname}&criteria=${criteria}&sortDirection=${sortDirection}`,
+	);
 };
 
-const boardSearchApi = async (nickname) => {
-	return await axiosGet(`${boardsBaseUrl}/user/${nickname}`);
+const boardDeleteApi = (boardId) => {
+	return axiosAuth.delete(`${boardsBaseUrl}/${boardId}`);
 };
 
-const boardDeleteApi = async (boardId) => {
-	return await axiosDelete(`${boardsBaseUrl}/${boardId}`);
+const boardLikeApi = (boardId) => {
+	return axiosAuth.patch(`${likesBaseUrl}/${boardId}`);
 };
 
-const boardLikeApi = async (boardId) => {
-	return await axiosPatch(`${likesBaseUrl}/${boardId}`);
-};
-
-export { boardListApi, boardSortApi, boardSearchApi, boardDeleteApi, boardLikeApi };
+export { boardListApi, boardSortApi, boardDeleteApi, boardLikeApi };

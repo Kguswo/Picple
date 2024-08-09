@@ -8,9 +8,11 @@ import html2canvas from 'html2canvas';
 
 const photoStore = usePhotoStore();
 const images = ref(photoStore.photoList);
+console.log('BoothInsertView에서 불러온 이미지 리스트:', images.value);
 
 const route = useRoute();
 const selectedImage = ref(decodeURIComponent(route.query.selectedImage));
+console.log(`BoothInsertView 로드됨: 이미지: ${selectedImage.value}`);
 
 const draggedImage = ref(null);
 const draggedImageIndex = ref(null);
@@ -51,16 +53,19 @@ const extractSizeFromFilename = (filename) => {
 	const regex = /(\d+)x(\d+)\.(?:jpg|png|jpeg)$/i;
 	const match = filename.match(regex);
 	if (match) {
+		console.log(`Extracted size from filename: ${filename}, width: ${match[1]}, height: ${match[2]}`);
 		return {
 			width: parseInt(match[1], 10),
 			height: parseInt(match[2], 10),
 		};
 	}
+	console.error(`Failed to extract size from filename: ${filename}`);
 	return { width: 0, height: 0 };
 };
 
 const selectedImageSize = computed(() => {
 	const size = extractSizeFromFilename(selectedImage.value);
+	console.log(`Computed selected image size: ${JSON.stringify(size)}`);
 	return size;
 });
 
@@ -77,7 +82,7 @@ function calculateImagePosition(templateSize, layoutItem) {
 	const { width: tempWidth, height: tempHeight } = templateSize;
 	const { x, y, width, height } = layoutItem;
 
-	const scaleFactor = 0.85;
+	const scaleFactor = 0.85; // 템플릿 이미지의 85%로 크기 조정
 
 	return {
 		left: x * tempWidth - (width * tempWidth * scaleFactor) / 2,
@@ -88,6 +93,7 @@ function calculateImagePosition(templateSize, layoutItem) {
 }
 
 const onDragStart = (event, image, index) => {
+	console.log(`이미지 드래그 시작: ${image.src}`);
 	draggedImage.value = image;
 	draggedImageIndex.value = index;
 	event.dataTransfer.effectAllowed = 'move';
@@ -96,6 +102,9 @@ const onDragStart = (event, image, index) => {
 const onDrop = (event, index) => {
 	event.preventDefault();
 	if (draggedImage.value) {
+		console.log(`이미지 드롭됨: ${draggedImage.value.src} at index ${index}`);
+
+		// 기존 이미지가 있었다면 리스트로 돌려보냄
 		if (droppedImages.value[index]) {
 			const oldImage = droppedImages.value[index];
 			images.value.find((img) => img.src === oldImage.src).visible = true;
@@ -116,6 +125,7 @@ const onDragOver = (event) => {
 
 const onDragStartFromTemplate = (event, index) => {
 	if (droppedImages.value[index]) {
+		console.log(`템플릿 이미지 드래그 시작: ${droppedImages.value[index].src}`);
 		draggedImage.value = droppedImages.value[index];
 		draggedImageIndex.value = index;
 		event.dataTransfer.effectAllowed = 'move';
@@ -125,8 +135,10 @@ const onDragStartFromTemplate = (event, index) => {
 const onDropBackToList = (event) => {
 	event.preventDefault();
 	if (!draggedImage.value) {
+		console.warn('드래그된 이미지가 없습니다.');
 		return;
 	}
+	console.log(`이미지 리스트로 돌아감: ${draggedImage.value.src}`);
 	images.value.find((img) => img.src === draggedImage.value.src).visible = true;
 
 	if (draggedImageIndex.value !== null) {
@@ -143,7 +155,10 @@ const onSave = async () => {
 			const canvas = await html2canvas(templateRef.value);
 			const imageData = canvas.toDataURL('image/png');
 			capturedImages.value.push(imageData);
-		} catch (error) {}
+			console.log('Image captured and saved to list');
+		} catch (error) {
+			console.error('Error capturing image:', error);
+		}
 	}
 };
 
@@ -155,6 +170,7 @@ watch(
 		if (template) {
 			droppedImages.value = new Array(template.layout.length).fill(null);
 		}
+		// 모든 이미지를 다시 보이게 함
 		images.value.forEach((img) => (img.visible = true));
 		nextTick(() => {
 			updateTemplateDimensions();
@@ -168,6 +184,7 @@ const updateTemplateDimensions = () => {
 		width: size.width,
 		height: size.height,
 	};
+	console.log(`Template dimensions updated: ${JSON.stringify(templateImageSize.value)}`);
 };
 
 const onTemplateImageLoad = (event) => {
@@ -179,12 +196,14 @@ const onTemplateImageLoad = (event) => {
 };
 
 onMounted(() => {
+	console.log('BoothInsertView 마운트 시 이미지 리스트:', images.value);
 	nextTick(() => {
 		updateTemplateDimensions();
 	});
 });
 </script>
 
+죄송합니다. BoothInsertView.vue의 나머지 부분을 이어서 제공하겠습니다: vueCopy
 <template>
 	<WhiteBoardComp class="whiteboard-area-booth">
 		<div class="booth-content">

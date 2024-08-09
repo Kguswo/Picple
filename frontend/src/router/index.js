@@ -1,6 +1,7 @@
-import { useUserStore } from '@/stores/userStore';
 import { createRouter, createWebHistory } from 'vue-router';
-import Swal from 'sweetalert2';
+import WebSocketService from '@/services/WebSocketService';
+import { useUserStore } from '@/stores/userStore';
+import { alertResult } from '@/api/baseApi';
 
 const router = createRouter({
 	history: createWebHistory(import.meta.env.BASE_URL),
@@ -65,7 +66,7 @@ const router = createRouter({
 			meta: { authRequired: true },
 		},
 		{
-			path: '/booth',
+			path: '/booth/:boothId',
 			component: () => import('@/views/booth/BoothShootView.vue'),
 			children: [
 				{
@@ -108,23 +109,47 @@ const router = createRouter({
 			}),
 			meta: { authRequired: true },
 		},
+		{
+			path: '/:pathMatch(.*)*',
+			name: 'notFound',
+			component: () => import('@/views/NotFoundView.vue'),
+		},
+		{
+			path: '/videoDisplay/:sessionId',
+			name: 'videoDisplay',
+			component: () => import('@/components/VideoDisplay.vue'),
+			props: true,
+		},
 	],
 });
+
+// WebSocket 연결이 필요한 라우트 목록
+const websocketRoutes = ['createbooth', 'booth', 'boothCode', 'selectTemp', 'insertImg'];
 
 router.beforeEach(async (to, from) => {
 	const userStore = useUserStore();
 
-	if (to.meta.emailRequired && !userStore.verifiedEmail) {
-		await Swal.fire({ icon: 'error', title: '이메일 인증이 필요합니다.', width: 600 });
-		return { name: 'login', replace: true };
+	if (to.meta.authRequired && !userStore.isLogined) {
+		await alertResult(false, '로그인이 필요합니다.');
+		return { name: 'login' };
 	}
-	if (to.meta.authRequired && !localStorage.getItem('accessToken')) {
-		await Swal.fire({ icon: 'error', title: '로그인이 필요합니다.', width: 600 });
-		return { name: 'login', replace: true };
+
+	if ((to.meta.notAuthRequired && userStore.isLogined) || (to.meta.emailRequired && !userStore.verifiedEmail)) {
+		await alertResult(false, '잘못된 접근입니다.');
+		return { name: 'main' };
 	}
-	if (to.meta.notAuthRequired && localStorage.getItem('accessToken')) {
-		await Swal.fire({ icon: 'error', title: '올바르지 않은 접근입니다.', width: 600 });
-		return { name: 'main', replace: true };
+
+	if (websocketRoutes.includes(to.name)) {
+		if (!WebSocketService.isConnected()) {
+			try {
+				await WebSocketService.connect('ws://localhost:8080/ws');
+			} catch (error) {
+				console.error('Failed to connect to WebSocket:', error);
+				// 에러 처리
+			}
+		}
+	} else if (websocketRoutes.includes(from.name) && !websocketRoutes.includes(to.name)) {
+		WebSocketService.close();
 	}
 });
 

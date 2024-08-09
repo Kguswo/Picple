@@ -1,10 +1,33 @@
 <script setup>
-import { ref, defineEmits } from 'vue';
+import { ref, defineEmits, defineProps, onMounted, inject } from 'vue';
+
+const boothActions = inject('boothActions', {
+	changeImage: () => console.warn('changeImage not provided'),
+});
+
+const props = defineProps({
+	boothId: String,
+});
+
+const selectBackground = (image) => {
+	if (typeof boothActions.changeImage === 'function') {
+		boothActions.changeImage(image);
+	} else {
+		console.error('changeImage is not a function');
+		// 대체 동작 수행
+		emit('update', image);
+	}
+};
+
+onMounted(() => {
+	console.log('BoothSelectBackComp 호출됨');
+});
 
 const emit = defineEmits(['update']);
 
 const emitImage = (image) => {
-	emit('update', image);
+	emit('update', image); // 부모에게 변경된 이미지 전달
+	selectBackground(image); // inject된 메서드 사용
 };
 
 // todo: 다음에 실제 배경으로 사용할 이미지 필요
@@ -18,12 +41,15 @@ const backgroundImages = ref([
 	'https://marketplace.canva.com/EAD2xI0GoM0/1/0/1600w/canva-%ED%95%98%EB%8A%98-%EC%95%BC%EC%99%B8-%EC%9E%90%EC%97%B0-%EC%98%81%EA%B0%90-%EC%9D%B8%EC%9A%A9%EB%AC%B8-%EB%8D%B0%EC%8A%A4%ED%81%AC%ED%86%B1-%EB%B0%B0%EA%B2%BD%ED%99%94%EB%A9%B4-rssvAb9JL4I.jpg',
 ]);
 
+// 파일 입력 요소 참조
 const fileInput = ref(null);
 
+// 파일 업로드를 위한 메서드
 const triggerFileUpload = () => {
-	fileInput.value.click();
+	fileInput.value.click(); // 파일 입력 요소 클릭
 };
 
+// 파일 업로드 처리
 const fileUpload = (event) => {
 	const files = event.target.files;
 	if (files.length > 0) {
@@ -31,18 +57,21 @@ const fileUpload = (event) => {
 		const reader = new FileReader();
 
 		reader.onload = (e) => {
-			const imageUrl = e.target.result;
-			backgroundImages.value.push(imageUrl);
+			const imageUrl = e.target.result; // 파일의 URL
+			backgroundImages.value.push(imageUrl); // 배열에 추가
 		};
 
-		reader.readAsDataURL(file);
+		reader.readAsDataURL(file); // 파일을 URL로 변환
 
-		// todo: DB에 저장할 경우 axios를 통한 api 호출 필요
+		// DB에 저장할 경우 axios를 통한 api 호출 필요
 	}
 };
 
+// AI 이미지 생성
 const createAI = () => {
-	// todo: 이미지 생성을 위한 dalle3 연결 코드 필요
+	console.log('AI 생성 클릭');
+
+	// 이미지 생성을 위한 dalle3 연결 코드 필요
 };
 </script>
 
@@ -110,11 +139,11 @@ const createAI = () => {
 		align-items: center;
 
 		.thumbnail {
-			width: auto;
-			height: 150px;
-			margin: 0 5px;
-			cursor: pointer;
-			border: 2px solid transparent;
+			width: auto; /* 썸네일 이미지 크기 */
+			height: 150px; /* 썸네일 이미지 크기 */
+			margin: 0 5px; /* 이미지 간격 */
+			cursor: pointer; /* 클릭 커서 변경 */
+			border: 2px solid transparent; /* 기본 테두리 설정 */
 			transition: border 0.3s; /* 테두리 전환 효과 */
 
 			&:hover {
