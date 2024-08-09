@@ -11,8 +11,6 @@
     "dependencies": {
         "@mediapipe/camera_utils": "^0.3.1675466862",
         "@mediapipe/selfie_segmentation": "^0.1.1675465747",
-        "@tensorflow-models/body-pix": "^2.2.0",
-        "@tensorflow/tfjs": "^3.21.0",
         "@vueuse/core": "^10.11.0",
         "axios": "^1.7.3",
         "html2canvas": "^1.4.1",
