@@ -4,9 +4,11 @@ import { useRoute } from 'vue-router';
 import { OpenVidu } from 'openvidu-browser';
 import axios from 'axios';
 import { useBoothStore } from '@/stores/boothStore';
+import { useUserStore } from '@/stores/userStore';
 
 import { SelfieSegmentation } from '@mediapipe/selfie_segmentation';
 import { Camera } from '@mediapipe/camera_utils';
+import ChatModal from '@/components/chat/ChatModal.vue';
 
 // Booth 스토어 사용
 const boothStore = useBoothStore();
@@ -403,6 +405,15 @@ const handleStreamCreated = async ({ stream }) => {
 	console.log('%c handleStreamCreated 완료', 'background: #222; color: #bada55');
 };
 
+const isChatOpen = ref(false);
+
+const userStore = useUserStore();
+const username = ref(userStore.userNickname);
+
+const toggleChat = () => {
+	isChatOpen.value = !isChatOpen.value;
+};
+
 // 스트림 제거 처리 함수
 const handleStreamDestroyed = ({ stream }) => {
 	console.log('스트림 제거됨:', stream.streamId);
@@ -468,6 +479,19 @@ onUnmounted(() => {
 				></video>
 			</div>
 		</div>
+
+		<button
+			class="chat-icon"
+			@click="toggleChat"
+		>
+			채팅창
+		</button>
+		<ChatModal
+			v-show="isChatOpen"
+			:username="username"
+			:session="session"
+			@close="toggleChat"
+		/>
 	</div>
 </template>
 
@@ -492,5 +516,30 @@ video {
 	height: auto;
 	border: 1px solid #ccc;
 	border-radius: 8px;
+}
+
+.chat-icon {
+	position: fixed;
+	bottom: 20px;
+	right: 20px;
+	background-color: #007bff;
+	color: white;
+	border: none;
+	border-radius: 10px;
+	width: 60px;
+	height: 60px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	font-size: 14px;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+	transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.chat-icon:hover {
+	background-color: #0056b3;
+	transform: scale(1.1);
+	box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
 }
 </style>
