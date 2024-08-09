@@ -1,16 +1,18 @@
 package com.ssafy.picple.domain.board.controller;
 
+import static com.ssafy.picple.config.baseResponse.BaseResponseStatus.*;
+
 import java.util.List;
 
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.ssafy.picple.config.baseResponse.BaseException;
 import com.ssafy.picple.config.baseResponse.BaseResponse;
-import com.ssafy.picple.config.baseResponse.BaseResponseStatus;
 import com.ssafy.picple.domain.board.dto.BoardDto;
 import com.ssafy.picple.domain.board.service.BoardService;
 
@@ -65,6 +67,24 @@ public class BoardController {
 	}
 
 	/**
+	 * 사용자 닉네임 검색 및 선택 정렬 기준으로 조회
+	 *
+	 * @param request
+	 * @param nickname
+	 * @param criteria
+	 * @return
+	 * @throws BaseException
+	 */
+	@GetMapping("/sorted")
+	public BaseResponse<List<BoardDto>> findAllBoardsByUserNickname(HttpServletRequest request,
+			@RequestParam String nickname, @RequestParam(required = false) String criteria,
+			@RequestParam(value = "sortDirection", required = false) boolean sortDirection) throws BaseException {
+		Long userId = boardService.getUserId(request);
+		List<BoardDto> boards = boardService.findAllBoardsByUserNickname(userId, nickname, criteria, sortDirection);
+		return new BaseResponse<>(boards);
+	}
+
+	/**
 	 * 내가 올린 게시물 삭제
 	 *
 	 * @param request
@@ -77,9 +97,9 @@ public class BoardController {
 		Long userId = boardService.getUserId(request);
 		boolean isDeleted = boardService.deleteBoard(boardId, userId);
 		if (isDeleted) {
-			return new BaseResponse<>(BaseResponseStatus.SUCCESS);
+			return new BaseResponse<>(SUCCESS);
 		} else {
-			return new BaseResponse<>(BaseResponseStatus.REQUEST_ERROR);
+			return new BaseResponse<>(REQUEST_ERROR);
 		}
 	}
 

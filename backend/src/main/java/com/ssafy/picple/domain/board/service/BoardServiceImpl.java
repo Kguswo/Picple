@@ -28,13 +28,14 @@ public class BoardServiceImpl implements BoardService {
 	private final BoardLikeRepository boardLikeRepository;
 
 	/**
-	 * Board 전체 조회(생성일, 사진, 좋아요여부, 좋아요수)
+	 * Board 전체 조회(생성일, 사진, 좋아요여부, 좋아요수) - 기본 최신순(내림차순)
 	 *
 	 * @return
 	 */
 	@Override
 	public List<BoardDto> findAllBoards(Long userId) {
-		List<Board> boards = boardRepository.findAllByIsDeletedFalse();
+		Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
+		List<Board> boards = boardRepository.findByIsDeletedFalse(sort);
 		return boards.stream()
 				.map(board -> new BoardDto(
 						board.getId(),
@@ -60,7 +61,7 @@ public class BoardServiceImpl implements BoardService {
 	}
 
 	/**
-	 * 사용자 기준에 따라 정렬
+	 * 사용자 기준에 따라 정렬(전체 게시물)
 	 *
 	 * @param userId
 	 * @param criteria
@@ -83,7 +84,7 @@ public class BoardServiceImpl implements BoardService {
 	}
 
 	/**
-	 * 사용자 닉네임 검색으로 해당 유저(닉네임) 포함된 사진 조회
+	 * 사용자 닉네임 검색으로 해당 유저(닉네임) 포함된 사진 조회(기본정렬)
 	 *
 	 * @param userId
 	 * @param nickname
@@ -101,6 +102,53 @@ public class BoardServiceImpl implements BoardService {
 						board.getHit()
 				))
 				.collect(Collectors.toList());
+	}
+
+	/**
+	 * 자율적으로 사용자 닉네임 검색 및 선택 정렬 기준으로 조회
+	 *
+	 * @param userId
+	 * @param nickname
+	 * @param criteria
+	 * @return
+	 */
+	@Override
+	public List<BoardDto> findAllBoardsByUserNickname(Long userId, String nickname, String criteria,
+			boolean direction) {
+		// 정렬기준의 존재여부에 따라 적용할 정렬기준 선택 - 최신순, 좋아요순, 기본순 + 정렬 방향 false 내림차순, true 오름차순
+		Sort.Direction sortDirection = direction ? Sort.Direction.ASC : Sort.Direction.DESC;
+		Sort sort = (criteria != null && !criteria.isEmpty()) ? Sort.by(sortDirection, criteria) : Sort.unsorted();
+
+		if (nickname == null || nickname.isEmpty() || nickname.equals("")) {
+			List<Board> boards = boardRepository.findByIsDeletedFalse(sort);
+			return boards.stream()
+					.filter(board -> !board.isDeleted())
+					.map(board -> new BoardDto(
+							board.getId(),
+							board.getCreatedAt().toString(),
+							getPhotoUrl(board),
+							isLikedByUser(board, userId),
+							board.getHit()
+					))
+					.collect(Collectors.toList());
+		} else {
+			// 정렬 기준 체크 후 그에 해당하는 정렬 실행
+			List<Board> boards = sort.isUnsorted() ?
+					boardRepository.findAllByUserNickname(nickname) :
+					boardRepository.findAllByUserNickname(nickname, sort);
+
+			return boards.stream()
+					.filter(board -> !board.isDeleted())
+					.map(board -> new BoardDto(
+							board.getId(),
+							board.getCreatedAt().toString(),
+							getPhotoUrl(board),
+							isLikedByUser(board, userId),
+							board.getHit()
+					))
+					.collect(Collectors.toList());
+		}
+
 	}
 
 	/**

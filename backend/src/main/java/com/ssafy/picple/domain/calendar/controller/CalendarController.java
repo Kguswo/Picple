@@ -1,5 +1,8 @@
 package com.ssafy.picple.domain.calendar.controller;
 
+import static com.ssafy.picple.config.baseResponse.BaseResponseStatus.*;
+
+import java.io.FileNotFoundException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -48,8 +51,31 @@ public class CalendarController {
 			Long count = calendarService.getPhotoCounts(userId, date);
 			return new BaseResponse<>(count);
 		} catch (Exception e) {
-			return new BaseResponse<>(BaseResponseStatus.DATABASE_ERROR);
+			return new BaseResponse<>(DATABASE_ERROR);
 		}
+	}
+
+	/**
+	 * 캘린더 월별 사진 개수 조회
+	 *
+	 * @param request
+	 * @param monthlyStartDate
+	 * @param monthlyEndDate
+	 * @return
+	 */
+	@GetMapping("/monthly-counts")
+	public BaseResponse<List<Long>> getMonthlyPhotoCounts(HttpServletRequest request,
+			@RequestParam("monthlyStartDate") String monthlyStartDate,
+			@RequestParam("monthlyEndDate") String monthlyEndDate) {
+		Long userId = (Long)request.getAttribute("userId");
+		// 문자열 파싱 후 -> LocalDate
+		LocalDate startDate = LocalDate.parse(monthlyStartDate, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+		LocalDate endDate = LocalDate.parse(monthlyEndDate, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
+		// 월별 사진 개수 조회
+		List<Long> counts = calendarService.getMonthlyPhotoCounts(userId, startDate, endDate);
+		return new BaseResponse<>(counts);
+
 	}
 
 	/**
@@ -86,7 +112,7 @@ public class CalendarController {
 
 		Long userId = (Long)request.getAttribute("userId");
 		calendarService.updateContent(calendarId, userId, content);
-		return new BaseResponse<>(BaseResponseStatus.SUCCESS);
+		return new BaseResponse<>(SUCCESS);
 
 	}
 
@@ -104,8 +130,45 @@ public class CalendarController {
 
 		Long userId = (Long)request.getAttribute("userId");
 		calendarService.sharePhoto(calendarId, userId);
-		return new BaseResponse<>(BaseResponseStatus.SUCCESS);
+		return new BaseResponse<>(SUCCESS);
 
+	}
+
+	/**
+	 * 캘린더에서 특정 사진 선택하여 로컬에 다운로드
+	 *
+	 * @param request
+	 * @param calendarId
+	 * @return
+	 * @throws BaseException
+	 */
+	@PostMapping("/download/{calendarId}")
+	@Transactional
+	public BaseResponse<BaseResponseStatus> downloadCalendar(HttpServletRequest request,
+			@PathVariable Long calendarId) throws BaseException {
+		Long userId = (Long)request.getAttribute("userId");
+		try {
+			calendarService.downloadPhoto(calendarId, userId);
+		} catch (FileNotFoundException e) {
+			throw new BaseException(FILE_NOT_FOUND_ERROR);
+		}
+		return new BaseResponse<>(SUCCESS);
+	}
+
+	/**
+	 * 캘린더Id에 해당하는 PhotoUrl 조회(사진 다운로드용)
+	 *
+	 * @param request
+	 * @param calendarId
+	 * @return
+	 * @throws BaseException
+	 */
+	@GetMapping("/photo")
+	public BaseResponse<String> getPhotos(HttpServletRequest request,
+			@RequestParam("calendarId") Long calendarId) throws BaseException {
+		Long userId = (Long)request.getAttribute("userId");
+		String photoUrl = calendarService.getPhotoUrlByCalendarId(calendarId, userId);
+		return new BaseResponse<>(photoUrl);
 	}
 
 	/**
@@ -122,7 +185,7 @@ public class CalendarController {
 
 		Long userId = (Long)request.getAttribute("userId");
 		calendarService.deleteCalendar(calendarId, userId);
-		return new BaseResponse<>(BaseResponseStatus.SUCCESS);
+		return new BaseResponse<>(SUCCESS);
 
 	}
 

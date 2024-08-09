@@ -4,8 +4,8 @@ import com.ssafy.picple.config.baseResponse.BaseException;
 import com.ssafy.picple.config.baseResponse.BaseResponseStatus;
 import com.ssafy.picple.domain.user.dto.request.LoginRequest;
 import com.ssafy.picple.domain.user.dto.request.ModifyPasswordRequest;
-import com.ssafy.picple.domain.user.dto.response.ModifyConfirmResponse;
 import com.ssafy.picple.domain.user.dto.response.LoginResponse;
+import com.ssafy.picple.domain.user.dto.response.ModifyConfirmResponse;
 import com.ssafy.picple.domain.user.dto.response.UserInfoResponse;
 import com.ssafy.picple.domain.user.entity.User;
 
@@ -21,4 +21,6 @@ public interface UserService {
     BaseResponseStatus resetPassword(String email, String password) throws BaseException;
     // 회원 탈퇴
     String deleteUser(Long userId) throws BaseException;
+    void logout(Long userId) throws BaseException;
+    String refreshToken(String refreshToken) throws BaseException;
 }

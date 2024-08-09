@@ -19,6 +19,7 @@ public enum BaseResponseStatus {
 	INVALID_USER_JWT(false, 2003, "권한이 없는 유저의 접근입니다."),
 	JWT_GET_USER_ERROR(false, 2004, "User 권한 인증 중 에러가 발생하였습니다."),
 	JWT_KEY_GENERATE_ERROR(false, 2005, "JWT 토큰 발행 중 에러가 발생하였습니다."),
+	INVALID_REFRESH_TOKEN(false, 2006, "리프레시 토큰이 유효하지 않습니다."),
 
 	/**
 	 * 3000 : Response 오류
@@ -57,6 +58,7 @@ public enum BaseResponseStatus {
 	FILE_UPLOAD_ERROR(false, 3120, "파일 업로드 중 오류가 발생했습니다."),
 	FILE_DOWNLOAD_ERROR(false, 3121, "파일 다운로드 중 오류가 발생했습니다."),
 	FILE_DELETE_ERROR(false, 3122, "파일 삭제 중 오류가 발생했습니다."),
+	FILE_NOT_FOUND_ERROR(false, 3123, "파일을 찾을 수 없습니다."),
 
 	// calendar
 	GET_CALENDAR_EMPTY(false, 3130, "캘린더에 일치하는 항목이 없습니다."),
@@ -67,12 +69,24 @@ public enum BaseResponseStatus {
 	GET_BOARD_EMPTY(false, 3150, "유효하지 않은 boardId값입니다"),
 
 	// 3200 ~~ 3299 : 염규영
+	// background
 	INVALID_BACKGROUND_ID(false, 3202, "올바르지 않은 배경화면 ID입니다."),
 	DELETE_BACKGROUND_ERROR(false, 3203, "배경 사진 삭제에 실패하였습니다."),
-	AI_BACKGROUND_GENERATION_ERROR(false, 3204, "AI 배경 사진 생성에 실패하였습니다."),
-	LOCAL_BACKGROUND_UPLOAD_ERROR(false, 3205, "로컬 배경 사진 추가에 실패하였습니다."),
-	NOT_FOUND_PHOTO(false, 3206, "사진을 찾을 수 없습니다."),
-	NOT_FOUND_PHOTO_USER(false, 3207, "사진에서 해당 유저를 찾을 수 없습니다."),
+	BACKGROUND_UPLOAD_ERROR(false, 3204, "배경 사진 생성에 실패하였습니다."),
+	URL_EMPTY_ERROR(false, 3225, "URL이 비어있습니다."),
+	GENERATING_FILE_NAME_ERROR(false, 3227, "파일명을 생성하는데 실패하였습니다."),
+
+	// background - ai
+	JSON_PARSING_ERROR(false, 3206, "JSON을 처리할 수 없습니다."),
+	AI_CLIENT_ERROR(false, 3207, "AI 클라이언트 오류가 발생하였습니다."),
+	AI_SERVER_ERROR(false, 3208, "AI 서버 오류가 발생하였습니다."),
+	BLOCKING_ERROR(false, 3228, "블로킹에 실패하였습니다."),
+
+	// background - local
+	INVALID_IMAGE_FORMAT(false, 3220, "지원하지 않는 확장자입니다."),
+	FILE_SIZE_TOO_BIG(false, 3222, "사진 크기가 너무 큽니다."),
+	FILE_SIZE_TOO_SMALL(false, 3223, "사진 크기가 너무 작습니다."),
+	FILE_CONVERSION_ERROR(false, 3226, "파일을 변환하는데 실패하였습니다."),
 
 	/**
 	 * 4000 : Database, Server

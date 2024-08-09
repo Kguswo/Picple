@@ -25,10 +25,10 @@ public class Photo {
 	@Column(nullable = false, length = 2083)
 	private String photoUrl;
 
-	@Column(nullable = false)
+	@Column(nullable = false, columnDefinition = "TINYINT(1) DEFAULT 0")
 	private boolean isShared = false;
 
-	@Column(nullable = false)
+	@Column(nullable = false, columnDefinition = "TINYINT(1) DEFAULT 0")
 	private boolean isDeleted;
 
 	@Builder

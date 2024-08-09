@@ -13,6 +13,11 @@ import com.ssafy.picple.config.baseResponse.BaseException;
 import com.ssafy.picple.domain.background.dto.response.BackgroundResponseDto;
 import com.ssafy.picple.domain.background.entity.Background;
 import com.ssafy.picple.domain.background.repository.BackgroundRepository;
+import com.ssafy.picple.domain.backgrounduser.entity.BackgroundUser;
+import com.ssafy.picple.domain.backgrounduser.repository.BackgroundUserRepository;
+import com.ssafy.picple.domain.user.entity.User;
+import com.ssafy.picple.domain.user.repository.UserRepository;
+import com.ssafy.picple.util.S3Service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -21,18 +26,27 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class BackgroundServiceImpl implements BackgroundService {
 
+	private final OpenAIService openAIService;
+	private final S3Service s3Service;
 	private final BackgroundRepository backgroundRepository;
+	private final UserRepository userRepository;
+	private final BackgroundUserRepository backgroundUserRepository;
+	private final FileUploadService fileUploadService;
 
+	// 기본 배경 사진을 DB에서 조회하여 반환
 	@Override
 	public List<BackgroundResponseDto> getDefaultBackgrounds() throws BaseException {
 		return getBackgroundsBy(() -> backgroundRepository.findByIsDefault(true));
 	}
 
+	// 특정 사용자가 추가한 배경 사진을 DB에서 조회하여 반환
 	@Override
 	public List<BackgroundResponseDto> getUserBackgrounds(Long userId) throws BaseException {
 		return getBackgroundsBy(() -> backgroundRepository.findByUserId(userId));
 	}
 
+	// 배경 사진 리스트를 조회하고, BackgroundResponseDto로 변환
+	// getDefaultBackgrounds와 getUserBackgrounds에서 쓰임
 	private List<BackgroundResponseDto> getBackgroundsBy(Supplier<List<Background>> backgroundSupplier) throws
 			BaseException {
 		try {
@@ -45,32 +59,57 @@ public class BackgroundServiceImpl implements BackgroundService {
 		}
 	}
 
-	// 수정 필요
+	// AI를 통해 배경 사진을 생성하여 S3와 DB에 저장
 	@Override
 	@Transactional
-	public void insertAIBackground(Long userId, String prompt) throws BaseException {
+	public void createAIBackground(Long userId, String prompt) throws BaseException {
 		try {
-			// TODO: AI API를 사용하여 prompt에 적힌 이미지 생성
-			Background background = new Background("temp");
-			backgroundRepository.save(background);
+			// 프롬프트를 통해 AI API를 사용하여 사진 생성
+			String[] result = openAIService.createAIBackground(prompt);
+			s3Service.uploadBase64ImageToS3(result[0], result[1]);
+			saveBackgroundToDB(userId, result[0], result[1]);
+
 		} catch (Exception e) {
-			throw new BaseException(AI_BACKGROUND_GENERATION_ERROR);
+			// 예외 처리
+			throw new BaseException(BACKGROUND_UPLOAD_ERROR);
 		}
 	}
 
-	// 수정 필요
+	// 로컬에서 업로드된 파일을 S3와 DB에 저장
 	@Override
 	@Transactional
-	public void insertLocalBackground(Long userId, MultipartFile file) throws BaseException {
+	public void createLocalBackground(Long userId, MultipartFile file) throws BaseException {
 		try {
-			// TODO: 파일 업로드 로직 구현
-			Background background = new Background("temp");
-			backgroundRepository.save(background);
+			String fileName = fileUploadService.generateFileName("local", ".png");
+			String backgroundUrl = s3Service.uploadMultipartFileImageToS3(file, fileName);
+			saveBackgroundToDB(userId, backgroundUrl, fileName);
+
 		} catch (Exception e) {
-			throw new BaseException(LOCAL_BACKGROUND_UPLOAD_ERROR);
+			throw new BaseException(BACKGROUND_UPLOAD_ERROR);
 		}
 	}
 
+	// 배경 사진의 정보, 사용자와 배경 사진의 관계를 DB에 저장
+	private void saveBackgroundToDB(Long userId, String backgroundUrl, String fileName) throws BaseException {
+		// 데이터베이스에 저장
+		Background background = Background.builder()
+				.backgroundTitle(fileName)
+				.backgroundUrl(backgroundUrl)
+				.build();
+		backgroundRepository.save(background);
+
+		// Background와 User의 관계 저장
+		User user = userRepository.findById(userId)
+				.orElseThrow(() -> new BaseException(NOT_FOUND_USER));
+
+		BackgroundUser backgroundUser = BackgroundUser.builder()
+				.background(background)
+				.user(user)
+				.build();
+		backgroundUserRepository.save(backgroundUser);
+	}
+
+	// 배경 사진을 DB에서 삭제
 	@Override
 	@Transactional
 	public void deleteBackground(Long backgroundId, Long userId) throws BaseException {

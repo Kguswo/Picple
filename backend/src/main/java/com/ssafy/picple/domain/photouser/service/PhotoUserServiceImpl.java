@@ -38,7 +38,7 @@ public class PhotoUserServiceImpl implements PhotoUserService {
 	public PhotoUserResponseDto createPhotoUser(PhotoUserRequestDto requestDto, Long userId) throws BaseException {
 		// Photo와 User 조회, 없을 경우 예외 발생
 		Photo photo = photoRepository.findById(requestDto.getPhotoId())
-				.orElseThrow(() -> new BaseException(NOT_FOUND_PHOTO));
+				.orElseThrow(() -> new BaseException(GET_PHOTO_EMPTY));
 		User user = userRepository.findById(userId)
 				.orElseThrow(() -> new BaseException(NOT_FOUND_USER));
 

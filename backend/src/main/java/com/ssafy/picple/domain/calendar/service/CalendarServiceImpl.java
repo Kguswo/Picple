@@ -2,7 +2,15 @@ package com.ssafy.picple.domain.calendar.service;
 
 import static com.ssafy.picple.config.baseResponse.BaseResponseStatus.*;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -39,6 +47,24 @@ public class CalendarServiceImpl implements CalendarService {
 	@Override
 	public Long getPhotoCounts(Long userId, LocalDate createdAt) {
 		return calendarRepository.countByUserIdAndDate(userId, createdAt);
+	}
+
+	// 캘린더 달력(년월)별 사진 개수 조회
+	@Override
+	public List<Long> getMonthlyPhotoCounts(Long userId, LocalDate monthlyStartDate, LocalDate monthlyEndDate) {
+
+		// 월별 날짜 리스트 생성
+		// datesUntil 메서드로 monthlyStartDate부터 monthlyEndDate-1 까지의 Stream 생성 -> 이후 리스트로
+		List<LocalDate> monthlyDates = monthlyStartDate.datesUntil(monthlyEndDate.plusDays(1))
+				.collect(Collectors.toList());
+
+		// 사진 개수 저장할 리스트
+		List<Long> monthlyPhotoCounts = new ArrayList<>();
+		for (LocalDate date : monthlyDates) {
+			Long count = calendarRepository.countByUserIdAndDate(userId, date);
+			monthlyPhotoCounts.add(count);
+		}
+		return monthlyPhotoCounts;
 	}
 
 	// 캘린더 일별 정보 조회
@@ -127,6 +153,49 @@ public class CalendarServiceImpl implements CalendarService {
 		}
 	}
 
+	// 캘린더에서 특정 사진 선택하여 로컬에 다운로드
+	@Override
+	public void downloadPhoto(Long calendarId, Long userId) throws BaseException {
+		Calendar calendar = calendarRepository.findById(calendarId)
+				.orElseThrow(() -> new BaseException(GET_CALENDAR_EMPTY));
+
+		User user = calendar.getUser();
+		if (userId.equals(user.getId())) {
+			// 다운로드 받을 사진 경로와 저장될 default 이름 설정(중복고려)
+			String photoUrl = calendar.getPhoto().getPhotoUrl();
+			String fileName = "picple-download" + "_" + System.currentTimeMillis() + ".jpg";
+
+			/**
+			 * 여러 운영체제 호환 고려한 다운로드 경로 -> home디렉토리 가져오고 그 뒤에 폴더 추가
+			 * openStream으로 URL에 대한 입력 스트림을 열고 URL이 가리키는 자원 데이터를 읽기
+			 * copy메서드로 경로에서 파일 읽어와 특정경로에 복사
+			 */
+			String downloadDirPath =
+					System.getProperty("user.home") + File.separator + "Downloads" + File.separator + fileName;
+			Path photoPath = Paths.get(downloadDirPath);
+
+			try (InputStream in = new URL(photoUrl).openStream()) {
+				Files.copy(in, photoPath);
+			} catch (IOException e) {
+				e.printStackTrace(); // 디버깅을 위한 로그
+
+				throw new BaseException(FILE_DOWNLOAD_ERROR);
+			}
+
+		} else {
+			throw new BaseException(NOT_EQUAL_USER_ID);
+		}
+
+	}
+
+	// 캘린더Id에 해당하는 PhotoUrl 조회(사진 다운로드용)
+	@Override
+	public String getPhotoUrlByCalendarId(Long calendarId, Long userId) throws BaseException {
+		Calendar calendar = calendarRepository.findById(calendarId)
+				.orElseThrow(() -> new BaseException(GET_CALENDAR_EMPTY));
+		return calendar.getPhoto().getPhotoUrl();
+	}
+
 	// 캘린더에서 사진 삭제
 	// 삭제시 board에서도 삭제됨.
 	@Override
@@ -140,6 +209,10 @@ public class CalendarServiceImpl implements CalendarService {
 		Board board = boardRepository.findByUserIdAndPhotoIdAndIsDeletedFalse(calendar.getUser().getId(),
 				calendar.getPhoto().getId());
 
-		boardService.deleteBoard(board.getId(), board.getUser().getId());
+		// board에도 존재하면 여기서도 삭제 진행
+		if (board != null) {
+			boardService.deleteBoard(board.getId(), board.getUser().getId());
+		}
+
 	}
 }
