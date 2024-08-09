@@ -1,7 +1,8 @@
 <script setup>
-import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue';
+import { ref, onMounted, onUnmounted, watch } from 'vue';
 import axios from 'axios';
 import { OpenVidu } from 'openvidu-browser';
+import ChatModal from '@/components/chat/ChatModal.vue';
 
 const props = defineProps({
 	username: {
@@ -32,55 +33,12 @@ const myVideo = ref(null);
 // 고정된 세션 ID 설정
 const FIXED_SESSION_ID = 'myFixedSessionId';
 
-// 채팅 관련 상태 추가
+// 채팅 모달 상태
 const isChatOpen = ref(false);
-const chatMessages = ref([]);
-const newMessage = ref('');
 
 // 채팅창 열기/닫기 메서드
 const toggleChat = () => {
 	isChatOpen.value = !isChatOpen.value;
-};
-
-// 메시지 전송 메서드
-const sendMessage = () => {
-	if (newMessage.value.trim() && session.value) {
-		const messageData = {
-			message: newMessage.value,
-			username: props.username,
-			timestamp: new Date().getTime(),
-		};
-		session.value.signal({
-			data: JSON.stringify(messageData),
-			type: 'chat',
-		});
-		newMessage.value = '';
-	}
-};
-
-// 채팅 메시지 수신 이벤트 핸들러
-const setupChatHandler = () => {
-	if (session.value) {
-		session.value.on('signal:chat', (event) => {
-			const messageData = JSON.parse(event.data);
-			chatMessages.value.push({
-				message: messageData.message,
-				username: messageData.username || '익명', // username 필드 사용
-				timestamp: messageData.timestamp,
-			});
-			nextTick(() => {
-				scrollToBottom();
-			});
-		});
-	}
-};
-
-// 자동 스크롤
-const scrollToBottom = () => {
-	const chatContent = document.querySelector('.chat-content');
-	if (chatContent) {
-		chatContent.scrollTop = chatContent.scrollHeight;
-	}
 };
 
 // 세션 참가 함수
@@ -108,18 +66,11 @@ const joinSession = async () => {
 			}
 		});
 
-		// 채팅 메시지 수신 이벤트 핸들러 추가
-		session.value.on('signal:chat', (event) => {
-			const messageData = JSON.parse(event.data);
-			// chatMessages.value.push(messageData);
-		});
-
 		// 세션 연결을 위한 토큰 얻기
 		const token = await getToken();
 
 		// 세션에 연결
 		await session.value.connect(token, { clientData: props.username });
-		setupChatHandler();
 
 		// 사용 가능한 비디오 장치 가져오기
 		const devices = await OV.value.getDevices();
@@ -250,30 +201,12 @@ onUnmounted(() => {
 			채팅창
 		</button>
 
-		<!-- 채팅 모달 -->
-		<div
+		<ChatModal
 			v-if="isChatOpen"
-			class="chat-modal"
-		>
-			<div class="chat-content">
-				<div
-					v-for="msg in chatMessages"
-					:key="msg.timestamp"
-					class="chat-message"
-				>
-					<strong>{{ msg.username }}</strong
-					>: {{ msg.message }}
-				</div>
-			</div>
-			<div class="chat-input">
-				<input
-					v-model="newMessage"
-					@keyup.enter="sendMessage"
-					placeholder="메시지 입력..."
-				/>
-				<button @click="sendMessage">전송</button>
-			</div>
-		</div>
+			:username="username"
+			:session="session"
+			@close="toggleChat"
+		/>
 	</div>
 </template>
 
@@ -295,46 +228,6 @@ video {
 	height: auto;
 	border: 1px solid #ccc;
 	border-radius: 8px;
-}
-
-.chat-modal {
-	position: fixed;
-	bottom: 90px;
-	right: 20px;
-	width: 300px;
-	height: 400px;
-	background-color: white;
-	border: 1px solid #ccc;
-	border-radius: 8px;
-	display: flex;
-	flex-direction: column;
-}
-
-.chat-content {
-	flex-grow: 1;
-	overflow: hidden;
-	overflow-y: auto;
-	padding: 10px;
-}
-
-.chat-message {
-	margin-bottom: 5px;
-}
-
-.chat-input {
-	display: flex;
-	padding: 10px;
-}
-
-.chat-input input {
-	flex-grow: 1;
-	margin-right: 6px;
-	height: 32px;
-	padding-left: 6px;
-}
-
-.chat-input button {
-	width: 48px;
 }
 
 .chat-icon {
