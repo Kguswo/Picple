@@ -6,7 +6,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, watch } from 'vue';
+import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue';
 import axios from 'axios';
 import { OpenVidu } from 'openvidu-browser';
 
@@ -62,7 +62,7 @@ const sendMessage = () => {
 	}
 };
 
-// 채팅 메시지 수신 이벤트 핸들러 수정
+// 채팅 메시지 수신 이벤트 핸들러
 const setupChatHandler = () => {
 	if (session.value) {
 		session.value.on('signal:chat', (event) => {
@@ -72,7 +72,18 @@ const setupChatHandler = () => {
 				username: messageData.username || '익명', // username 필드 사용
 				timestamp: messageData.timestamp,
 			});
+			nextTick(() => {
+				scrollToBottom();
+			});
 		});
+	}
+};
+
+// 자동 스크롤
+const scrollToBottom = () => {
+	const chatContent = document.querySelector('.chat-content');
+	if (chatContent) {
+		chatContent.scrollTop = chatContent.scrollHeight;
 	}
 };
 
@@ -305,6 +316,7 @@ video {
 
 .chat-content {
 	flex-grow: 1;
+	overflow: hidden;
 	overflow-y: auto;
 	padding: 10px;
 }
