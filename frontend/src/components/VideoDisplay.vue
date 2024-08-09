@@ -1,181 +1,171 @@
 <script setup>
-// 필요한 컴포넌트와 유틸리티 import
-import WhiteBoardComp from '@/components/common/WhiteBoardComp.vue';
-import BoothBack from '@/components/booth/BoothBackComp.vue';
-import { VideoBackgroundRemoval } from '@/assets/js/showView/mediapipeUtils.js';
-
-// Vue 3의 Composition API 기능들 import
-import { ref, reactive, onMounted, onUnmounted, nextTick, toRefs, markRaw, computed } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import { useRoute } from 'vue-router';
-
-// OpenVidu 라이브러리와 axios import
 import { OpenVidu } from 'openvidu-browser';
 import axios from 'axios';
+import { useBoothStore } from '@/stores/boothStore';
 
-// OpenVidu 객체와 세션을 저장할 reactive 객체 생성
-const state = reactive({
-    OV: null, // OpenVidu 인스턴스
-    session: null, // 현재 세션
-    publisher: null, // 로컬 스트림 발행자
-    subscribers: [], // 원격 참가자들의 구독 목록
+import { SelfieSegmentation } from '@mediapipe/selfie_segmentation';
+import { Camera } from '@mediapipe/camera_utils';
+
+// Booth 스토어 사용
+const boothStore = useBoothStore();
+
+// props 정의
+const props = defineProps({
+    sessionId: String,
 });
 
+// OpenVidu 서버 설정
+const OPENVIDU_SERVER_URL = 'https://localhost:4443';
+const OPENVIDU_SERVER_SECRET = 'MY_SECRET';
+
+// OpenVidu 객체와 세션을 저장할 ref 생성
+const OV = ref(null);
+const session = ref(null);
+
+// 로컬 스트림(publisher)과 원격 참가자 스트림(subscribers)을 저장할 ref 생성
+const publisher = ref(null);
+const subscribers = ref([]);
+
 // 로컬 비디오 요소에 대한 ref 생성
-const myVideo = ref(null); // 비디오 요소
-const myCanvas = ref(null); // 캔버스 요소 (배경 제거 결과 표시용)
-const videoStarted = ref(false); // 비디오 스트림 시작 여부
+const myVideo = ref(null);
+
+// 구독자 비디오 엘리먼트를 저장할 ref 배열 생성
+const subscriberVideos = ref([]);
 
 // 라우터에서 세션 ID를 가져옴
 const route = useRoute();
 const sessionId = route.params.sessionId;
 
-// 성능 설정을 위한 reactive 객체
-const performanceSettings = reactive({
-    frameRate: 60, // 프레임 레이트 (초당 프레임 수)
-    resolution: '320x240', // 해상도
-    videoQuality: 'high', // 비디오 품질
-});
+// Selfie Segmentation 객체 생성
+let selfieSegmentation;
 
-// 성능 설정에 따른 video constraints 계산
-const videoConstraints = computed(() => {
-    const [width, height] = performanceSettings.resolution.split('x').map(Number);
-    return {
-        width: { ideal: width },
-        height: { ideal: height },
-        frameRate: { ideal: performanceSettings.frameRate },
-    };
-});
-
-// 성능 설정 변경 함수
-const updatePerformanceSettings = (newSettings) => {
-    Object.assign(performanceSettings, newSettings);
-    if (state.publisher) {
-        // 비디오 발행을 잠시 중단했다가 다시 시작하여 새 설정 적용
-        state.publisher.publishVideo(false);
-        nextTick(() => {
-            state.publisher.publishVideo(true);
-        });
-    }
-};
-
-// 배경 제거 초기화 함수
-const initializeBackgroundRemoval = async (videoElement, canvasElement) => {
-    if (!videoElement || !canvasElement) {
-        console.error('비디오 또는 캔버스 요소를 찾을 수 없습니다');
-        return;
-    }
-
-    // 비디오 스트림이 시작될 때까지 대기
-    await new Promise((resolve) => {
-        const checkVideo = () => {
-            if (videoElement.readyState >= 2 && videoElement.videoWidth > 0 && videoElement.videoHeight > 0) {
-                // 캔버스 크기를 비디오 크기에 맞춤
-                canvasElement.width = videoElement.videoWidth;
-                canvasElement.height = videoElement.videoHeight;
-                resolve();
-            } else {
-                requestAnimationFrame(checkVideo);
-            }
-        };
-        checkVideo();
-    });
-
+// 세션 ID로 토큰 얻기
+const getToken = async (sessionId) => {
     try {
-        const newBackgroundRemoval = new VideoBackgroundRemoval();
-        await newBackgroundRemoval.initialize();
-        newBackgroundRemoval.startProcessing(videoElement, canvasElement);
-        videoStarted.value = true;
-        return newBackgroundRemoval;
+        const response = await axios.post(
+            `${OPENVIDU_SERVER_URL}/openvidu/api/sessions/${sessionId}/connection`,
+            {},
+            {
+                headers: {
+                    Authorization: 'Basic ' + btoa('OPENVIDUAPP:' + OPENVIDU_SERVER_SECRET),
+                    'Content-Type': 'application/json',
+                },
+            },
+        );
+        console.log('토큰 획득:', response.data.token);
+        return response.data.token;
     } catch (error) {
-        console.error('MediaPipe 초기화 중 오류 발생:', error);
+        console.error('토큰 획득 중 오류 발생:', error);
+        if (error.response && error.response.status === 404) {
+            console.log('세션을 찾을 수 없음');
+        }
+        throw error;
     }
 };
 
 // 세션 참가 함수
-const joinSession = async () => {
+const joinExistingSession = async () => {
     try {
-        console.log('세션 참가 중...');
+        // route.params나 props에서 sessionId를 가져옵니다
+        const sessionId = props.sessionId || route.params.sessionId;
+        console.log('받은 세션 ID:', sessionId);
 
-        // OpenVidu 객체 생성
-        state.OV = new OpenVidu();
-        console.log('OpenVidu 객체 생성됨');
+        // store에서 세션 정보를 가져옵니다
+        const sessionInfo = boothStore.getSessionInfo();
+        console.log('스토어에서 가져온 세션 정보:', sessionInfo);
 
-        // 새 세션 초기화
-        state.session = state.OV.initSession();
-        console.log('세션 초기화됨');
+        if (!sessionInfo || !sessionInfo.sessionId || !sessionInfo.token) {
+            throw new Error('세션 정보가 없습니다.');
+        }
 
-        // 새 참가자가 들어왔을 때의 이벤트 핸들러
-        state.session.on('streamCreated', async ({ stream }) => {
-            console.log('새 스트림 생성됨:', stream.streamId);
-            const subscriber = state.session.subscribe(stream);
-            state.subscribers.push(subscriber);
+        const { token } = sessionInfo;
 
-            // 새 참가자의 비디오에 배경 제거 적용
-            nextTick(async () => {
-                const video = document.getElementById(`video-${stream.streamId}`);
-                const canvas = document.getElementById(`canvas-${stream.streamId}`);
-                if (video && canvas) {
-                    console.log('새 참가자에게 배경 제거 적용 중');
-                    await initializeBackgroundRemoval(video, canvas);
-                } else {
-                    console.error('새 참가자의 비디오 또는 캔버스 요소를 찾을 수 없습니다');
-                }
-            });
-        });
+        console.log('OpenVidu 객체 생성 중');
+        OV.value = new OpenVidu();
 
-        // 참가자가 나갔을 때의 이벤트 핸들러
-        state.session.on('streamDestroyed', ({ stream }) => {
-            console.log('스트림 제거됨:', stream.streamId);
-            const index = state.subscribers.findIndex((sub) => sub.stream.streamId === stream.streamId);
-            if (index >= 0) {
-                state.subscribers.splice(index, 1);
-            }
-        });
+        console.log('세션 초기화 중');
+        session.value = OV.value.initSession();
 
-        // 세션 연결을 위한 토큰 얻기
-        const token = await getToken();
-        console.log('토큰 획득됨');
+        // 이벤트 핸들러 설정
+        session.value.on('streamCreated', handleStreamCreated);
+        session.value.on('streamDestroyed', handleStreamDestroyed);
+        session.value.on('connectionStateChanged', handleConnectionStateChanged);
 
-        // 세션에 연결
-        await state.session.connect(token);
-        console.log('세션에 연결됨');
+        console.log('세션에 연결 중');
+        try {
+            await session.value.connect(token);
+            console.log('세션에 연결 성공');
+        } catch (connectionError) {
+            console.error('세션 연결 중 오류 발생:', connectionError);
+            throw connectionError;
+        }
 
-        // 사용 가능한 비디오 장치 가져오기
-        const devices = await state.OV.getDevices();
-        const videoDevices = devices.filter((device) => device.kind === 'videoinput');
-        console.log('사용 가능한 비디오 장치:', videoDevices);
+        console.log('비디오 장치 가져오기 중');
+        let videoDevices;
+        try {
+            const devices = await OV.value.getDevices();
+            videoDevices = devices.filter((device) => device.kind === 'videoinput');
+            console.log('비디오 장치:', videoDevices);
+        } catch (deviceError) {
+            console.error('비디오 장치 가져오기 중 오류 발생:', deviceError);
+            throw deviceError;
+        }
 
-        // Publisher 옵션 설정
+        // 퍼블리셔 옵션 설정
         const publisherOptions = {
             audioSource: undefined, // 기본 오디오 소스 사용
-            videoSource: videoDevices.length > 0 ? videoDevices[0].deviceId : undefined, // 첫 번째 비디오 장치 사용
-            publishAudio: true, // 오디오 발행
-            publishVideo: true, // 비디오 발행
-            videoConstraints: videoConstraints.value, // 해상도와 프레임 레이트 설정
-            insertMode: 'APPEND', // 삽입 모드
-            mirror: false, // 미러링 비활성화
+            videoSource: undefined, // 기본 비디오 소스 사용
+            publishAudio: true,
+            publishVideo: true,
+            resolution: '640x480', // 낮은 해상도로 시작
+            frameRate: 60,
+            insertMode: 'APPEND',
+            mirror: true,
         };
 
-        // 로컬 웹캠 스트림 생성
-        state.publisher = await state.OV.initPublisherAsync(undefined, publisherOptions);
-        console.log('로컬 웹캠 스트림 생성됨');
-
-        // 로컬 스트림을 세션에 게시
-        await state.session.publish(state.publisher);
-        console.log('로컬 스트림이 세션에 게시됨');
-
-        // 퍼블리셔 비디오 스트림 설정 및 배경 제거 적용
-        if (myVideo.value && myCanvas.value && state.publisher.stream) {
-            console.log('로컬 비디오 스트림 설정 및 배경 제거 적용 중');
-            myVideo.value.srcObject = state.publisher.stream.getMediaStream();
-
-            myVideo.value.onloadedmetadata = async () => {
-                console.log('로컬 비디오 메타데이터 로드 완료');
-                await initializeBackgroundRemoval(myVideo.value, myCanvas.value);
-            };
-        } else {
-            console.error('로컬 비디오 스트림 설정 또는 배경 제거 적용 실패');
+        console.log('로컬 웹캠 스트림 생성 중');
+        try {
+            publisher.value = await OV.value.initPublisherAsync(undefined, publisherOptions);
+            console.log('로컬 웹캠 스트림 생성 성공');
+        } catch (error) {
+            console.error('로컬 웹캠 스트림 생성 중 오류 발생:', error);
+            // 비디오 없이 오디오만으로 시도
+            publisherOptions.publishVideo = false;
+            try {
+                publisher.value = await OV.value.initPublisherAsync(undefined, publisherOptions);
+                console.log('오디오 전용 스트림 생성 성공');
+            } catch (audioError) {
+                console.error('오디오 전용 스트림 생성 중 오류 발생:', audioError);
+                // 여기서 사용자에게 장치 접근 권한을 확인하라는 메시지를 표시할 수 있습니다.
+            }
         }
+
+        console.log('로컬 스트림 세션에 게시 중');
+        try {
+            await session.value.publish(publisher.value);
+            console.log('로컬 스트림 세션에 게시 성공');
+        } catch (publishError) {
+            console.error('로컬 스트림 게시 중 오류 발생:', publishError);
+            throw publishError;
+        }
+
+        console.log('로컬 비디오 스트림 설정 중');
+        if (myVideo.value && publisher.value.stream && publisher.value.stream.getMediaStream()) {
+            myVideo.value.srcObject = publisher.value.stream.getMediaStream();
+            console.log('로컬 비디오 스트림 설정 성공');
+        } else {
+            console.error('로컬 비디오 스트림 설정 실패:', {
+                myVideo: myVideo.value,
+                publisherStream: publisher.value.stream,
+                mediaStream: publisher.value.stream ? publisher.value.stream.getMediaStream() : null,
+            });
+        }
+
+        console.log('Selfie Segmentation 적용 중');
+        applySegmentation(publisher);
+        console.log('Selfie Segmentation 적용 성공');
     } catch (error) {
         console.error('세션 참가 중 오류 발생:', error);
         if (error.name === 'DEVICE_ACCESS_DENIED') {
@@ -186,144 +176,239 @@ const joinSession = async () => {
     }
 };
 
-// 고정된 세션 ID를 사용하여 토큰 얻기
-const getToken = async () => {
-    try {
-        // 먼저 고정된 세션 ID로 토큰을 얻으려고 시도
-        const response = await axios.post(
-            `https://localhost:4443/openvidu/api/sessions/${sessionId}/connection`,
-            {},
-            {
-                headers: {
-                    Authorization: 'Basic ' + btoa('OPENVIDUAPP:MY_SECRET'),
-                    'Content-Type': 'application/json',
-                },
-            },
-        );
-        return response.data.token;
-    } catch (error) {
-        if (error.response && error.response.status === 404) {
-            // 세션이 없으면 새로 생성
-            await createSession(sessionId);
-            // 세션 생성 후 다시 토큰 얻기 시도
-            return getToken();
-        }
-        throw error;
-    }
-};
+// Selfie Segmentation 적용 함수
+const applySegmentation = (streamRef) => {
+    console.log('applySegmentation 호출됨');
+    console.log('streamRef:', streamRef);
 
-// 고정된 세션 ID로 새 세션 생성
-const createSession = async (sessionId) => {
-    await axios.post(
-        'https://localhost:4443/openvidu/api/sessions',
-        { customSessionId: sessionId },
-        {
-            headers: {
-                Authorization: 'Basic ' + btoa('OPENVIDUAPP:MY_SECRET'),
-                'Content-Type': 'application/json',
-            },
+    const actualStreamRef = streamRef.value || streamRef;
+
+    if (!actualStreamRef || !actualStreamRef.stream) {
+        console.error('actualStreamRef 또는 actualStreamRef.stream이 정의되지 않았습니다.', actualStreamRef);
+        return;
+    }
+
+    if (typeof actualStreamRef.stream.getMediaStream !== 'function') {
+        console.error('actualStreamRef.stream.getMediaStream 함수가 정의되지 않았습니다.', actualStreamRef.stream);
+        return;
+    }
+
+    const mediaStream = actualStreamRef.stream.getMediaStream();
+    console.log('mediaStream:', mediaStream);
+
+    if (!mediaStream) {
+        console.error('MediaStream이 정의되지 않았습니다.', actualStreamRef);
+        return;
+    }
+
+    console.log('Selfie Segmentation 설정 중');
+    const videoElement = document.createElement('video');
+    console.log('videoElement 생성됨:', videoElement);
+
+    videoElement.srcObject = mediaStream;
+    console.log('videoElement.srcObject 설정됨:', videoElement.srcObject);
+
+    selfieSegmentation = new SelfieSegmentation({
+        locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file}`,
+    });
+
+    selfieSegmentation.setOptions({
+        modelSelection: 1, // 0: 전체 인체, 1: 인체 전면
+    });
+
+    console.log('Selfie Segmentation 옵션 설정됨');
+
+    // Selfie Segmentation 결과 처리 함수
+    const onResults = (results) => {
+        const canvasElement = document.createElement('canvas');
+        const canvasCtx = canvasElement.getContext('2d');
+
+        canvasElement.width = results.image.width;
+        canvasElement.height = results.image.height;
+
+        canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+        canvasCtx.drawImage(results.segmentationMask, 0, 0, canvasElement.width, canvasElement.height);
+
+        canvasCtx.globalCompositeOperation = 'source-in';
+        canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+
+        const videoStream = canvasElement.captureStream(30);
+        const videoTrack = videoStream.getVideoTracks()[0];
+        const originalStream = actualStreamRef.stream.getMediaStream();
+
+        if (originalStream.getVideoTracks().length > 0) {
+            originalStream.removeTrack(originalStream.getVideoTracks()[0]);
+        }
+
+        originalStream.addTrack(videoTrack);
+    };
+
+    selfieSegmentation.onResults(onResults);
+    console.log('Selfie Segmentation onResults 설정됨');
+
+    // 카메라 설정
+    const camera = new Camera(videoElement, {
+        onFrame: async () => {
+            await selfieSegmentation.send({ image: videoElement });
         },
-    );
+        width: 640,
+        height: 480,
+    });
+
+    console.log('카메라 설정됨');
+
+    camera.start();
+    console.log('카메라 시작됨');
 };
 
-// 성능 모니터링 함수 (옵션)
-const monitorPerformance = () => {
-    if (state.publisher && state.publisher.stream && state.publisher.stream.getRTCPeerConnection) {
-        const pc = state.publisher.stream.getRTCPeerConnection();
-        if (pc) {
-            pc.getStats(null)
-                .then((stats) => {
-                    stats.forEach((report) => {
-                        if (report.type === 'outbound-rtp' && report.kind === 'video') {
-                            console.log('현재 프레임 레이트:', report.framesPerSecond);
-                            console.log('현재 비트레이트:', report.bitrateMean);
-                        }
-                    });
-                })
-                .catch((error) => {
-                    console.error('성능 통계 가져오기 실패:', error);
-                });
+const applySegmentationToSubscriber = (subscriber) => {
+    console.log('applySegmentationToSubscriber 호출됨');
+    console.log('subscriber:', subscriber);
+
+    const mediaStream = subscriber.stream.getMediaStream();
+    const videoElement = document.createElement('video');
+    videoElement.srcObject = mediaStream;
+
+    const canvasElement = document.createElement('canvas');
+    const canvasCtx = canvasElement.getContext('2d');
+
+    videoElement.addEventListener('loadedmetadata', () => {
+        canvasElement.width = videoElement.videoWidth;
+        canvasElement.height = videoElement.videoHeight;
+    });
+
+    const subscriberSegmentation = new SelfieSegmentation({
+        locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file}`,
+    });
+
+    subscriberSegmentation.setOptions({
+        modelSelection: 1, // 0: 전체 인체, 1: 인체 전면
+    });
+
+    const processFrame = async () => {
+        canvasCtx.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
+        await subscriberSegmentation.send({ image: canvasElement });
+
+        requestAnimationFrame(processFrame); // 실시간으로 프레임을 계속 처리
+    };
+
+    subscriberSegmentation.onResults((results) => {
+        canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+        canvasCtx.drawImage(results.segmentationMask, 0, 0, canvasElement.width, canvasElement.height);
+
+        canvasCtx.globalCompositeOperation = 'source-in';
+        canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+
+        const videoStream = canvasElement.captureStream(30);
+        const videoTrack = videoStream.getVideoTracks()[0];
+
+        if (mediaStream.getVideoTracks().length > 0) {
+            mediaStream.removeTrack(mediaStream.getVideoTracks()[0]);
         }
+
+        mediaStream.addTrack(videoTrack);
+    });
+
+    videoElement.play().then(() => {
+        processFrame(); // 시작 프레임 처리
+    });
+};
+
+// 새 스트림 생성 처리 함수
+const handleStreamCreated = ({ stream }) => {
+    console.log('새로운 스트림 생성됨:', stream.streamId);
+    try {
+        const subscriber = session.value.subscribe(stream);
+        console.log('스트림 구독 중:', stream.streamId);
+        subscribers.value.push({ subscriber, stream });
+
+        console.log('-1231231231231231231243541265341423');
+        // 새로 생성된 비디오 엘리먼트를 수동으로 관리하지 않고, Vue에서 자동으로 렌더링
+        subscriber.on('videoElementCreated', (event) => {
+            console.log('비디오 엘리먼트 생성됨:', event.element);
+            subscriberVideos.value.push(event.element);
+            event.element.srcObject = subscriber.stream.getMediaStream();
+            console.log('비디오 엘리먼트 srcObject 설정됨');
+
+            // 구독자 비디오에 누끼 처리 적용
+            console.log('구독자의 영상 누끼따기');
+            applySegmentationToSubscriber(subscriber);
+        });
+
+        subscriber.on('streamPlaying', () => {
+            console.log('스트림 재생 중:', subscriber.stream.streamId);
+        });
+    } catch (e) {
+        console.error('구독 중 에러 발생:', e);
     }
+};
+
+// 스트림 제거 처리 함수
+const handleStreamDestroyed = ({ stream }) => {
+    console.log('스트림 제거됨:', stream.streamId);
+    const index = subscribers.value.findIndex((sub) => sub.stream.streamId === stream.streamId);
+    if (index >= 0) {
+        subscribers.value.splice(index, 1);
+    }
+};
+
+// 연결 상태 변경 처리 함수
+const handleConnectionStateChanged = (event) => {
+    console.log('연결 상태 변경:', event.connectionId, event.newState);
 };
 
 // 컴포넌트가 마운트될 때 실행될 로직
 onMounted(() => {
-    joinSession();
-    setInterval(monitorPerformance, 5000); // 5초마다 성능 체크
+    joinExistingSession();
 });
 
 // 컴포넌트가 언마운트될 때 실행될 로직
 onUnmounted(() => {
     // 세션이 존재하면 연결 해제
-    if (state.session) {
-        state.session.disconnect();
+    if (session.value) {
+        session.value.disconnect();
     }
-    clearInterval(monitorPerformance);
 });
-
-// template에서 사용할 수 있도록 state를 분해
-const { publisher, subscribers } = toRefs(state);
 </script>
 
 <template>
-    <WhiteBoardComp class="whiteboard-area-booth">
-        <div class="booth-content">
-            <div class="booth-content-main">
-                <BoothBack class="booth-camera-box">
-                    <div>
-                        <div class="video-container">
-                            <!-- 로컬 비디오 스트림 -->
-                            <div
-                                v-if="publisher && videoStarted"
-                                class="stream-container"
-                            >
-                                <h2>로컬 참가자</h2>
-                                <video
-                                    ref="myVideo"
-                                    :width="320"
-                                    :height="240"
-                                    autoplay
-                                    muted
-                                    playsinline
-                                    style="display: none"
-                                ></video>
-                                <canvas
-                                    ref="myCanvas"
-                                    :width="320"
-                                    :height="240"
-                                    class="mirrored"
-                                ></canvas>
-                            </div>
+    <div>
+        <h1>화상 회의 화면</h1>
+        <div class="video-container">
+            <!-- 로컬 비디오 스트림 -->
+            <div
+                v-if="publisher"
+                class="stream-container"
+            >
+                <h3>내 비디오</h3>
+                <video
+                    ref="myVideo"
+                    autoplay
+                    muted
+                    playsinline
+                ></video>
+            </div>
 
-                            <!-- 원격 참가자 비디오 스트림 -->
-                            <div
-                                v-for="sub in subscribers"
-                                :key="sub.stream.streamId"
-                                class="stream-container"
-                            >
-                                <h2>원격 참가자</h2>
-                                <video
-                                    :id="`video-${sub.stream.streamId}`"
-                                    :width="320"
-                                    :height="240"
-                                    autoplay
-                                    playsinline
-                                    style="display: none"
-                                ></video>
-                                <canvas
-                                    :id="`canvas-${sub.stream.streamId}`"
-                                    :width="320"
-                                    :height="240"
-                                    class="mirrored"
-                                ></canvas>
-                            </div>
-                        </div>
-                    </div>
-                </BoothBack>
+            <!-- 원격 참가자 비디오 스트림 -->
+            <div
+                v-for="(sub, index) in subscribers"
+                :key="sub.stream.streamId"
+                class="stream-container"
+            >
+                <h3>참가자 비디오 {{ index + 1 }}</h3>
+                <video
+                    :ref="
+                        (el) => {
+                            if (el) subscriberVideos[index] = el;
+                        }
+                    "
+                    autoplay
+                    playsinline
+                    :srcObject="sub.subscriber.stream.getMediaStream()"
+                ></video>
             </div>
         </div>
-    </WhiteBoardComp>
+    </div>
 </template>
 
 <style scoped>
@@ -338,7 +423,7 @@ const { publisher, subscribers } = toRefs(state);
 
 /* 개별 스트림 컨테이너 스타일 */
 .stream-container {
-    width: 300px;
+    width: 320px;
 }
 
 /* 비디오 요소 스타일 */
@@ -347,29 +432,5 @@ video {
     height: auto;
     border: 1px solid #ccc;
     border-radius: 8px;
-}
-
-/* booth content */
-.booth-content {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-evenly;
-    align-items: center;
-    width: 100%;
-    height: 100%;
-}
-
-.booth-content-main {
-    display: flex;
-    flex-wrap: wrap;
-    align-content: center;
-    justify-content: space-evenly;
-    width: 100%;
-    height: 95%;
-}
-
-/* 미러링 효과를 위한 클래스 */
-.mirrored {
-    transform: scaleX(-1);
 }
 </style>
