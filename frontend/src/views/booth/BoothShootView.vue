@@ -27,7 +27,7 @@ const canvasElement = ref(null);
 let mediaStream = null;
 let selfieSegmentationInstance = null;
 
-let isMirrored = ref(false);
+let isMirrored = ref(true); // 초기값을 true로 변경
 let isvideoOn = ref(true);
 let isMicroOn = ref(true);
 const remainPicCnt = ref(10);
@@ -45,6 +45,8 @@ const startPosition = ref({ x: 0, y: 0 });
 const isProcessing = ref(true);
 const isDragging = ref(false);
 const isFocused = ref(false);
+
+const isLoading = ref(true);
 
 const videoStyle = computed(() => ({
 	position: 'absolute',
@@ -103,7 +105,6 @@ const onDrag = (event) => {
 	const photoZoneRect = photoZone.getBoundingClientRect();
 	const videoContainerRect = videoContainerRef.value.getBoundingClientRect();
 
-	// 드래그된 위치가 photoZone 내에 있는지 확인
 	const newPosX = Math.max(
 		Math.min(dx, photoZoneRect.width / 2 - videoContainerRect.width / 2),
 		-photoZoneRect.width / 2 + videoContainerRect.width / 2,
@@ -136,7 +137,7 @@ const loadSelfieSegmentation = async () => {
 	});
 	selfieSegmentationInstance.setOptions({
 		modelSelection: 1,
-		selfieMode: true,
+		selfieMode: false,
 	});
 	selfieSegmentationInstance.onResults(onResults);
 	console.log('Selfie Segmentation model loaded successfully');
@@ -154,6 +155,12 @@ const onResults = (results) => {
 	tempCanvas.height = results.segmentationMask.height;
 	const tempCtx = tempCanvas.getContext('2d');
 	tempCtx.drawImage(results.segmentationMask, 0, 0);
+
+	// 가우시안 블러 적용
+	tempCtx.filter = 'blur(4px)';
+	tempCtx.drawImage(tempCanvas, 0, 0);
+	tempCtx.filter = 'none';
+
 	const imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
 
 	const threshold = 128;
@@ -192,6 +199,8 @@ const processFrame = async () => {
 
 onMounted(async () => {
 	console.log('shootView Mounted!');
+	const startTime = Date.now();
+
 	try {
 		mediaStream = await navigator.mediaDevices.getUserMedia({
 			video: { width: 640, height: 480 },
@@ -207,6 +216,10 @@ onMounted(async () => {
 				await loadSelfieSegmentation();
 				videoElement.value.play();
 				requestAnimationFrame(processFrame);
+
+				// 비디오와 캔버스를 반전 상태로 설정
+				videoElement.value.style.transform = 'scaleX(-1)';
+				canvasElement.value.style.transform = 'scaleX(-1)';
 			};
 		} else {
 			console.error('Video element not found');
@@ -217,6 +230,14 @@ onMounted(async () => {
 
 	updateVideoStyle();
 	watch([videoPosition, videoScale, videoRotation], updateVideoStyle);
+
+	// 최소 2초 동안 로딩 화면 표시
+	const elapsedTime = Date.now() - startTime;
+	const remainingTime = Math.max(1000 - elapsedTime, 0);
+
+	setTimeout(() => {
+		isLoading.value = false;
+	}, remainingTime);
 });
 
 onUnmounted(() => {
@@ -413,10 +434,37 @@ const changeComponent = () => {
 	navigateTo(showtype.value === 1 ? 'background' : 'showphoto');
 	console.log('컴포넌트 변경:', showtype.value === 1 ? '배경 선택' : '사진 보기');
 };
+
+const handleFocus = () => {
+	isFocused.value = true;
+};
+
+const handleBlur = () => {
+	isFocused.value = false;
+};
+
+const showControls = ref(false);
+
+const toggleControls = () => {
+	showControls.value = !showControls.value;
+};
+
+const handleControlClick = (event) => {
+	event.stopPropagation();
+};
 </script>
 
 <template>
 	<WhiteBoardComp class="whiteboard-area-booth">
+		<div
+			v-if="isLoading"
+			class="loading-overlay"
+		>
+			<img
+				src="@/assets/img/common/loading.gif"
+				alt="Loading..."
+			/>
+		</div>
 		<div class="booth-content">
 			<div class="booth-top-div">
 				<div>남은 사진 수: {{ remainPicCnt }}/10</div>
@@ -448,8 +496,7 @@ const changeComponent = () => {
 							@mousemove="onDrag"
 							@mouseup="stopDrag"
 							@mouseleave="stopDrag"
-							@focus="handleFocus"
-							@blur="handleBlur"
+							@click="toggleControls"
 							tabindex="0"
 						>
 							<canvas
@@ -465,21 +512,29 @@ const changeComponent = () => {
 								style="display: none"
 							></video>
 							<div :style="centerIndicatorStyle"></div>
-							<div
-								v-if="isFocused"
-								class="rotate-handle"
+						</div>
+						<div
+							v-if="showControls"
+							class="controls"
+							@click="handleControlClick"
+						>
+							<button
+								class="close-controls"
+								@click="toggleControls"
 							>
+								X
+							</button>
+							<label>
+								Rotate
 								<input
 									type="range"
 									v-model="videoRotation"
 									min="0"
 									max="360"
 								/>
-							</div>
-							<div
-								v-if="isFocused"
-								class="scale-handle"
-							>
+							</label>
+							<label>
+								Scale
 								<input
 									type="range"
 									v-model="videoScale"
@@ -487,7 +542,7 @@ const changeComponent = () => {
 									max="2"
 									step="0.01"
 								/>
-							</div>
+							</label>
 						</div>
 					</div>
 
@@ -575,20 +630,52 @@ const changeComponent = () => {
 		</div>
 	</WhiteBoardComp>
 </template>
-
 <style scoped>
 @import url('@/assets/css/shootView.css');
 
-.rotate-handle,
-.scale-handle {
+.controls {
 	position: absolute;
 	bottom: 10px;
 	left: 10px;
 	width: 150px;
+	background-color: rgba(255, 255, 255, 0.8);
+	border-radius: 10px;
+	padding: 10px;
+	z-index: 10;
 }
 
-.scale-handle {
-	top: 10px;
-	left: 10px;
+.controls label {
+	display: block;
+	margin-bottom: 5px;
+}
+
+.close-controls {
+	position: absolute;
+	top: 5px;
+	right: 5px;
+	background: none;
+	border: none;
+	cursor: pointer;
+}
+
+.loading-overlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background-color: #8551ff;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	z-index: 9999;
+	filter: hue-rotate(320deg) saturate(10%) brightness(85%) contrast(100%);
+}
+
+.loading-overlay img {
+	width: 10vw; /* 뷰포트 너비의 15% */
+	height: 9vw; /* 뷰포트 너비의 15% */
+	max-width: 200px; /* 최대 크기 제한 */
+	max-height: 180px; /* 최대 크기 제한 */
 }
 </style>

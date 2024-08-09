@@ -7,15 +7,19 @@ import videoOff from '@/assets/icon/video_off.png';
 import microOn from '@/assets/icon/micro_on.png';
 import microOff from '@/assets/icon/micro_off.png';
 
-import { useRouter } from 'vue-router';
+import { RouterView, RouterLink, useRoute, useRouter } from 'vue-router';
 import { ref, onMounted, onUnmounted } from 'vue';
 
+// 비디오 표현을 위한 변수
 const videoElement = ref(null);
 let mediaStream = null;
 
-let isMirrored = false;
+// 화면 표시에 있어 사용되는 변수
+let isMirrored = ref(true); // 초기값을 true로 변경
 let isvideoOn = ref(true);
 let isMicroOn = ref(true);
+
+const isLoading = ref(true);
 
 const router = useRouter();
 
@@ -24,10 +28,28 @@ const navigateTo = (name) => {
 };
 
 onMounted(async () => {
+	console.log('Create Booth 페이지 호출되었습니다');
+	const startTime = Date.now();
+
 	try {
-		mediaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+		mediaStream = await navigator.mediaDevices.getUserMedia({
+			video: true,
+			audio: true,
+		});
 		videoElement.value.srcObject = mediaStream;
-	} catch (error) {}
+		// 비디오 요소에 거울모드 적용
+		videoElement.value.style.transform = 'scaleX(-1)';
+	} catch (error) {
+		console.error('Error accessing webcam:', error);
+	}
+
+	// 최소 1.5초 동안 로딩 화면 표시
+	const elapsedTime = Date.now() - startTime;
+	const remainingTime = Math.max(1000 - elapsedTime, 0);
+
+	setTimeout(() => {
+		isLoading.value = false;
+	}, remainingTime);
 });
 
 onUnmounted(() => {
@@ -39,21 +61,25 @@ onUnmounted(() => {
 });
 
 const toggleMirror = () => {
-	isMirrored = !isMirrored;
-	videoElement.value.style.transform = isMirrored ? 'scaleX(-1)' : 'scaleX(1)';
+	isMirrored.value = !isMirrored.value;
+	videoElement.value.style.transform = isMirrored.value ? 'scaleX(-1)' : 'scaleX(1)';
 };
 
+//카메라의 온오프
 const toggleCamera = () => {
 	isvideoOn.value = !isvideoOn.value;
+	console.log('비디오 온');
 
 	if (isvideoOn.value) {
 		mediaStream.getVideoTracks().forEach((track) => {
-			track.enabled = true;
+			track.enabled = true; // 비디오 트랙 활성화
 		});
 		videoElement.value.srcObject = mediaStream;
 	} else {
+		console.log('비디오 오프');
+
 		mediaStream.getVideoTracks().forEach((track) => {
-			track.enabled = false;
+			track.enabled = false; // 비디오 트랙 비활성화
 		});
 		videoElement.value.srcObject = mediaStream;
 	}
@@ -62,12 +88,16 @@ const toggleCamera = () => {
 const toggleMicro = () => {
 	isMicroOn.value = !isMicroOn.value;
 	if (isMicroOn.value) {
+		console.log('마이크 온');
+
 		mediaStream.getAudioTracks().forEach((track) => {
-			track.enabled = true;
+			track.enabled = true; // 오디오 트랙을 활성화
 		});
 	} else {
+		console.log('마이크 오프');
+
 		mediaStream.getAudioTracks().forEach((track) => {
-			track.enabled = false;
+			track.enabled = false; // 오디오  트랙을 비활성화
 		});
 	}
 };
@@ -75,6 +105,16 @@ const toggleMicro = () => {
 
 <template>
 	<WhiteBoardComp class="whiteboard-area-booth">
+		<div
+			v-if="isLoading"
+			class="loading-overlay"
+		>
+			<img
+				src="@/assets/img/common/loading.gif"
+				alt="Loading..."
+			/>
+		</div>
+
 		<div class="booth-content">
 			<div class="close-btn">
 				<button
@@ -87,6 +127,7 @@ const toggleMicro = () => {
 			<BoothBack class="booth-create">
 				<div class="create-content">
 					<div class="mycam-box">
+						<!-- v-if로 하면 카메라가 나오지 않아 v-show로 미리 렌더링 -->
 						<div v-show="isvideoOn">
 							<video
 								ref="videoElement"
@@ -147,6 +188,7 @@ const toggleMicro = () => {
 
 <style scoped>
 .booth-content {
+	/* display */
 	display: flex;
 	flex-direction: column;
 	justify-content: space-evenly;
@@ -165,7 +207,6 @@ const toggleMicro = () => {
 	height: 100%;
 	width: 100%;
 }
-
 .mycam-box {
 	margin-top: 15px;
 	height: 80%;
@@ -181,7 +222,6 @@ const toggleMicro = () => {
 	justify-content: center;
 	flex-direction: column;
 }
-
 .create-btn {
 	height: 10%;
 	width: 90%;
@@ -216,14 +256,33 @@ const toggleMicro = () => {
 		background-color: rgb(136, 136, 136);
 	}
 }
-
 .left-btn {
 	display: flex;
 }
-
 .close-btn {
 	width: 90%;
 	display: flex;
 	justify-content: right;
+}
+
+.loading-overlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background-color: #8551ff;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	z-index: 9999;
+	filter: hue-rotate(320deg) saturate(10%) brightness(90%) contrast(80%);
+}
+
+.loading-overlay img {
+	width: 10vw; /* 뷰포트 너비의 10% */
+	height: 9vw; /* 뷰포트 너비의 9% */
+	max-width: 200px; /* 최대 크기 제한 */
+	max-height: 180px; /* 최대 크기 제한 */
 }
 </style>
