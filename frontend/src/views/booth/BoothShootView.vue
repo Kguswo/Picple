@@ -378,7 +378,12 @@ const capturePhoto = async () => {
 		);
 		tempCtx.rotate((rotation * Math.PI) / 180);
 		tempCtx.scale(scale, scale);
-		tempCtx.translate(-canvas.width / 2, -canvas.height / 2);
+
+		// 반전 효과 적용
+		const mirrorFactor = isMirrored.value ? -1 : 1;
+		tempCtx.scale(mirrorFactor, 1);
+		tempCtx.translate((-canvas.width / 2) * mirrorFactor, -canvas.height / 2);
+
 		tempCtx.drawImage(canvas, 0, 0);
 		tempCtx.restore();
 
