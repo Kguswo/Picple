@@ -5,7 +5,7 @@ import BoothBack from '@/components/booth/BoothBackComp.vue';
 import { useBoothStore } from '@/stores/boothStore';
 import { usePhotoStore } from '@/stores/photoStore';
 
-import { RouterView, useRouter } from 'vue-router';
+import { RouterView, useRouter, useRoute } from 'vue-router';
 import { ref, onMounted, onUnmounted, nextTick, computed, watch } from 'vue';
 import { useDraggable } from '@vueuse/core';
 import { provide } from 'vue';
@@ -23,6 +23,7 @@ import videoOff from '@/assets/icon/video_off.png';
 import microOn from '@/assets/icon/micro_on.png';
 import microOff from '@/assets/icon/micro_off.png';
 
+const route = useRoute();
 const router = useRouter();
 const photoStore = usePhotoStore();
 const boothStore = useBoothStore();
@@ -44,6 +45,172 @@ let isMicroOn = ref(true);
 const remainPicCnt = ref(10);
 
 const images = ref([]);
+
+// 배경
+
+const changeImage = (image) => {
+	boothStore.setBgImage(image);
+	// WebSocket을 통해 배경 변경 이벤트 전송
+	WebSocketService.send({
+		type: 'change_background',
+		boothId: route.params.boothId,
+		backgroundImage: image,
+	});
+};
+
+const bgImage = computed(() => boothStore.bgImage);
+
+const captureArea = ref(null);
+const countdown = ref(0);
+var cameraaudio = new Audio('/src/assets/audio/shutter.mp3');
+
+const startCountdown = () => {
+	const countdownInterval = setInterval(() => {
+		countdown.value--;
+		if (countdown.value <= 0) {
+			clearInterval(countdownInterval);
+			Swal.close();
+			capturePhoto();
+		} else {
+			Swal.update({
+				html: `<p style='color:white; font-size:50px;'>${countdown.value}</h3>`,
+			});
+
+			if (countdown.value === 1) {
+				if (videoElement.value) {
+					videoElement.value.pause();
+				}
+			}
+		}
+	}, 1000);
+};
+
+const takePhoto = async () => {
+	console.log('사진 찍기 시작');
+	const img = new Image();
+	img.crossOrigin = 'Anonymous';
+	img.src = bgImage.value;
+
+	countdown.value = 3;
+
+	img.onload = async () => {
+		await nextTick();
+
+		Swal.fire({
+			title: `<h1 style='color:white;'>포즈!</h1>`,
+			html: `<p style='color:white; font-size:50px;'>${countdown.value}</p>`,
+			showConfirmButton: false,
+			background: 'rgba(0, 0, 0, 0.3)',
+			backdrop: false,
+			didOpen: () => {
+				startCountdown();
+			},
+		});
+	};
+
+	img.onerror = async (error) => {
+		console.error('배경 로딩 에러 발생: ', error);
+		await Swal.fire({
+			title: '배경 오류 발생',
+			text: '해당 사진은 배경으로 사용할 수 없습니다!',
+			icon: 'warning',
+		});
+	};
+};
+
+const exitphoto = async () => {
+	console.log('촬영종료');
+	console.log('저장할 이미지 리스트:', images.value);
+
+	const { value: result } = await Swal.fire({
+		title: '촬영 끝내기',
+		text: '촬영을 종료하고 저장을 위해 나가시겠습니까?',
+		icon: 'warning',
+		showCancelButton: true,
+		confirmButtonText: '확인',
+		cancelButtonText: '취소',
+	});
+
+	if (result) {
+		photoStore.setPhotoList(images.value);
+		console.log('Pinia store에 저장된 이미지 리스트:', photoStore.photoList);
+		router.push('/selectTemp');
+	} else {
+		Swal.fire('취소', '촬영을 계속합니다!', 'error');
+	}
+};
+
+const capturePhoto = async () => {
+	console.log('사진 캡처 시작');
+	await nextTick();
+
+	cameraaudio.play();
+
+	const videoContainer = videoContainerRef.value;
+	const canvas = canvasElement.value;
+	const captureAreaElement = captureArea.value;
+
+	const tempCanvas = document.createElement('canvas');
+	const tempCtx = tempCanvas.getContext('2d');
+	tempCanvas.width = captureAreaElement.clientWidth;
+	tempCanvas.height = captureAreaElement.clientHeight;
+
+	try {
+		const bgImg = new Image();
+		bgImg.crossOrigin = 'anonymous';
+		bgImg.src = bgImage.value;
+		await new Promise((resolve, reject) => {
+			bgImg.onload = resolve;
+			bgImg.onerror = reject;
+		});
+		tempCtx.drawImage(bgImg, 0, 0, tempCanvas.width, tempCanvas.height);
+
+		const containerRect = videoContainer.getBoundingClientRect();
+		const captureAreaRect = captureAreaElement.getBoundingClientRect();
+		const scale = videoScale.value;
+		const rotation = videoRotation.value;
+
+		tempCtx.save();
+		tempCtx.translate(
+			containerRect.left - captureAreaRect.left + containerRect.width / 2,
+			containerRect.top - captureAreaRect.top + containerRect.height / 2,
+		);
+		tempCtx.rotate((rotation * Math.PI) / 180);
+		tempCtx.scale(scale, scale);
+
+		// 반전 효과 적용
+		const mirrorFactor = isMirrored.value ? -1 : 1;
+		tempCtx.scale(mirrorFactor, 1);
+		tempCtx.translate((-canvas.width / 2) * mirrorFactor, -canvas.height / 2);
+
+		tempCtx.drawImage(canvas, 0, 0);
+		tempCtx.restore();
+
+		const imageData = tempCanvas.toDataURL('image/png');
+		boothStore.addImage({ src: imageData, visible: true });
+
+		remainPicCnt.value = 10 - images.value.length;
+
+		if (images.value.length === 10) {
+			const { value: result } = await Swal.fire({
+				title: '사진 촬영 종료',
+				text: '10장을 모두 촬영하여 프레임 선택창으로 이동합니다!',
+				icon: 'success',
+			});
+			if (result) {
+				exitphoto();
+			}
+		}
+	} catch (error) {
+		console.error('이미지 캡쳐 에러 발생: ', error);
+	} finally {
+		if (videoElement.value) {
+			videoElement.value.play();
+		}
+	}
+};
+
+// 배경
 
 const videoWidth = ref(213);
 const videoHeight = ref(160);
@@ -245,25 +412,36 @@ const initializeWebSocketAndMedia = async () => {
 		await WebSocketService.connect('ws://localhost:8080/ws');
 	}
 
-	mediaStream = await navigator.mediaDevices.getUserMedia({
-		video: { width: 640, height: 480 },
-		audio: true,
-	});
+	try {
+		mediaStream = await navigator.mediaDevices.getUserMedia({
+			video: { width: 640, height: 480 },
+			audio: true,
+		});
 
-	if (videoElement.value) {
-		videoElement.value.srcObject = mediaStream;
-		videoElement.value.onloadedmetadata = async () => {
-			console.log('Video metadata loaded');
-			videoWidth.value = videoElement.value.videoWidth / 3;
-			videoHeight.value = videoElement.value.videoHeight / 3;
-			await loadSelfieSegmentation();
-			videoElement.value.play();
+		if (videoElement.value) {
+			videoElement.value.srcObject = mediaStream;
+			videoElement.value.onloadedmetadata = async () => {
+				console.log('Video metadata loaded');
+				videoWidth.value = videoElement.value.videoWidth / 3;
+				videoHeight.value = videoElement.value.videoHeight / 3;
+				await loadSelfieSegmentation();
+				videoElement.value.play();
 
-			videoElement.value.style.transform = 'scaleX(-1)';
-			canvasElement.value.style.transform = 'scaleX(-1)';
-		};
-	} else {
-		console.error('Video element not found');
+				videoElement.value.style.transform = 'scaleX(-1)';
+				canvasElement.value.style.transform = 'scaleX(-1)';
+			};
+		} else {
+			console.error('Video element not found');
+		}
+	} catch (error) {
+		console.error('Failed to acquire camera feed:', error);
+		// 사용자에게 카메라 접근 권한 요청 메시지 표시
+		await Swal.fire({
+			title: '카메라 접근 권한이 필요합니다',
+			text: '카메라 사용을 위해 브라우저 설정에서 권한을 허용해주세요.',
+			icon: 'warning',
+			confirmButtonText: '확인',
+		});
 	}
 };
 
@@ -320,6 +498,10 @@ onMounted(async () => {
 	} catch (error) {
 		console.error('Error in component initialization:', error);
 	}
+
+	WebSocketService.on('background_changed', (message) => {
+		boothStore.setBgImage(message.backgroundImage);
+	});
 });
 
 onUnmounted(() => {
@@ -343,6 +525,8 @@ onUnmounted(() => {
 	WebSocketService.off('participant_joined');
 	WebSocketService.off('participant_left');
 	WebSocketService.close();
+
+	WebSocketService.off('background_changed');
 });
 
 const toggleMirror = () => {
@@ -369,163 +553,6 @@ const toggleMicro = () => {
 	mediaStream.getAudioTracks().forEach((track) => {
 		track.enabled = isMicroOn.value;
 	});
-};
-
-const bgImage = computed(() => boothStore.bgImage);
-
-const captureArea = ref(null);
-const countdown = ref(0);
-var cameraaudio = new Audio('/src/assets/audio/shutter.mp3');
-
-const startCountdown = () => {
-	const countdownInterval = setInterval(() => {
-		countdown.value--;
-		if (countdown.value <= 0) {
-			clearInterval(countdownInterval);
-			Swal.close();
-			capturePhoto();
-		} else {
-			Swal.update({
-				html: `<p style='color:white; font-size:50px;'>${countdown.value}</h3>`,
-			});
-
-			if (countdown.value === 1) {
-				if (videoElement.value) {
-					videoElement.value.pause();
-				}
-			}
-		}
-	}, 1000);
-};
-
-// changeImage 함수를 먼저 선언
-const changeImage = (image) => {
-	boothStore.setBgImage(image);
-};
-
-const takePhoto = async () => {
-	console.log('사진 찍기 시작');
-	const img = new Image();
-	img.crossOrigin = 'Anonymous';
-	img.src = bgImage.value;
-
-	countdown.value = 3;
-
-	img.onload = async () => {
-		await nextTick();
-
-		Swal.fire({
-			title: `<h1 style='color:white;'>포즈!</h1>`,
-			html: `<p style='color:white; font-size:50px;'>${countdown.value}</p>`,
-			showConfirmButton: false,
-			background: 'rgba(0, 0, 0, 0.3)',
-			backdrop: false,
-			didOpen: () => {
-				startCountdown();
-			},
-		});
-	};
-
-	img.onerror = async (error) => {
-		console.error('배경 로딩 에러 발생: ', error);
-		await Swal.fire({
-			title: '배경 오류 발생',
-			text: '해당 사진은 배경으로 사용할 수 없습니다!',
-			icon: 'warning',
-		});
-	};
-};
-
-const exitphoto = async () => {
-	console.log('촬영종료');
-	console.log('저장할 이미지 리스트:', images.value);
-
-	const { value: result } = await Swal.fire({
-		title: '촬영 끝내기',
-		text: '촬영을 종료하고 저장을 위해 나가시겠습니까?',
-		icon: 'warning',
-		showCancelButton: true,
-		confirmButtonText: '확인',
-		cancelButtonText: '취소',
-	});
-
-	if (result) {
-		photoStore.setPhotoList(images.value);
-		console.log('Pinia store에 저장된 이미지 리스트:', photoStore.photoList);
-		router.push('/selectTemp');
-	} else {
-		Swal.fire('취소', '촬영을 계속합니다!', 'error');
-	}
-};
-
-const capturePhoto = async () => {
-	console.log('사진 캡처 시작');
-	await nextTick();
-
-	cameraaudio.play();
-
-	const videoContainer = videoContainerRef.value;
-	const canvas = canvasElement.value;
-	const captureAreaElement = captureArea.value;
-
-	const tempCanvas = document.createElement('canvas');
-	const tempCtx = tempCanvas.getContext('2d');
-	tempCanvas.width = captureAreaElement.clientWidth;
-	tempCanvas.height = captureAreaElement.clientHeight;
-
-	try {
-		const bgImg = new Image();
-		bgImg.crossOrigin = 'anonymous';
-		bgImg.src = bgImage.value;
-		await new Promise((resolve, reject) => {
-			bgImg.onload = resolve;
-			bgImg.onerror = reject;
-		});
-		tempCtx.drawImage(bgImg, 0, 0, tempCanvas.width, tempCanvas.height);
-
-		const containerRect = videoContainer.getBoundingClientRect();
-		const captureAreaRect = captureAreaElement.getBoundingClientRect();
-		const scale = videoScale.value;
-		const rotation = videoRotation.value;
-
-		tempCtx.save();
-		tempCtx.translate(
-			containerRect.left - captureAreaRect.left + containerRect.width / 2,
-			containerRect.top - captureAreaRect.top + containerRect.height / 2,
-		);
-		tempCtx.rotate((rotation * Math.PI) / 180);
-		tempCtx.scale(scale, scale);
-
-		// 반전 효과 적용
-		const mirrorFactor = isMirrored.value ? -1 : 1;
-		tempCtx.scale(mirrorFactor, 1);
-		tempCtx.translate((-canvas.width / 2) * mirrorFactor, -canvas.height / 2);
-
-		tempCtx.drawImage(canvas, 0, 0);
-		tempCtx.restore();
-
-		const imageData = tempCanvas.toDataURL('image/png');
-		boothStore.addImage({ src: imageData, visible: true });
-
-		remainPicCnt.value = 10 - images.value.length;
-
-		if (images.value.length === 10) {
-			const { value: result } = await Swal.fire({
-				title: '사진 촬영 종료',
-				text: '10장을 모두 촬영하여 프레임 선택창으로 이동합니다!',
-				icon: 'success',
-			});
-			if (result) {
-				exitphoto();
-			}
-		}
-	} catch (error) {
-		console.error('이미지 캡쳐 에러 발생: ', error);
-	} finally {
-		if (videoElement.value) {
-			videoElement.value.play();
-		}
-	}
 };
 
 const showtype = ref(1);

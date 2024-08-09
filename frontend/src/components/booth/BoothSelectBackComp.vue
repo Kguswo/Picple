@@ -1,7 +1,11 @@
 <script setup>
-import { ref, defineEmits, onMounted, inject } from 'vue';
+import { ref, defineEmits, defineProps, onMounted, inject } from 'vue';
 
 const boothActions = inject('boothActions');
+
+const props = defineProps({
+	boothId: String,
+});
 
 const selectBackground = (image) => {
 	boothActions.changeImage(image);
