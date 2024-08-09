@@ -18,6 +18,8 @@ const props = defineProps({
 	},
 });
 
+const OPENVIDU_SERVER_URL = import.meta.env.VITE_API_OPENVIDU_SERVER;
+
 // username prop 변경 감지
 watch(
 	() => props.username,
@@ -116,7 +118,7 @@ const joinSession = async () => {
 const getToken = async () => {
 	try {
 		const response = await axios.post(
-			`https://localhost:4443/openvidu/api/sessions/${FIXED_SESSION_ID}/connection`,
+			`${OPENVIDU_SERVER_URL}/openvidu/api/sessions/${FIXED_SESSION_ID}/connection`,
 			{},
 			{
 				headers: {
@@ -138,7 +140,7 @@ const getToken = async () => {
 // 고정된 세션 ID로 새 세션 생성
 const createSession = async (sessionId) => {
 	await axios.post(
-		'https://localhost:4443/openvidu/api/sessions',
+		`${OPENVIDU_SERVER_URL}/openvidu/api/sessions`,
 		{ customSessionId: sessionId },
 		{
 			headers: {
