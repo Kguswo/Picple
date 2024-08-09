@@ -1,26 +1,24 @@
-import { instance } from '@/api/baseApi';
+import { axiosAuth } from '@/api/baseApi';
 
-const boardsBaseUrl = instance.defaults.baseURL + '/boards';
-const likesBaseUrl = instance.defaults.baseURL + '/likes';
+const boardsBaseUrl = import.meta.env.VITE_API_BOARD;
+const likesBaseUrl = import.meta.env.VITE_API_LIKE;
 
 const boardListApi = () => {
-	return instance.get(`${boardsBaseUrl}`);
+	return axiosAuth.get(`${boardsBaseUrl}`);
 };
 
-const boardSortApi = (criteria) => {
-	return instance.get(`${boardsBaseUrl}/sorted/${criteria}`);
-};
-
-const boardSearchApi = (nickname) => {
-	return instance.get(`${boardsBaseUrl}/user/${nickname}`);
+const boardSortApi = (nickname, criteria, sortDirection) => {
+	return axiosAuth.get(
+		`${boardsBaseUrl}/sorted?nickname=${nickname}&criteria=${criteria}&sortDirection=${sortDirection}`,
+	);
 };
 
 const boardDeleteApi = (boardId) => {
-	return instance.delete(`${boardsBaseUrl}/${boardId}`);
+	return axiosAuth.delete(`${boardsBaseUrl}/${boardId}`);
 };
 
 const boardLikeApi = (boardId) => {
-	return instance.patch(`${likesBaseUrl}/${boardId}`);
+	return axiosAuth.patch(`${likesBaseUrl}/${boardId}`);
 };
 
-export { boardListApi, boardSortApi, boardSearchApi, boardDeleteApi, boardLikeApi };
+export { boardListApi, boardSortApi, boardDeleteApi, boardLikeApi };

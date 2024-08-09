@@ -3,64 +3,70 @@ import WhiteBoardComp from '@/components/common/WhiteBoardComp.vue';
 import BoardPhotoComp from '@/components/board/BoardPhotoComp.vue';
 import Page from '@/components/common/PageComp.vue';
 import { onMounted, ref } from 'vue';
-import { boardListApi, boardSearchApi, boardSortApi } from '@/api/boardApi';
+import { boardListApi, boardSortApi } from '@/api/boardApi';
+import { alertResult } from '@/api/baseApi';
 
 const boardList = ref([]);
-const isLikeClicked = ref(false);
-const isTimeClicked = ref(false);
-
-onMounted(async () => {
-	try {
-		const data = await boardListApi();
-		if (!data) {
-			return;
-		}
-		boardList.value = data.result;
-	} catch (error) {}
-});
-
+const sortArrow = ref('');
+const prevCriteria = ref('');
 const nickname = ref('');
 
-const searchByNickname = async () => {
-	if (!nickname.value) {
+onMounted(() => {
+	getBoardList();
+});
+
+const getBoardList = async () => {
+	const { data } = await boardListApi();
+	if (!data.isSuccess) {
+		await alertResult(false, '게시판 조회에 실패하였습니다.');
+		return;
+	}
+	boardList.value = data.result;
+};
+
+const toggleSort = (criteria) => {
+	if (prevCriteria.value === criteria) {
+		if (sortArrow.value !== '↓') {
+			sortArrow.value = '↓';
+			return;
+		}
+		sortArrow.value = '↑';
 		return;
 	}
 
-	try {
-		const data = await boardSearchApi(nickname.value);
-		if (!data) {
-			return;
-		}
-		boardList.value = data.result;
-		toggleSortButton(false, false);
-	} catch (error) {}
+	sortArrow.value = '↓';
+	prevCriteria.value = criteria;
 };
 
-const sortByCreatedAt = async () => {
-	try {
-		const data = await boardSortApi('createdAt');
-		if (!data) {
-			return;
-		}
-		boardList.value = data.result;
-		toggleSortButton(true, false);
-	} catch (error) {}
+const sortBoards = async (criteria) => {
+	const { data } = await boardSortApi(
+		nickname.value,
+		criteria,
+		prevCriteria.value !== criteria || sortArrow.value !== '↓' ? false : true,
+	);
+	if (!data.isSuccess) {
+		await alertResult(false, '게시글 정렬에 실패하였습니다.');
+		return;
+	}
+	boardList.value = data.result;
+	toggleSort(criteria);
 };
 
-const sortByHit = async () => {
-	try {
-		const data = await boardSortApi('hit');
-		if (!data) {
-			return;
-		}
-		boardList.value = data.result;
-		toggleSortButton(false, true);
-	} catch (error) {}
-};
+const searchByNickname = async () => {
+	sortArrow.value = '';
+	prevCriteria.value = '';
 
-const toggleSortButton = (isTimeClicked, isLikeClicked) => {
-	isTimeClicked.value = isTimeClicked;
-	isLikeClicked.value = isLikeClicked;
+	if (!nickname.value) {
+		await getBoardList();
+		return;
+	}
+
+	const { data } = await boardSortApi(nickname.value, 'createdAt', false);
+	if (!data.isSuccess) {
+		await alertResult(false, '사용자 검색에 실패하였습니다.');
+		return;
+	}
+	boardList.value = data.result;
 };
 </script>
 
@@ -94,18 +100,16 @@ const toggleSortButton = (isTimeClicked, isLikeClicked) => {
 
 					<div class="button-group">
 						<button
-							class="button-sort-like"
-							:class="{ clicked: isLikeClicked }"
-							@click="sortByHit"
+							@click="sortBoards('hit')"
+							:class="{ clicked: prevCriteria === 'hit' }"
 						>
-							좋아요순
+							좋아요순 <span>{{ prevCriteria === 'hit' ? sortArrow : '' }}</span>
 						</button>
 						<button
-							class="button-sort-time"
-							:class="{ clicked: isTimeClicked }"
-							@click="sortByCreatedAt"
+							@click="sortBoards('createdAt')"
+							:class="{ clicked: prevCriteria === 'createdAt' }"
 						>
-							최신순
+							최신순 <span>{{ prevCriteria === 'createdAt' ? sortArrow : '' }}</span>
 						</button>
 					</div>
 				</div>
@@ -209,21 +213,20 @@ const toggleSortButton = (isTimeClicked, isLikeClicked) => {
 		color: black;
 		transition: background-color 0.3s ease;
 		cursor: pointer;
-	}
 
-	.button-sort-time,
-	.button-sort-like {
 		&:hover {
-			background-color: rgba(250, 198, 198, 0.3);
+			background-color: rgb(98, 171, 217, 0.5);
 		}
 
 		&:active {
-			transform: translateY(4px);
+			transform: translateY(5px);
+			transition: transform 0.3s ease;
 		}
 	}
 
 	.clicked {
-		background-color: rgb(250, 198, 198);
+		background-color: #62abd9;
+		color: white;
 	}
 }
 
