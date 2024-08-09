@@ -1,15 +1,21 @@
 <script setup>
-import { ref, defineProps } from 'vue';
+import { ref, defineProps, onMounted, inject } from 'vue';
+
+const boothActions = inject('boothActions');
+const images = ref(boothActions.images);
+
+onMounted(() => {
+	console.log('BoothShowPhoto 호출됨');
+});
 
 const props = defineProps({
 	images: Array,
 });
 
-const images = ref([]);
 images.value = props.images;
 
-const imgUrl = ref('');
 const showModal = ref(false);
+const imgUrl = ref('');
 
 const showImage = (img) => {
 	showModal.value = true;
@@ -85,11 +91,11 @@ const closeModal = () => {
 		align-items: center;
 
 		.thumbnail {
-			width: auto;
-			height: 150px;
-			margin: 0 5px;
-			cursor: pointer;
-			border: 2px solid transparent;
+			width: auto; /* 썸네일 이미지 크기 */
+			height: 150px; /* 썸네일 이미지 크기 */
+			margin: 0 5px; /* 이미지 간격 */
+			cursor: pointer; /* 클릭 커서 변경 */
+			border: 2px solid transparent; /* 기본 테두리 설정 */
 			transition: border 0.3s; /* 테두리 전환 효과 */
 
 			&:hover {

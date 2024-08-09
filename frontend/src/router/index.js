@@ -55,8 +55,9 @@ const router = createRouter({
 			component: () => import('@/views/booth/BoothCreateView.vue'),
 		},
 		{
-			path: '/booth',
+			path: '/booth/:boothId',
 			component: () => import('@/views/booth/BoothShootView.vue'),
+			props: true,
 			children: [
 				{
 					path: 'bg',
@@ -71,7 +72,6 @@ const router = createRouter({
 					props: true,
 				},
 			],
-			props: true,
 		},
 		{
 			path: '/boothCode',
@@ -102,10 +102,10 @@ router.beforeEach(async (to, from, next) => {
 	if (websocketRoutes.includes(to.name)) {
 		if (!WebSocketService.isConnected()) {
 			try {
-				await WebSocketService.connect('ws://localhost:8080/signal');
+				await WebSocketService.connect('ws://localhost:8080/ws');
 			} catch (error) {
 				console.error('Failed to connect to WebSocket:', error);
-				// 여기서 에러 처리 (예: 에러 페이지로 리다이렉트)
+				// 에러 처리
 			}
 		}
 	} else if (websocketRoutes.includes(from.name) && !websocketRoutes.includes(to.name)) {

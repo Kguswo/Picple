@@ -4,10 +4,22 @@ class WebSocketService {
         this.handlers = {};
         this.boothId = null;
         this._isConnected = false;
+        this.connectionPromise = null;
+        this.shouldReconnect = true;
+        this.participants = [];
     }
 
     connect(url) {
-        return new Promise((resolve, reject) => {
+        if (this._isConnected) {
+            console.log("WebSocket already connected");
+            return Promise.resolve();
+        }
+
+        if (this.connectionPromise) {
+            return this.connectionPromise;
+        }
+
+        this.connectionPromise = new Promise((resolve, reject) => {
             this.socket = new WebSocket(url);
 
             this.socket.onopen = () => {
@@ -16,34 +28,33 @@ class WebSocketService {
                 resolve();
             };
 
-            this.socket.onclose = () => {
-                console.log("WebSocket 연결 종료");
-                this._isConnected = false;
-            };
-
-            this.socket.onerror = (error) => {
-                console.error("WebSocket 연결 에러:", error);
-                this._isConnected = false;
-                reject(error);
-            };
-
-            this.socket = new WebSocket(url);
-
-            this.socket.onopen = () => {
-                console.log("WebSocket 연결 성공");
-            };
-
             this.socket.onmessage = (event) => {
+                console.log("메시지 수신:", event.data);
                 const message = JSON.parse(event.data);
                 if (this.handlers[message.type]) {
                     this.handlers[message.type](message);
                 }
             };
 
-            this.socket.onclose = () => {
-                console.log("WebSocket 연결 종료");
+            this.socket.onclose = (event) => {
+                console.log("WebSocket 연결 종료", event);
+                this._isConnected = false;
+                this.connectionPromise = null;
+                if (this.shouldReconnect) {
+                    console.log("WebSocket 재연결 시도");
+                    setTimeout(() => this.connect(url), 1000);
+                }
+            };
+
+            this.socket.onerror = (error) => {
+                console.error("WebSocket 연결 에러:", error);
+                this._isConnected = false;
+                this.connectionPromise = null;
+                reject(error);
             };
         });
+
+        return this.connectionPromise;
     }
 
     isConnected() {
@@ -55,56 +66,86 @@ class WebSocketService {
     }
 
     send(message) {
-        if (this.isConnected()) {
-            this.socket.send(JSON.stringify(message));
-        } else {
-            console.error("WebSocket is not connected");
-        }
+        return new Promise((resolve, reject) => {
+            if (this.isConnected()) {
+                console.log("메시지 전송:", JSON.stringify(message));
+                this.socket.send(JSON.stringify(message));
+                resolve();
+            } else {
+                console.error("WebSocket is not connected");
+                reject(new Error("WebSocket is not connected"));
+            }
+        });
     }
 
     close() {
+        this.shouldReconnect = false;
         if (this.socket) {
+            console.log("WebSocket 연결 종료 호출됨");
             this.socket.close();
         }
     }
 
     createBooth() {
         return new Promise((resolve, reject) => {
-            if (!this.isConnected()) {
-                reject(new Error("WebSocket is not connected"));
-                return;
-            }
-            this.send({ type: "create_booth" });
-            this.on("booth_created", (message) => {
+            const handleBoothCreated = (message) => {
                 this.boothId = message.boothId;
+                this.off("booth_created", handleBoothCreated);
                 resolve(message.boothId);
+            };
+
+            const handleError = (message) => {
+                this.off("error", handleError);
+                reject(new Error(message.message));
+            };
+
+            this.on("booth_created", handleBoothCreated);
+            this.on("error", handleError);
+
+            this.send({ type: "create_booth" }).catch((error) => {
+                this.off("booth_created", handleBoothCreated);
+                this.off("error", handleError);
+                reject(error);
             });
-            // 에러 처리를 위한 타임아웃 설정
+
             setTimeout(() => {
+                this.off("booth_created", handleBoothCreated);
+                this.off("error", handleError);
                 reject(new Error("Booth creation timeout"));
-            }, 5000);
+            }, 10000);
         });
     }
 
-    joinBooth(boothCode) {
-        return new Promise((resolve, reject) => {
-            if (!this.isConnected()) {
-                reject(new Error("WebSocket is not connected"));
-                return;
-            }
-            this.send({ type: "join_booth", boothCode });
-            this.on("join_success", () => {
-                this.boothId = boothCode;
-                resolve();
-            });
-            this.on("join_error", (message) => {
-                reject(new Error(message.error));
-            });
-            // 에러 처리를 위한 타임아웃 설정
-            setTimeout(() => {
-                reject(new Error("Join booth timeout"));
-            }, 5000);
-        });
+    off(type, handler) {
+        if (this.handlers[type] === handler) {
+            delete this.handlers[type];
+        }
+    }
+
+    messageHandlers = {
+        booth_created: this.handleBoothCreated,
+        participant_joined: this.handleParticipantJoined,
+        participant_left: this.handleParticipantLeft,
+        // 추가 메시지 타입에 대한 핸들러
+    };
+
+    handleMessage(message) {
+        const handler = this.messageHandlers[message.type];
+        if (handler) {
+            handler(message);
+        } else {
+            console.warn(`Unhandled message type: ${message.type}`);
+        }
+    }
+
+    handleParticipantJoined(message) {
+        this.participants.push(message.participant);
+    }
+
+    handleParticipantLeft(message) {
+        this.participants = this.participants.filter(
+            (p) => p.id !== message.participantId
+        );
     }
 }
 

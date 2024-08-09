@@ -1,10 +1,21 @@
 <script setup>
-import { ref, defineEmits } from 'vue';
+import { ref, defineEmits, onMounted, inject } from 'vue';
+
+const boothActions = inject('boothActions');
+
+const selectBackground = (image) => {
+	boothActions.changeImage(image);
+};
+
+onMounted(() => {
+	console.log('BoothSelectBackComp 호출됨');
+});
 
 const emit = defineEmits(['update']);
 
 const emitImage = (image) => {
-	emit('update', image);
+	emit('update', image); // 부모에게 변경된 이미지 전달
+	selectBackground(image); // inject된 메서드 사용
 };
 
 // todo: 다음에 실제 배경으로 사용할 이미지 필요
@@ -21,7 +32,7 @@ const backgroundImages = ref([
 const fileInput = ref(null);
 
 const triggerFileUpload = () => {
-	fileInput.value.click();
+	fileInput.value.click(); // 파일 입력 요소 클릭
 };
 
 const fileUpload = (event) => {
@@ -31,18 +42,21 @@ const fileUpload = (event) => {
 		const reader = new FileReader();
 
 		reader.onload = (e) => {
-			const imageUrl = e.target.result;
-			backgroundImages.value.push(imageUrl);
+			const imageUrl = e.target.result; // 파일의 URL
+			backgroundImages.value.push(imageUrl); // 배열에 추가
 		};
 
-		reader.readAsDataURL(file);
+		reader.readAsDataURL(file); // 파일을 URL로 변환
 
-		// todo: DB에 저장할 경우 axios를 통한 api 호출 필요
+		// DB에 저장할 경우 axios를 통한 api 호출 필요
 	}
 };
 
+// AI 이미지 생성
 const createAI = () => {
-	// todo: 이미지 생성을 위한 dalle3 연결 코드 필요
+	console.log('AI 생성 클릭');
+
+	// 이미지 생성을 위한 dalle3 연결 코드 필요
 };
 </script>
 
@@ -110,11 +124,11 @@ const createAI = () => {
 		align-items: center;
 
 		.thumbnail {
-			width: auto;
-			height: 150px;
-			margin: 0 5px;
-			cursor: pointer;
-			border: 2px solid transparent;
+			width: auto; /* 썸네일 이미지 크기 */
+			height: 150px; /* 썸네일 이미지 크기 */
+			margin: 0 5px; /* 이미지 간격 */
+			cursor: pointer; /* 클릭 커서 변경 */
+			border: 2px solid transparent; /* 기본 테두리 설정 */
 			transition: border 0.3s; /* 테두리 전환 효과 */
 
 			&:hover {
