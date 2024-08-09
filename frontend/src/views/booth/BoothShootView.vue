@@ -1,11 +1,14 @@
 <script setup>
 import WhiteBoardComp from '@/components/common/WhiteBoardComp.vue';
 import BoothBack from '@/components/booth/BoothBackComp.vue';
+
 import { usePhotoStore } from '@/stores/photoStore';
 import { RouterView, useRouter } from 'vue-router';
-import { ref, onMounted, onUnmounted, nextTick } from 'vue';
-import html2canvas from 'html2canvas';
+import { ref, onMounted, onUnmounted, nextTick, computed, watch } from 'vue';
+import { useDraggable } from '@vueuse/core';
+
 import Swal from 'sweetalert2';
+import * as selfieSegmentation from '@mediapipe/selfie_segmentation';
 
 import videoOn from '@/assets/icon/video_on.png';
 import videoOff from '@/assets/icon/video_off.png';
@@ -20,27 +23,212 @@ const navigateTo = (name) => {
 };
 
 const videoElement = ref(null);
+const canvasElement = ref(null);
 let mediaStream = null;
+let selfieSegmentationInstance = null;
 
-let isMirrored = false;
+let isMirrored = ref(false);
 let isvideoOn = ref(true);
 let isMicroOn = ref(true);
 const remainPicCnt = ref(10);
 
 const images = ref([]);
 
+const videoWidth = ref(213);
+const videoHeight = ref(160);
+
+const videoContainerRef = ref(null);
+const videoPosition = ref({ x: 0, y: 0 });
+const videoScale = ref(1);
+const videoRotation = ref(0);
+const startPosition = ref({ x: 0, y: 0 });
+const isProcessing = ref(true);
+const isDragging = ref(false);
+const isFocused = ref(false);
+
+const videoStyle = computed(() => ({
+	position: 'absolute',
+	left: '50%',
+	top: '50%',
+	transform: `translate(-50%, -50%) translate(${videoPosition.value.x}px, ${videoPosition.value.y}px) scale(${videoScale.value}) rotate(${videoRotation.value}deg)`,
+	cursor: isDragging.value ? 'grabbing' : 'grab',
+	border: isFocused.value ? '2px dashed gray' : '2px dashed lightgray',
+	width: `${videoWidth.value}px`,
+	height: `${videoHeight.value}px`,
+}));
+
+const centerIndicatorStyle = computed(() => ({
+	position: 'absolute',
+	top: '50%',
+	left: '50%',
+	width: '10px',
+	height: '1px',
+	backgroundColor: isFocused.value ? 'gray' : 'lightgray',
+	transform: 'translate(-50%, -50%)',
+	'&::after': {
+		content: '""',
+		position: 'absolute',
+		top: '50%',
+		left: '50%',
+		width: '1px',
+		height: '10px',
+		backgroundColor: isFocused.value ? 'gray' : 'lightgray',
+		transform: 'translate(-50%, -50%)',
+	},
+}));
+
+const updateVideoStyle = () => {
+	if (videoContainerRef.value) {
+		Object.assign(videoContainerRef.value.style, {
+			transform: `translate(-50%, -50%) translate(${videoPosition.value.x}px, ${videoPosition.value.y}px) scale(${videoScale.value}) rotate(${videoRotation.value}deg)`,
+		});
+	}
+};
+
+const startDrag = (event) => {
+	isDragging.value = true;
+	startPosition.value = {
+		x: event.clientX - videoPosition.value.x,
+		y: event.clientY - videoPosition.value.y,
+	};
+};
+
+const onDrag = (event) => {
+	if (!isDragging.value) return;
+
+	const dx = event.clientX - startPosition.value.x;
+	const dy = event.clientY - startPosition.value.y;
+
+	const photoZone = document.querySelector('.photo-zone');
+	const photoZoneRect = photoZone.getBoundingClientRect();
+	const videoContainerRect = videoContainerRef.value.getBoundingClientRect();
+
+	// 드래그된 위치가 photoZone 내에 있는지 확인
+	const newPosX = Math.max(
+		Math.min(dx, photoZoneRect.width / 2 - videoContainerRect.width / 2),
+		-photoZoneRect.width / 2 + videoContainerRect.width / 2,
+	);
+	const newPosY = Math.max(
+		Math.min(dy, photoZoneRect.height / 2 - videoContainerRect.height / 2),
+		-photoZoneRect.height / 2 + videoContainerRect.height / 2,
+	);
+
+	videoPosition.value = { x: newPosX, y: newPosY };
+};
+
+const stopDrag = () => {
+	isDragging.value = false;
+};
+
+// useDraggable 훅 사용
+const { isDragging: isDraggableActive } = useDraggable(videoContainerRef, {
+	initialValue: videoPosition,
+	onStart: startDrag,
+	onMove: onDrag,
+	onEnd: stopDrag,
+});
+
+// loadSelfieSegmentation 함수 정의
+const loadSelfieSegmentation = async () => {
+	console.log('Loading Selfie Segmentation model');
+	selfieSegmentationInstance = new selfieSegmentation.SelfieSegmentation({
+		locateFile: (file) => {
+			return `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file}`;
+		},
+	});
+	selfieSegmentationInstance.setOptions({
+		modelSelection: 1,
+		selfieMode: true,
+	});
+	selfieSegmentationInstance.onResults(onResults);
+	console.log('Selfie Segmentation model loaded successfully');
+};
+
+const onResults = (results) => {
+	if (!results || !results.segmentationMask || !results.image) return;
+
+	const canvasCtx = canvasElement.value.getContext('2d');
+	canvasCtx.save();
+	canvasCtx.clearRect(0, 0, canvasElement.value.width, canvasElement.value.height);
+
+	// ImageBitmap을 ImageData로 변환
+	const tempCanvas = document.createElement('canvas');
+	tempCanvas.width = results.segmentationMask.width;
+	tempCanvas.height = results.segmentationMask.height;
+	const tempCtx = tempCanvas.getContext('2d');
+	tempCtx.drawImage(results.segmentationMask, 0, 0);
+	const imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+
+	// 임계값 설정
+	const threshold = 128; // 0 ~ 255 사이의 값으로 설정
+
+	for (let i = 0; i < imageData.data.length; i += 4) {
+		if (imageData.data[i] < threshold) {
+			imageData.data[i + 3] = 0; // 투명하게 설정
+		}
+	}
+
+	// 세그멘테이션 마스크 적용
+	const maskCanvas = document.createElement('canvas');
+	maskCanvas.width = imageData.width;
+	maskCanvas.height = imageData.height;
+	const maskCtx = maskCanvas.getContext('2d');
+	maskCtx.putImageData(imageData, 0, 0);
+
+	// 원본 이미지 그리기
+	canvasCtx.drawImage(results.image, 0, 0, canvasElement.value.width, canvasElement.value.height);
+
+	// 마스크 적용
+	canvasCtx.globalCompositeOperation = 'destination-in';
+	canvasCtx.drawImage(maskCanvas, 0, 0, canvasElement.value.width, canvasElement.value.height);
+
+	canvasCtx.globalCompositeOperation = 'source-over';
+	canvasCtx.restore();
+};
+
+const processFrame = async () => {
+	if (!isProcessing.value || !videoElement.value || !selfieSegmentationInstance) return;
+
+	try {
+		await selfieSegmentationInstance.send({ image: videoElement.value });
+	} catch (error) {
+		console.error('Error processing frame:', error);
+	}
+	requestAnimationFrame(processFrame);
+};
+
 onMounted(async () => {
+	console.log('shootView Mounted!');
 	try {
 		mediaStream = await navigator.mediaDevices.getUserMedia({
-			video: true,
+			video: { width: 640, height: 480 },
 			audio: true,
 		});
 
-		videoElement.value.srcObject = mediaStream;
-	} catch (error) {}
+		if (videoElement.value) {
+			videoElement.value.srcObject = mediaStream;
+			videoElement.value.onloadedmetadata = async () => {
+				console.log('Video metadata loaded');
+				videoWidth.value = videoElement.value.videoWidth / 3;
+				videoHeight.value = videoElement.value.videoHeight / 3;
+				await loadSelfieSegmentation();
+				videoElement.value.play();
+				requestAnimationFrame(processFrame);
+			};
+		} else {
+			console.error('Video element not found');
+		}
+	} catch (error) {
+		console.error('Error accessing webcam:', error);
+	}
+
+	updateVideoStyle();
+	watch([videoPosition, videoScale, videoRotation], updateVideoStyle);
 });
 
 onUnmounted(() => {
+	console.log('shootView unMounted!');
+	isProcessing.value = false;
 	if (mediaStream) {
 		mediaStream.getTracks().forEach((track) => {
 			track.stop();
@@ -49,8 +237,10 @@ onUnmounted(() => {
 });
 
 const toggleMirror = () => {
-	isMirrored = !isMirrored;
-	videoElement.value.style.transform = isMirrored ? 'scaleX(-1)' : 'scaleX(1)';
+	isMirrored.value = !isMirrored.value;
+	videoElement.value.style.transform = isMirrored.value ? 'scaleX(-1)' : 'scaleX(1)';
+	canvasElement.value.style.transform = isMirrored.value ? 'scaleX(-1)' : 'scaleX(1)';
+	console.log('영상 반전 상태:', isMirrored.value);
 };
 
 const toggleCamera = () => {
@@ -91,11 +281,19 @@ const startCountdown = () => {
 			Swal.update({
 				html: `<p style='color:white; font-size:50px;'>${countdown.value}</h3>`,
 			});
+
+			// 카운트다운이 1이 되면 (즉, 1초 전에) 비디오를 일시 정지
+			if (countdown.value === 1) {
+				if (videoElement.value) {
+					videoElement.value.pause();
+				}
+			}
 		}
 	}, 1000);
 };
 
 const takePhoto = async () => {
+	console.log('사진 찍기 시작');
 	const img = new Image();
 	img.crossOrigin = 'Anonymous';
 	img.src = bgImage.value;
@@ -118,8 +316,9 @@ const takePhoto = async () => {
 	};
 
 	img.onerror = async (error) => {
+		console.error('배경 로딩 에러 발생: ', error);
 		await Swal.fire({
-			title: '@배경 오류 발생@',
+			title: '배경 오류 발생',
 			text: '해당 사진은 배경으로 사용할 수 없습니다!',
 			icon: 'warning',
 		});
@@ -127,25 +326,73 @@ const takePhoto = async () => {
 };
 
 const capturePhoto = async () => {
+	console.log('사진 캡처 시작');
 	await nextTick();
+
 	cameraaudio.play();
-	html2canvas(captureArea.value, { useCORS: true, allowTaint: false })
-		.then(async (canvas) => {
-			const imageData = canvas.toDataURL('image/png');
-			images.value.push({ src: imageData, visible: true });
-			remainPicCnt.value = 10 - images.value.length;
-			if (images.value.length === 10) {
-				const { value: result } = await Swal.fire({
-					title: '사진 촬영 종료',
-					text: '10장을 모두 촬영하여 프레임 선택창으로 이동합니다!',
-					icon: 'success',
-				});
-				if (result) {
-					exitphoto();
-				}
+
+	const videoContainer = videoContainerRef.value;
+	const canvas = canvasElement.value;
+	const captureAreaElement = captureArea.value;
+
+	// 임시 캔버스 생성
+	const tempCanvas = document.createElement('canvas');
+	const tempCtx = tempCanvas.getContext('2d');
+	tempCanvas.width = captureAreaElement.clientWidth;
+	tempCanvas.height = captureAreaElement.clientHeight;
+
+	try {
+		// 배경 이미지 그리기
+		const bgImg = new Image();
+		bgImg.crossOrigin = 'anonymous';
+		bgImg.src = bgImage.value;
+		await new Promise((resolve, reject) => {
+			bgImg.onload = resolve;
+			bgImg.onerror = reject;
+		});
+		tempCtx.drawImage(bgImg, 0, 0, tempCanvas.width, tempCanvas.height);
+
+		// 비디오 컨테이너의 위치와 크기 계산
+		const containerRect = videoContainer.getBoundingClientRect();
+		const captureAreaRect = captureAreaElement.getBoundingClientRect();
+		const scale = videoScale.value;
+		const rotation = videoRotation.value;
+
+		// 비디오 그리기
+		tempCtx.save();
+		tempCtx.translate(
+			containerRect.left - captureAreaRect.left + containerRect.width / 2,
+			containerRect.top - captureAreaRect.top + containerRect.height / 2,
+		);
+		tempCtx.rotate((rotation * Math.PI) / 180);
+		tempCtx.scale(scale, scale);
+		tempCtx.translate(-canvas.width / 2, -canvas.height / 2);
+		tempCtx.drawImage(canvas, 0, 0);
+		tempCtx.restore();
+
+		// 이미지 데이터 저장
+		const imageData = tempCanvas.toDataURL('image/png');
+		images.value.push({ src: imageData, visible: true });
+		remainPicCnt.value = 10 - images.value.length;
+
+		if (images.value.length === 10) {
+			const { value: result } = await Swal.fire({
+				title: '사진 촬영 종료',
+				text: '10장을 모두 촬영하여 프레임 선택창으로 이동합니다!',
+				icon: 'success',
+			});
+			if (result) {
+				exitphoto();
 			}
-		})
-		.catch((error) => {});
+		}
+	} catch (error) {
+		console.error('이미지 캡쳐 에러 발생: ', error);
+	} finally {
+		// 비디오 재생 재개
+		if (videoElement.value) {
+			videoElement.value.play();
+		}
+	}
 };
 
 const exitphoto = async () => {
@@ -171,6 +418,85 @@ const showtype = ref(1);
 const changeComponent = () => {
 	showtype.value = showtype.value === 1 ? 2 : 1;
 	navigateTo(showtype.value === 1 ? 'background' : 'showphoto');
+	console.log('컴포넌트 변경:', showtype.value === 1 ? '배경 선택' : '사진 보기');
+};
+
+let isRotating = ref(false);
+let startAngle = ref(0);
+let initialRotation = ref(0);
+
+const startRotate = (event) => {
+	isRotating.value = true;
+	startAngle.value = Math.atan2(
+		event.clientY - videoContainerRef.value.getBoundingClientRect().top - videoHeight.value / 2,
+		event.clientX - videoContainerRef.value.getBoundingClientRect().left - videoWidth.value / 2,
+	);
+	initialRotation.value = videoRotation.value;
+	document.addEventListener('mousemove', onRotate);
+	document.addEventListener('mouseup', stopRotate);
+};
+
+const onRotate = (event) => {
+	if (!isRotating.value) return;
+
+	const currentAngle = Math.atan2(
+		event.clientY - videoContainerRef.value.getBoundingClientRect().top - videoHeight.value / 2,
+		event.clientX - videoContainerRef.value.getBoundingClientRect().left - videoWidth.value / 2,
+	);
+	const deltaAngle = (currentAngle - startAngle.value) * (180 / Math.PI);
+	videoRotation.value = initialRotation.value + deltaAngle;
+};
+
+const stopRotate = () => {
+	isRotating.value = false;
+	document.removeEventListener('mousemove', onRotate);
+	document.removeEventListener('mouseup', stopRotate);
+};
+
+let isScaling = ref(false);
+let startDistance = ref(0);
+let initialScale = ref(1);
+
+const startScale = (event) => {
+	isScaling.value = true;
+	startDistance.value = Math.hypot(
+		event.clientX - videoContainerRef.value.getBoundingClientRect().left,
+		event.clientY - videoContainerRef.value.getBoundingClientRect().top,
+	);
+	initialScale.value = videoScale.value;
+	document.addEventListener('mousemove', onScale);
+	document.addEventListener('mouseup', stopScale);
+};
+
+const onScale = (event) => {
+	if (!isScaling.value) return;
+
+	const currentDistance = Math.hypot(
+		event.clientX - videoContainerRef.value.getBoundingClientRect().left,
+		event.clientY - videoContainerRef.value.getBoundingClientRect().top,
+	);
+	const scaleFactor = currentDistance / startDistance.value;
+	videoScale.value = initialScale.value * scaleFactor;
+
+	// Scale constraints
+	const captureAreaElement = captureArea.value;
+	const maxScale = captureAreaElement.clientWidth / (videoWidth.value * 2);
+	const minScale = captureAreaElement.clientWidth / (videoWidth.value * 7);
+	videoScale.value = Math.max(minScale, Math.min(videoScale.value, maxScale));
+};
+
+const stopScale = () => {
+	isScaling.value = false;
+	document.removeEventListener('mousemove', onScale);
+	document.removeEventListener('mouseup', stopScale);
+};
+
+const handleFocus = () => {
+	isFocused.value = true;
+};
+
+const handleBlur = () => {
+	isFocused.value = false;
 };
 </script>
 
@@ -195,13 +521,40 @@ const changeComponent = () => {
 						ref="captureArea"
 						:style="{ backgroundImage: `url(${bgImage})` }"
 						class="photo-zone"
+						@focus="handleFocus"
+						@blur="handleBlur"
+						tabindex="0"
 					>
-						<div v-show="isvideoOn">
+						<div
+							class="video-container"
+							ref="videoContainerRef"
+							:style="videoStyle"
+							@mousedown="startDrag"
+							@mousemove="onDrag"
+							@mouseup="stopDrag"
+							@mouseleave="stopDrag"
+						>
+							<canvas
+								ref="canvasElement"
+								:width="videoWidth"
+								:height="videoHeight"
+							></canvas>
 							<video
 								ref="videoElement"
 								autoplay
-								style="width: 30%; height: fit-content"
+								:width="videoWidth"
+								:height="videoHeight"
+								style="display: none"
 							></video>
+							<div :style="centerIndicatorStyle"></div>
+							<div
+								class="rotate-handle"
+								@mousedown="startRotate"
+							></div>
+							<div
+								class="scale-handle"
+								@mousedown="startScale"
+							></div>
 						</div>
 					</div>
 
@@ -291,158 +644,35 @@ const changeComponent = () => {
 </template>
 
 <style scoped>
-.select-text-box {
-	display: flex;
-	height: 85%;
-	width: 90%;
-	flex-direction: column;
-	align-items: center;
+@import url('@/assets/css/shootView.css');
+
+.rotate-handle {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 20px;
+	height: 20px;
+	background-color: gray;
+	cursor: grab;
+	z-index: 10;
 }
 
-.select-box-top {
-	height: 15%;
-	width: 85%;
-
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	button {
-		background: transparent;
-		border: none;
-		width: 20%;
-		height: 100%;
-		font-size: 40px;
-
-		&:hover {
-			color: rgb(137, 137, 137);
-		}
-	}
-}
-.booth-content {
-	display: flex;
-	flex-direction: column;
-	justify-content: space-evenly;
-	align-items: center;
-
-	width: 100%;
-	height: 100%;
-}
-.booth-top-div {
-	width: 95%;
-	height: 8%;
-	display: flex;
-	align-items: center;
-	font-size: 30px;
-	justify-content: space-between;
-
-	.close-btn {
-		padding: 5px;
-		display: flex;
-		justify-content: right;
-		.close {
-			background-color: transparent;
-			border: none;
-		}
-	}
+.rotate-handle:active {
+	cursor: grabbing;
 }
 
-.booth-content-main {
-	display: flex;
-	flex-wrap: wrap;
-	align-content: center;
-	justify-content: space-evenly;
-	width: 100%;
-	height: 95%;
-
-	.photo-zone {
-		justify-content: center;
-		width: 95%;
-		height: 87%;
-
-		border-radius: 20px;
-		background-size: cover;
-		background-position: center;
-		background-size: cover;
-		transition: background-image 0.5s;
-	}
-
-	.create-btn {
-		height: 10%;
-		width: 90%;
-		display: flex;
-		flex-wrap: wrap;
-		justify-content: space-between;
-		align-content: flex-end;
-		align-items: center;
-		.left-btn {
-			display: flex;
-			margin: 5px;
-			align-items: center;
-			width: 40%;
-		}
-		.right-btn {
-			display: flex;
-			margin: 5px;
-			flex-direction: row-reverse;
-			align-items: center;
-			width: 40%;
-		}
-
-		.circle-btn {
-			border: none;
-			border-radius: 50%;
-			width: 50px;
-			height: 50px;
-			line-height: 50px;
-			padding: 5px;
-			display: flex;
-			justify-content: center;
-			align-items: center;
-			margin: 0 5px;
-			border: none;
-			background-color: transparent;
-			cursor: pointer;
-		}
-		.take-photo {
-			border: none;
-			border-radius: 50%;
-			width: 50px;
-			height: 50px;
-			line-height: 50px;
-			padding: 5px;
-			display: flex;
-			justify-content: center;
-			align-items: center;
-			margin: 0 5px;
-			border: 0.3px solid black;
-			background-color: transparent;
-			cursor: pointer;
-
-			&:hover {
-				background-color: rgb(203, 203, 203);
-			}
-			&:active {
-				background-color: rgb(90, 90, 90);
-			}
-		}
-	}
+.scale-handle {
+	position: absolute;
+	bottom: 0;
+	right: 0;
+	width: 20px;
+	height: 20px;
+	background-color: gray;
+	cursor: nwse-resize;
+	z-index: 10;
 }
 
-.ract-btn {
-	border: none;
-	border-radius: 10px;
-	width: 100px;
-	height: 36px;
-	margin: 5px;
-	padding: 5px;
-
-	&:hover {
-		background-color: rgb(136, 136, 136);
-	}
-}
-.timer-modal {
-	box-shadow: none;
-	border: none;
-	color: rgb(255, 255, 255);
+.scale-handle:active {
+	cursor: grabbing;
 }
 </style>
