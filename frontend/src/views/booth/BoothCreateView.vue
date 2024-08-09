@@ -113,16 +113,16 @@ const toggleMicro = () => {
 
 const createBooth = () => {
 	WebSocketService.createBooth();
-	// Wait for booth_created message
+	// booth_created 메시지를 기다림
 	const unwatch = watch(
-		() => WebSocketService.boothId.value,
+		() => WebSocketService.boothId,
 		(newBoothId) => {
 			if (newBoothId) {
-				boothCode.value = newBoothId;
+				boothCode.value = newBoothId.slice(0, 10);
 				unwatch();
 				router.push({
 					name: 'boothShoot',
-					params: { boothId: newBoothId },
+					params: { boothId: boothCode.value },
 				});
 			}
 		},

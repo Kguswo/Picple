@@ -89,7 +89,7 @@ class WebSocketService {
     createBooth() {
         return new Promise((resolve, reject) => {
             const handleBoothCreated = (message) => {
-                this.boothId = message.boothId;
+                this.boothId = message.boothId.slice(0, 10);
                 this.off("booth_created", handleBoothCreated);
                 resolve(message.boothId);
             };

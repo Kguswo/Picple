@@ -144,17 +144,26 @@ const { isDragging: isDraggableActive } = useDraggable(videoContainerRef, {
 
 const loadSelfieSegmentation = async () => {
 	console.log('Loading Selfie Segmentation model');
-	selfieSegmentationInstance = new selfieSegmentation.SelfieSegmentation({
-		locateFile: (file) => {
-			return `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file}`;
-		},
-	});
-	selfieSegmentationInstance.setOptions({
-		modelSelection: 1,
-		selfieMode: false,
-	});
-	selfieSegmentationInstance.onResults(onResults);
-	console.log('Selfie Segmentation model loaded successfully');
+	if (typeof SelfieSegmentation === 'undefined') {
+		console.error('SelfieSegmentation is not defined.');
+		return;
+	}
+
+	try {
+		selfieSegmentationInstance = new SelfieSegmentation({
+			locateFile: (file) => {
+				return `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file}`;
+			},
+		});
+		selfieSegmentationInstance.setOptions({
+			modelSelection: 1,
+			selfieMode: false,
+		});
+		selfieSegmentationInstance.onResults(onResults);
+		console.log('Selfie Segmentation model loaded successfully');
+	} catch (error) {
+		console.error('Error initializing SelfieSegmentation:', error);
+	}
 };
 
 const onResults = (results) => {
@@ -249,7 +258,6 @@ const initializeWebSocketAndMedia = async () => {
 			videoHeight.value = videoElement.value.videoHeight / 3;
 			await loadSelfieSegmentation();
 			videoElement.value.play();
-			requestAnimationFrame(processFrame);
 
 			videoElement.value.style.transform = 'scaleX(-1)';
 			canvasElement.value.style.transform = 'scaleX(-1)';
