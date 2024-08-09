@@ -47,7 +47,7 @@ const validateInputField = () => {
 	return true;
 };
 
-const send = async () => {
+const send = async (data) => {
 	if (!data.isSuccess) {
 		await alertResult(false, '인증번호 전송에 실패하였습니다.');
 		return;
@@ -72,7 +72,7 @@ const sendAuthNumber = async (e) => {
 		return;
 	}
 	const { data } = await sendAuthNumberApi(email.value.value);
-	send();
+	send(data);
 };
 
 const verifyEmail = async () => {
