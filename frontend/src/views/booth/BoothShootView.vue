@@ -18,8 +18,8 @@ import microOff from '@/assets/icon/micro_off.png';
 const router = useRouter();
 const photoStore = usePhotoStore();
 
-const navigateTo = (name) => {
-	router.push({ name });
+const navigateTo = (path) => {
+	router.push({ name: path });
 };
 
 const videoElement = ref(null);
@@ -120,7 +120,6 @@ const stopDrag = () => {
 	isDragging.value = false;
 };
 
-// useDraggable 훅 사용
 const { isDragging: isDraggableActive } = useDraggable(videoContainerRef, {
 	initialValue: videoPosition,
 	onStart: startDrag,
@@ -128,7 +127,6 @@ const { isDragging: isDraggableActive } = useDraggable(videoContainerRef, {
 	onEnd: stopDrag,
 });
 
-// loadSelfieSegmentation 함수 정의
 const loadSelfieSegmentation = async () => {
 	console.log('Loading Selfie Segmentation model');
 	selfieSegmentationInstance = new selfieSegmentation.SelfieSegmentation({
@@ -151,7 +149,6 @@ const onResults = (results) => {
 	canvasCtx.save();
 	canvasCtx.clearRect(0, 0, canvasElement.value.width, canvasElement.value.height);
 
-	// ImageBitmap을 ImageData로 변환
 	const tempCanvas = document.createElement('canvas');
 	tempCanvas.width = results.segmentationMask.width;
 	tempCanvas.height = results.segmentationMask.height;
@@ -159,26 +156,22 @@ const onResults = (results) => {
 	tempCtx.drawImage(results.segmentationMask, 0, 0);
 	const imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
 
-	// 임계값 설정
-	const threshold = 128; // 0 ~ 255 사이의 값으로 설정
+	const threshold = 128;
 
 	for (let i = 0; i < imageData.data.length; i += 4) {
 		if (imageData.data[i] < threshold) {
-			imageData.data[i + 3] = 0; // 투명하게 설정
+			imageData.data[i + 3] = 0;
 		}
 	}
 
-	// 세그멘테이션 마스크 적용
 	const maskCanvas = document.createElement('canvas');
 	maskCanvas.width = imageData.width;
 	maskCanvas.height = imageData.height;
 	const maskCtx = maskCanvas.getContext('2d');
 	maskCtx.putImageData(imageData, 0, 0);
 
-	// 원본 이미지 그리기
 	canvasCtx.drawImage(results.image, 0, 0, canvasElement.value.width, canvasElement.value.height);
 
-	// 마스크 적용
 	canvasCtx.globalCompositeOperation = 'destination-in';
 	canvasCtx.drawImage(maskCanvas, 0, 0, canvasElement.value.width, canvasElement.value.height);
 
@@ -245,6 +238,7 @@ const toggleMirror = () => {
 
 const toggleCamera = () => {
 	isvideoOn.value = !isvideoOn.value;
+	console.log('비디오 온/오프:', isvideoOn.value);
 
 	mediaStream.getVideoTracks().forEach((track) => {
 		track.enabled = isvideoOn.value;
@@ -254,6 +248,7 @@ const toggleCamera = () => {
 
 const toggleMicro = () => {
 	isMicroOn.value = !isMicroOn.value;
+	console.log('마이크 온/오프:', isMicroOn.value);
 
 	mediaStream.getAudioTracks().forEach((track) => {
 		track.enabled = isMicroOn.value;
@@ -263,6 +258,7 @@ const toggleMicro = () => {
 const bgImage = ref('https://via.placeholder.com/400');
 
 const changeImage = (image) => {
+	console.log('이미지 변경 클릭', image);
 	bgImage.value = image;
 };
 
@@ -282,7 +278,6 @@ const startCountdown = () => {
 				html: `<p style='color:white; font-size:50px;'>${countdown.value}</h3>`,
 			});
 
-			// 카운트다운이 1이 되면 (즉, 1초 전에) 비디오를 일시 정지
 			if (countdown.value === 1) {
 				if (videoElement.value) {
 					videoElement.value.pause();
@@ -335,14 +330,12 @@ const capturePhoto = async () => {
 	const canvas = canvasElement.value;
 	const captureAreaElement = captureArea.value;
 
-	// 임시 캔버스 생성
 	const tempCanvas = document.createElement('canvas');
 	const tempCtx = tempCanvas.getContext('2d');
 	tempCanvas.width = captureAreaElement.clientWidth;
 	tempCanvas.height = captureAreaElement.clientHeight;
 
 	try {
-		// 배경 이미지 그리기
 		const bgImg = new Image();
 		bgImg.crossOrigin = 'anonymous';
 		bgImg.src = bgImage.value;
@@ -352,13 +345,11 @@ const capturePhoto = async () => {
 		});
 		tempCtx.drawImage(bgImg, 0, 0, tempCanvas.width, tempCanvas.height);
 
-		// 비디오 컨테이너의 위치와 크기 계산
 		const containerRect = videoContainer.getBoundingClientRect();
 		const captureAreaRect = captureAreaElement.getBoundingClientRect();
 		const scale = videoScale.value;
 		const rotation = videoRotation.value;
 
-		// 비디오 그리기
 		tempCtx.save();
 		tempCtx.translate(
 			containerRect.left - captureAreaRect.left + containerRect.width / 2,
@@ -370,7 +361,6 @@ const capturePhoto = async () => {
 		tempCtx.drawImage(canvas, 0, 0);
 		tempCtx.restore();
 
-		// 이미지 데이터 저장
 		const imageData = tempCanvas.toDataURL('image/png');
 		images.value.push({ src: imageData, visible: true });
 		remainPicCnt.value = 10 - images.value.length;
@@ -388,7 +378,6 @@ const capturePhoto = async () => {
 	} catch (error) {
 		console.error('이미지 캡쳐 에러 발생: ', error);
 	} finally {
-		// 비디오 재생 재개
 		if (videoElement.value) {
 			videoElement.value.play();
 		}
@@ -396,6 +385,9 @@ const capturePhoto = async () => {
 };
 
 const exitphoto = async () => {
+	console.log('촬영종료');
+	console.log('저장할 이미지 리스트:', images.value);
+
 	const { value: result } = await Swal.fire({
 		title: '촬영 끝내기',
 		text: '촬영을 종료하고 저장을 위해 나가시겠습니까?',
@@ -407,6 +399,7 @@ const exitphoto = async () => {
 
 	if (result) {
 		photoStore.setPhotoList(images.value);
+		console.log('Pinia store에 저장된 이미지 리스트:', photoStore.photoList);
 		router.push('/selectTemp');
 	} else {
 		Swal.fire('취소', '촬영을 계속합니다!', 'error');
@@ -419,84 +412,6 @@ const changeComponent = () => {
 	showtype.value = showtype.value === 1 ? 2 : 1;
 	navigateTo(showtype.value === 1 ? 'background' : 'showphoto');
 	console.log('컴포넌트 변경:', showtype.value === 1 ? '배경 선택' : '사진 보기');
-};
-
-let isRotating = ref(false);
-let startAngle = ref(0);
-let initialRotation = ref(0);
-
-const startRotate = (event) => {
-	isRotating.value = true;
-	startAngle.value = Math.atan2(
-		event.clientY - videoContainerRef.value.getBoundingClientRect().top - videoHeight.value / 2,
-		event.clientX - videoContainerRef.value.getBoundingClientRect().left - videoWidth.value / 2,
-	);
-	initialRotation.value = videoRotation.value;
-	document.addEventListener('mousemove', onRotate);
-	document.addEventListener('mouseup', stopRotate);
-};
-
-const onRotate = (event) => {
-	if (!isRotating.value) return;
-
-	const currentAngle = Math.atan2(
-		event.clientY - videoContainerRef.value.getBoundingClientRect().top - videoHeight.value / 2,
-		event.clientX - videoContainerRef.value.getBoundingClientRect().left - videoWidth.value / 2,
-	);
-	const deltaAngle = (currentAngle - startAngle.value) * (180 / Math.PI);
-	videoRotation.value = initialRotation.value + deltaAngle;
-};
-
-const stopRotate = () => {
-	isRotating.value = false;
-	document.removeEventListener('mousemove', onRotate);
-	document.removeEventListener('mouseup', stopRotate);
-};
-
-let isScaling = ref(false);
-let startDistance = ref(0);
-let initialScale = ref(1);
-
-const startScale = (event) => {
-	isScaling.value = true;
-	startDistance.value = Math.hypot(
-		event.clientX - videoContainerRef.value.getBoundingClientRect().left,
-		event.clientY - videoContainerRef.value.getBoundingClientRect().top,
-	);
-	initialScale.value = videoScale.value;
-	document.addEventListener('mousemove', onScale);
-	document.addEventListener('mouseup', stopScale);
-};
-
-const onScale = (event) => {
-	if (!isScaling.value) return;
-
-	const currentDistance = Math.hypot(
-		event.clientX - videoContainerRef.value.getBoundingClientRect().left,
-		event.clientY - videoContainerRef.value.getBoundingClientRect().top,
-	);
-	const scaleFactor = currentDistance / startDistance.value;
-	videoScale.value = initialScale.value * scaleFactor;
-
-	// Scale constraints
-	const captureAreaElement = captureArea.value;
-	const maxScale = captureAreaElement.clientWidth / (videoWidth.value * 2);
-	const minScale = captureAreaElement.clientWidth / (videoWidth.value * 7);
-	videoScale.value = Math.max(minScale, Math.min(videoScale.value, maxScale));
-};
-
-const stopScale = () => {
-	isScaling.value = false;
-	document.removeEventListener('mousemove', onScale);
-	document.removeEventListener('mouseup', stopScale);
-};
-
-const handleFocus = () => {
-	isFocused.value = true;
-};
-
-const handleBlur = () => {
-	isFocused.value = false;
 };
 </script>
 
@@ -533,6 +448,9 @@ const handleBlur = () => {
 							@mousemove="onDrag"
 							@mouseup="stopDrag"
 							@mouseleave="stopDrag"
+							@focus="handleFocus"
+							@blur="handleBlur"
+							tabindex="0"
 						>
 							<canvas
 								ref="canvasElement"
@@ -548,13 +466,28 @@ const handleBlur = () => {
 							></video>
 							<div :style="centerIndicatorStyle"></div>
 							<div
+								v-if="isFocused"
 								class="rotate-handle"
-								@mousedown="startRotate"
-							></div>
+							>
+								<input
+									type="range"
+									v-model="videoRotation"
+									min="0"
+									max="360"
+								/>
+							</div>
 							<div
+								v-if="isFocused"
 								class="scale-handle"
-								@mousedown="startScale"
-							></div>
+							>
+								<input
+									type="range"
+									v-model="videoScale"
+									min="0.5"
+									max="2"
+									step="0.01"
+								/>
+							</div>
 						</div>
 					</div>
 
@@ -646,33 +579,16 @@ const handleBlur = () => {
 <style scoped>
 @import url('@/assets/css/shootView.css');
 
-.rotate-handle {
+.rotate-handle,
+.scale-handle {
 	position: absolute;
-	top: 0;
-	left: 0;
-	width: 20px;
-	height: 20px;
-	background-color: gray;
-	cursor: grab;
-	z-index: 10;
-}
-
-.rotate-handle:active {
-	cursor: grabbing;
+	bottom: 10px;
+	left: 10px;
+	width: 150px;
 }
 
 .scale-handle {
-	position: absolute;
-	bottom: 0;
-	right: 0;
-	width: 20px;
-	height: 20px;
-	background-color: gray;
-	cursor: nwse-resize;
-	z-index: 10;
-}
-
-.scale-handle:active {
-	cursor: grabbing;
+	top: 10px;
+	left: 10px;
 }
 </style>
