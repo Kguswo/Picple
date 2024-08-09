@@ -1,15 +1,43 @@
 <template>
     <div>
-        <h1>OpenVidu 화상 회의</h1>
-        <button @click="joinSession">세션 참가</button>
+        <h1>화상 회의 화면</h1>
+        <div class="video-container">
+            <!-- 로컬 비디오 스트림 -->
+            <div
+                v-if="publisher"
+                class="stream-container"
+            >
+                <h3>내 비디오</h3>
+                <video
+                    ref="myVideo"
+                    autoplay
+                    muted
+                    playsinline
+                ></video>
+            </div>
+
+            <!-- 원격 참가자 비디오 스트림 -->
+            <div
+                v-for="sub in subscribers"
+                :key="sub.stream.streamId"
+                class="stream-container"
+            >
+                <h3>참가자 비디오</h3>
+                <video
+                    :srcObject="sub.stream.getMediaStream()"
+                    autoplay
+                    playsinline
+                ></video>
+            </div>
+        </div>
     </div>
 </template>
 
 <script setup>
-import axios from 'axios';
+import { ref, onMounted, onUnmounted } from 'vue';
 import { OpenVidu } from 'openvidu-browser';
-import { ref, onUnmounted } from 'vue';
-import router from '@/router';
+import { useRoute } from 'vue-router';
+import axios from 'axios';
 
 // OpenVidu 객체와 세션을 저장할 ref 생성
 const OV = ref(null);
@@ -19,8 +47,12 @@ const session = ref(null);
 const publisher = ref(null);
 const subscribers = ref([]);
 
-// 고정된 세션 ID 설정
-const FIXED_SESSION_ID = 'myFixedSessionId';
+// 로컬 비디오 요소에 대한 ref 생성
+const myVideo = ref(null);
+
+// 라우터에서 세션 ID를 가져옴
+const route = useRoute();
+const sessionId = route.params.sessionId;
 
 // 세션 참가 함수
 const joinSession = async () => {
@@ -77,8 +109,10 @@ const joinSession = async () => {
         // 로컬 스트림을 세션에 게시
         await session.value.publish(publisher.value);
 
-        // 세션 연결이 완료되면 화면 페이지로 이동
-        router.push({ name: 'videoDisplay', params: { sessionId: FIXED_SESSION_ID } });
+        // 로컬 비디오 스트림 설정
+        if (myVideo.value && publisher.value.stream && publisher.value.stream.getMediaStream()) {
+            myVideo.value.srcObject = publisher.value.stream.getMediaStream();
+        }
     } catch (error) {
         console.error('세션 참가 중 오류 발생:', error);
         if (error.name === 'DEVICE_ACCESS_DENIED') {
@@ -94,7 +128,7 @@ const getToken = async () => {
     try {
         // 먼저 고정된 세션 ID로 토큰을 얻으려고 시도
         const response = await axios.post(
-            `https://localhost:4443/openvidu/api/sessions/${FIXED_SESSION_ID}/connection`,
+            `https://localhost:4443/openvidu/api/sessions/${sessionId}/connection`,
             {},
             {
                 headers: {
@@ -107,7 +141,7 @@ const getToken = async () => {
     } catch (error) {
         if (error.response && error.response.status === 404) {
             // 세션이 없으면 새로 생성
-            await createSession(FIXED_SESSION_ID);
+            await createSession(sessionId);
             // 세션 생성 후 다시 토큰 얻기 시도
             return getToken();
         }
@@ -129,6 +163,11 @@ const createSession = async (sessionId) => {
     );
 };
 
+// 컴포넌트가 마운트될 때 실행될 로직
+onMounted(() => {
+    joinSession();
+});
+
 // 컴포넌트가 언마운트될 때 실행될 로직
 onUnmounted(() => {
     // 세션이 존재하면 연결 해제
@@ -139,8 +178,25 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-button {
-    padding: 10px 20px;
-    font-size: 16px;
+/* 비디오 컨테이너 스타일 */
+.video-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+/* 개별 스트림 컨테이너 스타일 */
+.stream-container {
+    width: 320px;
+}
+
+/* 비디오 요소 스타일 */
+video {
+    width: 100%;
+    height: auto;
+    border: 1px solid #ccc;
+    border-radius: 8px;
 }
 </style>
