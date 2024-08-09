@@ -23,6 +23,7 @@ public class PhotoUserController {
 
 	private final PhotoUserService photoUserService;
 
+	// 사용자의 사진 정보(메모)를 가져옴,'PhotoUserRequestDto' 기반 사용자 사진 정보 조회
 	@GetMapping("/{photoUserId}")
 	public BaseResponse<PhotoUserResponseDto> getPhotoUserContent(
 			HttpServletRequest request,
@@ -33,6 +34,7 @@ public class PhotoUserController {
 
 	}
 
+	// 'PhotoUserRequestDto' 기반 새로운 PhotoUser 생성
 	@PostMapping
 	public BaseResponse<PhotoUserResponseDto> createPhotoUser(
 			HttpServletRequest request,

@@ -27,14 +27,14 @@ public enum BaseResponseStatus {
 	// Common
 	RESPONSE_ERROR(false, 3000, "값을 불러오는데 실패하였습니다."),
 
-    // 3001 ~~ 3099 : 박성훈
-    // 3001 ~~ 3015 : about email
-    DUPLICATED_USER_EMAIL(false, 3002, "해당 이메일이 이미 존재합니다."),
-    DUPLICATED_USER_NICKNAME(false, 3003, "해당 닉네임이 이미 존재합니다."),
-    EMAIL_SEND_ERROR(false, 3003, "이메일 발송 중 문제가 생겼습니다."),
-    USER_EMAIL_EMPTY(false, 3004, "이메일을 입력해주세요."),
-    NOT_EQUAL_EMAIL_CODE(false, 3005, "인증 코드를 확인하세요."),
-    NOT_EXISTS_CODE(false, 3006, "인증을 다시 시도하여 주십시오."),
+	// 3001 ~~ 3099 : 박성훈
+	// 3001 ~~ 3015 : about email
+	DUPLICATED_USER_EMAIL(false, 3002, "해당 이메일이 이미 존재합니다."),
+	DUPLICATED_USER_NICKNAME(false, 3003, "해당 닉네임이 이미 존재합니다."),
+	EMAIL_SEND_ERROR(false, 3003, "이메일 발송 중 문제가 생겼습니다."),
+	USER_EMAIL_EMPTY(false, 3004, "이메일을 입력해주세요."),
+	NOT_EQUAL_EMAIL_CODE(false, 3005, "인증 코드를 확인하세요."),
+	NOT_EXISTS_CODE(false, 3006, "인증을 다시 시도하여 주십시오."),
 
 	// about user service
 	GET_USER_EMPTY(false, 3016, "등록된 유저가 없습니다."),
@@ -69,19 +69,24 @@ public enum BaseResponseStatus {
 	GET_BOARD_EMPTY(false, 3150, "유효하지 않은 boardId값입니다"),
 
 	// 3200 ~~ 3299 : 염규영
+	// background
 	INVALID_BACKGROUND_ID(false, 3202, "올바르지 않은 배경화면 ID입니다."),
 	DELETE_BACKGROUND_ERROR(false, 3203, "배경 사진 삭제에 실패하였습니다."),
 	BACKGROUND_UPLOAD_ERROR(false, 3204, "배경 사진 생성에 실패하였습니다."),
+	URL_EMPTY_ERROR(false, 3225, "URL이 비어있습니다."),
+	GENERATING_FILE_NAME_ERROR(false, 3227, "파일명을 생성하는데 실패하였습니다."),
+
+	// background - ai
 	JSON_PARSING_ERROR(false, 3206, "JSON을 처리할 수 없습니다."),
 	AI_CLIENT_ERROR(false, 3207, "AI 클라이언트 오류가 발생하였습니다."),
 	AI_SERVER_ERROR(false, 3208, "AI 서버 오류가 발생하였습니다."),
+	BLOCKING_ERROR(false, 3228, "블로킹에 실패하였습니다."),
+
+	// background - local
 	INVALID_IMAGE_FORMAT(false, 3220, "지원하지 않는 확장자입니다."),
 	FILE_SIZE_TOO_BIG(false, 3222, "사진 크기가 너무 큽니다."),
 	FILE_SIZE_TOO_SMALL(false, 3223, "사진 크기가 너무 작습니다."),
-	URL_EMPTY_ERROR(false, 3225, "URL이 비어있습니다."),
 	FILE_CONVERSION_ERROR(false, 3226, "파일을 변환하는데 실패하였습니다."),
-	GENERATING_FILE_NAME_ERROR(false, 3227, "파일명을 생성하는데 실패하였습니다."),
-	BLOCKING_ERROR(false, 3228, "블로킹에 실패하였습니다."),
 
 	/**
 	 * 4000 : Database, Server

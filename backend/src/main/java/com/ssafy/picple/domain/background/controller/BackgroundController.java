@@ -32,6 +32,7 @@ public class BackgroundController {
 
 	private final BackgroundService backgroundService;
 
+	// 기본 배경 사진들을 가져옴
 	@GetMapping
 	public BaseResponse<List<BackgroundResponseDto>> getDefaultBackgrounds() throws BaseException {
 		try {
@@ -42,6 +43,7 @@ public class BackgroundController {
 		}
 	}
 
+	// 사용자가 등록한 배경 사진을 가져옴
 	@GetMapping("/{userId}")
 	public BaseResponse<List<BackgroundResponseDto>> getUserBackgrounds(
 			HttpServletRequest request)
@@ -55,7 +57,7 @@ public class BackgroundController {
 		}
 	}
 
-	// response 프론트에 넘겨줄지 의논 필요
+	// 생성형 AI를 통해 배경 사진을 만듦
 	@PostMapping("/ai/{userId}")
 	public BaseResponse<Object> createAiBackground(
 			@PathVariable Long userId,
@@ -66,7 +68,7 @@ public class BackgroundController {
 		return new BaseResponse<>(SUCCESS);
 	}
 
-	// response 프론트에 넘겨줄지 의논 필요
+	// 로컬에서 사진을 불러와 배경 사진을 등록
 	@PostMapping("/local/{userId}")
 	public BaseResponse<Object> createLocalBackground(
 			@PathVariable Long userId,
@@ -77,6 +79,7 @@ public class BackgroundController {
 		return new BaseResponse<>(SUCCESS);
 	}
 
+	// 사용자의 배경 사진 삭제
 	@DeleteMapping("/{backgroundId}")
 	public BaseResponse<ModifyBackgroundTitleResponse> deleteBackground(
 			HttpServletRequest request,
