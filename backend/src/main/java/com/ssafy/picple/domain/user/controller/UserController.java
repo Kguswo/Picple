@@ -2,6 +2,7 @@ package com.ssafy.picple.domain.user.controller;
 
 import static com.ssafy.picple.config.baseResponse.BaseResponseStatus.*;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -18,7 +19,6 @@ import com.ssafy.picple.domain.user.dto.request.EmailRequest;
 import com.ssafy.picple.domain.user.dto.request.LoginRequest;
 import com.ssafy.picple.domain.user.dto.request.ModifyNicknameRequest;
 import com.ssafy.picple.domain.user.dto.request.ModifyPasswordRequest;
-import com.ssafy.picple.domain.user.dto.request.ResetPasswordRequest;
 import com.ssafy.picple.domain.user.dto.response.LoginResponse;
 import com.ssafy.picple.domain.user.dto.response.ModifyConfirmResponse;
 import com.ssafy.picple.domain.user.dto.response.UserInfoResponse;
@@ -26,15 +26,12 @@ import com.ssafy.picple.domain.user.entity.User;
 import com.ssafy.picple.domain.user.service.EmailService;
 import com.ssafy.picple.domain.user.service.UserService;
 import com.ssafy.picple.util.JWTUtil;
+
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.web.bind.annotation.*;
-
-import static com.ssafy.picple.config.baseResponse.BaseResponseStatus.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -127,20 +124,6 @@ public class UserController {
         return new BaseResponse<>(null);
     }
 
-    /**
-     * email 전송 체크
-     * @param emailCheckDto
-     * @return
-     * @throws BaseException
-     */
-    @PostMapping("/mailcheck")
-    public BaseResponse<String> mailCheck(@RequestBody @Valid EmailCheckRequest emailCheckDto) throws BaseException {
-        if (emailCheckDto.getEmail() == null || emailCheckDto.getEmail().trim().isEmpty()) {
-            throw new BaseException(USER_EMAIL_EMPTY);
-        }
-        return new BaseResponse<>(emailService.verifyEmailCode(emailCheckDto.getEmail(), emailCheckDto.getAuthNumber()));
-    }
-
 	/**
 	 * email 전송 체크
 	 * @param emailCheckDto
@@ -205,18 +188,6 @@ public class UserController {
         cookie.setPath("/");
         response.addCookie(cookie);
 
-        return new BaseResponse<>(SUCCESS);
-    }
-
-	/**
-	 * 로그아웃
-	 * @param request
-	 * @return
-	 * @throws BaseException
-	 */
-	@PostMapping("/logout")
-	public BaseResponse<BaseResponseStatus> logout(HttpServletRequest request) throws BaseException {
-		jwtUtil.logout(request.getHeader("X-ACCESS-TOKEN"));
 		return new BaseResponse<>(SUCCESS);
 	}
 
