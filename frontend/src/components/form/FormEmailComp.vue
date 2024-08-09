@@ -1,7 +1,7 @@
 <script setup>
 import FormInputComp from '@/components/form/FormInputComp.vue';
 import FormButtonComp from '@/components/form/FormButtonComp.vue';
-import { validateEmailPattern, setFormMessage } from '@/composables/validation';
+import { validateEmailPattern, setFormMessage } from '@/assets/js/validation';
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import Swal from 'sweetalert2';

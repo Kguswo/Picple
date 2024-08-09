@@ -1,5 +1,5 @@
 import { instance } from '@/api/baseApi';
-import { formatDate } from '@/composables/date';
+import { formatDate } from '@/assets/js/date';
 
 const calendarsBaseUrl = instance.defaults.baseURL + '/calendars';
 

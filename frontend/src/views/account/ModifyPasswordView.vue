@@ -3,7 +3,7 @@ import FormComp from '@/components/form/FormComp.vue';
 import FormInputComp from '@/components/form/FormInputComp.vue';
 import FormButtonComp from '@/components/form/FormButtonComp.vue';
 import { useRoute, useRouter } from 'vue-router';
-import { validatePasswordPattern, validatePasswordConfirm, setFormMessage } from '@/composables/validation';
+import { validatePasswordPattern, validatePasswordConfirm, setFormMessage } from '@/assets/js/validation';
 import Swal from 'sweetalert2';
 import { modifyPasswordApi } from '@/api/userApi';
 import { useFormStore } from '@/stores/formStore';

@@ -3,7 +3,7 @@ import FormComp from '@/components/form/FormComp.vue';
 import FormInputComp from '@/components/form/FormInputComp.vue';
 import FormButtonComp from '@/components/form/FormButtonComp.vue';
 import { useRouter } from 'vue-router';
-import { validateNicknamePattern, setFormMessage } from '@/composables/validation';
+import { validateNicknamePattern, setFormMessage } from '@/assets/js/validation';
 import Swal from 'sweetalert2';
 import { useUserStore } from '@/stores/userStore';
 import { storeToRefs } from 'pinia';
