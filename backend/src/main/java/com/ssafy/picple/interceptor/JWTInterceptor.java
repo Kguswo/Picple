@@ -22,19 +22,20 @@ public class JWTInterceptor implements HandlerInterceptor {
 	@Override
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response,
 			Object handler) throws BaseException {
-		String token = request.getHeader("X-ACCESS-TOKEN");
-
 		if (CorsUtils.isPreFlightRequest(request)) {
 			return true;
 		}
 
+		String token = request.getHeader("X-ACCESS-TOKEN");
+
 		if (token == null) {
 			throw new BaseException(EMPTY_JWT);
-		} else if (!jwtUtil.verifyToken(token)) {
+		}
+		if (!jwtUtil.verifyAccessToken(token)) {
 			throw new BaseException(INVALID_JWT);
 		}
 
-		Long userId = jwtUtil.getUserId(token);
+		Long userId = jwtUtil.getUserIdByToken(token);
 		request.setAttribute("userId", userId);
 
 		return true;

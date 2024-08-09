@@ -10,6 +10,7 @@ import com.ssafy.picple.domain.user.dto.response.UserInfoResponse;
 import com.ssafy.picple.domain.user.entity.User;
 import com.ssafy.picple.domain.user.repository.UserRepository;
 import com.ssafy.picple.util.JWTUtil;
+import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -59,7 +60,10 @@ public class UserServiceImpl implements UserService {
         if (!validatePassword(loginRequest.getPassword(), user.getPassword())) {
             throw new BaseException(INVALID_PASSWORD);
         }
-        return new LoginResponse(jwtUtil.createAccessToken(user.getId()), user.getNickname());
+        String accessToken = jwtUtil.createAccessToken(user);
+        String refreshToken = jwtUtil.createRefreshToken(user);
+        user.setRefreshTokenByLogin(refreshToken);
+        return new LoginResponse(accessToken, refreshToken);
     }
 
     /**
@@ -198,4 +202,33 @@ public class UserServiceImpl implements UserService {
         return passwordEncoder.matches(requestPassword, userPassword);
     }
 
+    /**
+     * 액세스 토큰 재발급
+     * @param
+     * @return
+     * @throws BaseException
+     */
+    public String refreshToken(String refreshToken) throws BaseException {
+        Claims claims = jwtUtil.parseRefreshToken(refreshToken);
+
+        User user = userRepository.findByEmail(claims.getSubject())
+                .orElseThrow(() -> new BaseException(INVALID_JWT));
+
+        String accessToken = jwtUtil.createAccessToken(user);
+        return accessToken;
+    }
+
+    /**
+     * 로그아웃
+     * @param
+     * @return
+     * @throws BaseException
+     */
+    @Transactional
+    public void logout(Long userId) throws BaseException{
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BaseException(NOT_FOUND_USER));
+        user.deleteRefreshTokenByLogout();
+    }
 }
