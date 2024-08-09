@@ -1,12 +1,12 @@
 import axios from 'axios';
 import Swal from 'sweetalert2';
 import router from '@/router';
+import { useUserStore } from '@/stores/userStore';
 
 export const axiosAuth = axios.create({ withCredentials: true });
 
 axios.interceptors.response.use(
 	async (response) => {
-		console.log(response.data);
 		return response;
 	},
 	async (error) => {
@@ -25,16 +25,18 @@ axiosAuth.interceptors.request.use(
 
 axiosAuth.interceptors.response.use(
 	async (response) => {
+		const userStore = useUserStore();
 		const { config, data } = response;
 
 		if (data.code == import.meta.env.VITE_CODE_INVALID_JWT) {
 			const accessToken = await tokenRefresh();
 			if (accessToken) {
-				localStorage.setItem('accessToken', accessToken);
+				userStore.setUserInfo(accessToken);
 				config.headers['X-ACCESS-TOKEN'] = accessToken;
 				return axiosAuth(config);
 			}
 			await Swal.fire({ icon: 'error', title: '로그인이 필요합니다.', width: 600 });
+			userStore.resetUserInfo();
 			router.push({ name: 'login' });
 			return new Promise(() => {});
 		}
