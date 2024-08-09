@@ -21,4 +21,6 @@ public interface UserService {
     BaseResponseStatus resetPassword(String email, String password) throws BaseException;
     // 회원 탈퇴
     String deleteUser(Long userId) throws BaseException;
+    void logout(Long userId) throws BaseException;
+    String refreshToken(String refreshToken) throws BaseException;
 }
