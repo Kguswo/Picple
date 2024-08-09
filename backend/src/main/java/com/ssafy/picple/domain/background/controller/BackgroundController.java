@@ -19,7 +19,6 @@ import com.ssafy.picple.config.baseResponse.BaseResponse;
 import com.ssafy.picple.domain.background.dto.request.CreateAIBackgroundRequest;
 import com.ssafy.picple.domain.background.dto.request.DeleteBackgroundRequest;
 import com.ssafy.picple.domain.background.dto.response.BackgroundResponseDto;
-import com.ssafy.picple.domain.background.dto.response.ModifyBackgroundTitleResponse;
 import com.ssafy.picple.domain.background.service.BackgroundService;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -81,7 +80,7 @@ public class BackgroundController {
 
 	// 사용자의 배경 사진 삭제
 	@DeleteMapping("/{backgroundId}")
-	public BaseResponse<ModifyBackgroundTitleResponse> deleteBackground(
+	public BaseResponse<Object> deleteBackground(
 			HttpServletRequest request,
 			@PathVariable Long backgroundId,
 			@RequestBody DeleteBackgroundRequest deleteBackgroundRequest) throws BaseException {
