@@ -1,10 +1,10 @@
-import { instance } from '@/api/baseApi';
+import { axiosAuth } from '@/api/baseApi';
 import { formatDate } from '@/assets/js/date';
 
-const calendarsBaseUrl = instance.defaults.baseURL + '/calendars';
+const calendarsBaseUrl = import.meta.env.VITE_API_CALENDAR;
 
 const calendarMonthlyCountApi = (year, month, endDate) => {
-	return instance.get(
+	return axiosAuth.get(
 		`${calendarsBaseUrl}/monthly-counts?monthlyStartDate=${formatDate(year, month, 1)}&monthlyEndDate=${formatDate(
 			year,
 			month,
@@ -14,19 +14,30 @@ const calendarMonthlyCountApi = (year, month, endDate) => {
 };
 
 const calendarDailyListApi = (createdAt) => {
-	return instance.get(`${calendarsBaseUrl}/daily?createdAt=${createdAt}`);
+	return axiosAuth.get(`${calendarsBaseUrl}/daily?createdAt=${createdAt}`);
+};
+
+const calendarDownloadApi = (calendarId) => {
+	return axiosAuth.post(`${calendarsBaseUrl}/download/${calendarId}`);
 };
 
 const calendarShareApi = (calendarId) => {
-	return instance.post(`${calendarsBaseUrl}/share/${calendarId}`);
+	return axiosAuth.post(`${calendarsBaseUrl}/share/${calendarId}`);
 };
 
 const calendarContentApi = (calendarId, content) => {
-	return instance.post(`${calendarsBaseUrl}/${calendarId}?content=${content}`);
+	return axiosAuth.post(`${calendarsBaseUrl}/${calendarId}?content=${content}`);
 };
 
 const calendarDeleteApi = (calendarId) => {
-	return instance.delete(`${calendarsBaseUrl}/${calendarId}`);
+	return axiosAuth.delete(`${calendarsBaseUrl}/${calendarId}`);
 };
 
-export { calendarMonthlyCountApi, calendarDailyListApi, calendarShareApi, calendarContentApi, calendarDeleteApi };
+export {
+	calendarMonthlyCountApi,
+	calendarDailyListApi,
+	calendarDownloadApi,
+	calendarShareApi,
+	calendarContentApi,
+	calendarDeleteApi,
+};

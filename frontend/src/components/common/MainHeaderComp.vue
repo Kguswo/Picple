@@ -2,30 +2,31 @@
 import { useRoute, useRouter } from 'vue-router';
 import { useUserStore } from '@/stores/userStore';
 import { logoutApi } from '@/api/userApi';
+import { storeToRefs } from 'pinia';
+import { alertResult } from '@/api/baseApi';
 
 const router = useRouter();
 const route = useRoute();
 const userStore = useUserStore();
 
-const user = userStore.user;
+const { userEmail, userNickname } = storeToRefs(userStore);
 
 const navigateTo = (name) => {
 	router.push({ name });
 };
 
 const logout = async () => {
-	try {
-		const data = await logoutApi();
-		if (!data) {
-			return;
-		}
-		userStore.resetUser();
-		if (route.name !== 'main') {
-			router.push({ name: 'main' });
-			return;
-		}
-		router.go(0);
-	} catch (error) {}
+	const { data } = await logoutApi(userEmail);
+	if (!data.isSuccess) {
+		await alertResult(false, '로그아웃에 실패하였습니다.');
+		return;
+	}
+	userStore.resetUserInfo();
+	if (route.name !== 'main') {
+		router.push({ name: 'main' });
+		return;
+	}
+	router.go(0);
 };
 </script>
 
@@ -41,10 +42,10 @@ const logout = async () => {
 			</div>
 			<div class="right">
 				<div
-					v-if="user.email && user.nickname"
+					v-if="userNickname"
 					class="dropdown"
 				>
-					<span>{{ user.nickname }}</span>
+					<span>{{ userNickname }}</span>
 					<div class="dropdown-content">
 						<button
 							type="button"
