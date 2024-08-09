@@ -30,16 +30,15 @@ public class Background {
 	@Column(nullable = false, length = 60)
 	private String backgroundTitle; // 배경 제목
 
+	@Column(name = "background_url", nullable = false)
+	private String backgroundUrl;
+
 	@Column(nullable = false, columnDefinition = "TINYINT(1) DEFAULT 0")
 	private Boolean isDefault; // 기본 배경 여부, 기본값 false
 
 	@Column(nullable = false, columnDefinition = "TINYINT(1) DEFAULT 0")
 	private Boolean isDeleted; // 삭제 여부, 기본값 false
 
-	@Column(nullable = false)
-	private String backgroundUrl; // 배경 URL
-
-	// Background 생성자, 기본 배경 여부와 삭제 여부를 false로 설정
 	@Builder
 	public Background(String backgroundTitle, String backgroundUrl) {
 		this.backgroundTitle = backgroundTitle;

@@ -34,7 +34,7 @@ public class BoardLike {
 	@JoinColumn(name = "board_id")
 	private Board board;
 
-	@Column(nullable = false)
+	@Column(nullable = false, columnDefinition = "TINYINT(1) DEFAULT 0")
 	private Boolean isLiked;
 
 	@Builder

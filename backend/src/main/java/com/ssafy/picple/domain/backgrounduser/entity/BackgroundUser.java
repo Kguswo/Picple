@@ -29,7 +29,7 @@ import lombok.NoArgsConstructor;
 public class BackgroundUser {
 
 	@Id
-	@Column(name = "background_user")
+	@Column(name = "background_user_id")
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id; // 고유 식별자
 

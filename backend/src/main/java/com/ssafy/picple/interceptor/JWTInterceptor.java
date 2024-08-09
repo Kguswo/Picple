@@ -38,25 +38,21 @@ public class JWTInterceptor implements HandlerInterceptor {
 	@Override
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response,
 			Object handler) throws BaseException {
-
-		// 요청 헤더에서 "X-ACCESS-TOKEN"이라는 이름으로 JWT를 가져옴
-		String token = request.getHeader("X-ACCESS-TOKEN");
-
-		// CORS preflight 요청일 경우, 인증 절차를 생략하고 true를 반환하여 요청을 허용
 		if (CorsUtils.isPreFlightRequest(request)) {
 			return true;
 		}
 
+		String token = request.getHeader("X-ACCESS-TOKEN");
+
 		if (token == null) {
 			// 토큰이 존재하지 않으면 예외 발생 (JWT가 비어 있음)
 			throw new BaseException(EMPTY_JWT);
-		} else if (!jwtUtil.verifyToken(token)) {
-			// 토큰이 유효하지 않으면 예외 발생 (잘못된 JWT)
+		}
+		if (!jwtUtil.verifyAccessToken(token)) {
 			throw new BaseException(INVALID_JWT);
 		}
 
-		// 토큰에서 사용자 ID를 추출하여 요청 속성에 추가
-		Long userId = jwtUtil.getUserId(token);
+		Long userId = jwtUtil.getUserIdByToken(token);
 		request.setAttribute("userId", userId);
 
 		// 요청이 정상적으로 진행될 수 있도록 true 반환

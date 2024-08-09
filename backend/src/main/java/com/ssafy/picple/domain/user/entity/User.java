@@ -39,9 +39,12 @@ public class User extends BaseTimeEntity {
 	@Column(nullable = false, length = 21)
 	private String nickname; // 사용자 닉네임
 
-	private boolean isDeleted; // 삭제 여부, 사용자 계정이 삭제되었는지 나타냄
+	@Column(nullable = false, columnDefinition = "TINYINT(1) DEFAULT 0")
+	private boolean isDeleted;
 
-	// User 객체를 생성하는 생성자
+	@Column(length = 250)
+	private String refreshToken;
+
 	@Builder
 	public User(String email, String password, String nickname, boolean isDeleted) {
 		this.email = email;
@@ -60,4 +63,11 @@ public class User extends BaseTimeEntity {
 		this.nickname = nickname;
 	}
 
+	public void setRefreshTokenByLogin(String refreshToken) {
+		this.refreshToken = refreshToken;
+	}
+
+	public void deleteRefreshTokenByLogout() {
+		this.refreshToken = null;
+	}
 }

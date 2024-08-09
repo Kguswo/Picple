@@ -26,10 +26,15 @@ import com.ssafy.picple.domain.user.entity.User;
 import com.ssafy.picple.domain.user.service.EmailService;
 import com.ssafy.picple.domain.user.service.UserService;
 import com.ssafy.picple.util.JWTUtil;
-
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.web.bind.annotation.*;
+
+import static com.ssafy.picple.config.baseResponse.BaseResponseStatus.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -40,16 +45,36 @@ public class UserController {
 	private final EmailService emailService;
 	private final JWTUtil jwtUtil;
 
-	/**
-	 * 로그인
-	 * @param loginRequest
-	 * @return jwt tokens
-	 * @throws BaseException
-	 */
-	@PostMapping("/login")
-	public BaseResponse<LoginResponse> login(@RequestBody LoginRequest loginRequest) throws BaseException {
-		return new BaseResponse<>(userService.login(loginRequest));
-	}
+    @Value("${server.servlet.session.cookie.domain}")
+    private String domain;
+
+    @Value("${server.servlet.session.cookie.path}")
+    private String path;
+
+    @Value("${server.servlet.session.cookie.max-age}")
+    private Integer maxAge;
+
+    /**
+     * 로그인
+     * @param loginRequest
+     * @return jwt tokens
+     * @throws BaseException
+     */
+    @PostMapping("/login")
+    public BaseResponse<?> login(@RequestBody LoginRequest loginRequest, HttpServletResponse response) {
+        try {
+            LoginResponse loginResponse = userService.login(loginRequest);
+            Cookie cookie = new Cookie("refreshToken", loginResponse.getRefreshToken());
+            cookie.setDomain(domain);
+            cookie.setPath(path);
+            cookie.setHttpOnly(true);
+            cookie.setMaxAge(maxAge);
+            response.addCookie(cookie);
+            return new BaseResponse<>(loginResponse.getAccessToken());
+        } catch (BaseException e) {
+            return new BaseResponse<>(NOT_FOUND_USER);
+        }
+    }
 
 	/**
 	 * 회원 가입
@@ -72,22 +97,49 @@ public class UserController {
 		return new BaseResponse<>(userService.getUserInfo(userId));
 	}
 
-	// TODO: 수정 필요 - PORT(587)가 열려있지 않음
+    /**
+     * email 전송 (회원가입용)
+     * @param emailDto
+     * @return
+     * @throws BaseException
+     */
+    @PostMapping("/mail")
+    public BaseResponse<String> mailSend(@RequestBody @Valid EmailRequest emailDto) throws BaseException {
+        if (emailDto.getEmail() == null || emailDto.getEmail().trim().isEmpty()) {
+            throw new BaseException(USER_EMAIL_EMPTY);
+        }
+        userService.checkEmailDuplication(emailDto.getEmail());
+        return new BaseResponse<>(emailService.sendEmail(emailDto.getEmail()));
+    }
 
-	/**
-	 * email 전송
-	 * @param emailDto
-	 * @return
-	 * @throws BaseException
-	 */
-	@PostMapping("/mail")
-	public BaseResponse<String> mailSend(@RequestBody @Valid EmailRequest emailDto) throws BaseException {
-		if (emailDto.getEmail() == null || emailDto.getEmail().trim().isEmpty()) {
-			throw new BaseException(USER_EMAIL_EMPTY);
-		}
-		userService.checkEmailDuplication(emailDto.getEmail());
-		return new BaseResponse<>(emailService.sendEmail(emailDto.getEmail()));
-	}
+    /**
+     * email 전송 (비밀번호 찾기용)
+     * @param emailDto
+     * @return
+     * @throws BaseException
+     */
+    @PostMapping("/mail/find")
+    public BaseResponse<String> mailSendByFind(@RequestBody @Valid EmailRequest emailDto) throws BaseException {
+        if (emailDto.getEmail() == null || emailDto.getEmail().trim().isEmpty()) {
+            throw new BaseException(USER_EMAIL_EMPTY);
+        }
+        emailService.sendEmail(emailDto.getEmail());
+        return new BaseResponse<>(null);
+    }
+
+    /**
+     * email 전송 체크
+     * @param emailCheckDto
+     * @return
+     * @throws BaseException
+     */
+    @PostMapping("/mailcheck")
+    public BaseResponse<String> mailCheck(@RequestBody @Valid EmailCheckRequest emailCheckDto) throws BaseException {
+        if (emailCheckDto.getEmail() == null || emailCheckDto.getEmail().trim().isEmpty()) {
+            throw new BaseException(USER_EMAIL_EMPTY);
+        }
+        return new BaseResponse<>(emailService.verifyEmailCode(emailCheckDto.getEmail(), emailCheckDto.getAuthNumber()));
+    }
 
 	/**
 	 * email 전송 체크
@@ -132,20 +184,29 @@ public class UserController {
 		return new BaseResponse<>(userService.modifyUserPassword(userId, modifyPasswordRequest));
 	}
 
-	/**
-	 * Password 재설정 (비밀번호 찾기)
-	 * @param resetPasswordRequest
-	 * @return
-	 * @throws BaseException
-	 */
-	@PostMapping("/reset-password")
-	public BaseResponse<BaseResponseStatus> resetPassword(@RequestBody ResetPasswordRequest resetPasswordRequest) throws
-			BaseException {
-		return new BaseResponse<>(userService.resetPassword(
-				resetPasswordRequest.getEmail(),
-				resetPasswordRequest.getPassword()
-		));
-	}
+    /**
+     * 로그아웃
+     * @param request, response
+     * @return BaseResponse
+     * @throws BaseException
+     */
+    @PostMapping("/logout")
+    public BaseResponse<BaseResponseStatus> logout(HttpServletRequest request, HttpServletResponse response) throws BaseException {
+
+        try {
+            Long userId = (Long)request.getAttribute("userId");
+            userService.logout(userId);
+        } catch (BaseException e) {
+            throw new BaseException(NOT_FOUND_USER);
+        }
+
+        Cookie cookie = new Cookie("refreshToken", null);
+        cookie.setMaxAge(0);
+        cookie.setPath("/");
+        response.addCookie(cookie);
+
+        return new BaseResponse<>(SUCCESS);
+    }
 
 	/**
 	 * 로그아웃
@@ -186,4 +247,32 @@ public class UserController {
 		return new BaseResponse<>(SUCCESS);
 	}
 
+    /**
+     * 토큰 재발급
+     * @param request
+     * @return jwt tokens
+     * @throws BaseException
+     */
+    @PostMapping("/refresh-token")
+    public BaseResponse<?> refreshToken(HttpServletRequest request) {
+        String refreshToken = null;
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("refreshToken".equals(cookie.getName())) {
+                    refreshToken = cookie.getValue();
+                }
+            }
+        }
+        if (refreshToken == null || !jwtUtil.verifyRefreshToken(refreshToken)) {
+            return new BaseResponse<>(INVALID_REFRESH_TOKEN);
+        }
+
+        try {
+            String accessToken = userService.refreshToken(refreshToken);
+            return new BaseResponse<>(accessToken);
+        } catch(BaseException e) {
+            return new BaseResponse<>(INVALID_REFRESH_TOKEN);
+        }
+    }
 }

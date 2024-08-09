@@ -19,6 +19,7 @@ public enum BaseResponseStatus {
 	INVALID_USER_JWT(false, 2003, "권한이 없는 유저의 접근입니다."),
 	JWT_GET_USER_ERROR(false, 2004, "User 권한 인증 중 에러가 발생하였습니다."),
 	JWT_KEY_GENERATE_ERROR(false, 2005, "JWT 토큰 발행 중 에러가 발생하였습니다."),
+	INVALID_REFRESH_TOKEN(false, 2006, "리프레시 토큰이 유효하지 않습니다."),
 
 	/**
 	 * 3000 : Response 오류
