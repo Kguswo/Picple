@@ -31,8 +31,8 @@ const modifyAccountApi = (nickname) => {
 	return axiosAuth.patch(`${usersBaseUrl}/modify/nickname`, { nickname });
 };
 
-const modifyPasswordByFindApi = (email, newPassword) => {
-	return axiosAuth.patch(`${usersBaseUrl}/reset-password`, { email, newPassword });
+const findPasswordApi = (email, password) => {
+	return axios.patch(`${usersBaseUrl}/reset-password`, { email, password });
 };
 
 const modifyPasswordApi = (oldPassword, newPassword) => {
@@ -56,7 +56,7 @@ export {
 	sendAuthNumberApi,
 	verifyAuthNumberApi,
 	modifyAccountApi,
-	modifyPasswordByFindApi,
+	findPasswordApi,
 	modifyPasswordApi,
 	deleteAccountApi,
 	logoutApi,
