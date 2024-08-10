@@ -47,15 +47,14 @@ const validateInputField = () => {
 	return true;
 };
 
-const send = async () => {
-	// if (!data.isSuccess) {
-	// 	await alertResult(false, '인증번호 전송에 실패하였습니다.');
-	// 	return;
-	// }
+const send = async (data) => {
+	if (!data.isSuccess) {
+		await alertResult(false, '인증번호 전송에 실패하였습니다.');
+		return;
+	}
 	setTimer();
 	emailField.value.message = { text: `인증번호를 전송하였습니다.`, isError: false };
 	isSend.value = true;
-	// todo: 제한시간 표시
 };
 
 const sendAuthNumberByFind = async (e) => {
@@ -63,7 +62,7 @@ const sendAuthNumberByFind = async (e) => {
 	if (!validateInputField()) {
 		return;
 	}
-	// const { data } = await sendAuthNumberByFindApi(email.value.value);
+	const { data } = await sendAuthNumberByFindApi(email.value.value);
 	send(data);
 };
 
@@ -72,8 +71,8 @@ const sendAuthNumber = async (e) => {
 	if (!validateInputField()) {
 		return;
 	}
-	// const { data } = await sendAuthNumberApi(email.value.value);
-	send();
+	const { data } = await sendAuthNumberApi(email.value.value);
+	send(data);
 };
 
 const verifyEmail = async () => {

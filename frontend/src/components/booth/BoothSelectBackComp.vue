@@ -25,13 +25,12 @@ onMounted(() => {
 
 const emit = defineEmits(['update']);
 
-// background 변경을 위한 변수
 const emitImage = (image) => {
 	emit('update', image); // 부모에게 변경된 이미지 전달
 	selectBackground(image); // inject된 메서드 사용
 };
 
-//임시 이미지 - 다음에 실제 배경으로 사용할 이미지 필요
+// todo: 다음에 실제 배경으로 사용할 이미지 필요
 const backgroundImages = ref([
 	'https://i.crepe.land/https://crepe.land/portfolio/q/qe/qenpmy8g9uzxsmqi0q4u5qw7ijk0y954_%EC%97%85%EB%A1%9C%EB%93%9C%EC%9A%A93.jpg?q=100&t=i&v=3a&w=800',
 	'https://gongu.copyright.or.kr/gongu/wrt/cmmn/wrtFileImageView.do?wrtSn=11288733&filePath=L2Rpc2sxL25ld2RhdGEvMjAxNS8wMi9DTFM2OS9OVVJJXzAwMV8wMjE5X251cmltZWRpYV8yMDE1MTIwMw==&thumbAt=Y&thumbSe=b_tbumb&wrtTy=10006',
@@ -140,11 +139,11 @@ const createAI = () => {
 		align-items: center;
 
 		.thumbnail {
-			width: auto;
-			height: 150px;
-			margin: 0 5px;
-			cursor: pointer;
-			border: 2px solid transparent;
+			width: auto; /* 썸네일 이미지 크기 */
+			height: 150px; /* 썸네일 이미지 크기 */
+			margin: 0 5px; /* 이미지 간격 */
+			cursor: pointer; /* 클릭 커서 변경 */
+			border: 2px solid transparent; /* 기본 테두리 설정 */
 			transition: border 0.3s; /* 테두리 전환 효과 */
 
 			&:hover {

@@ -8,12 +8,12 @@ import { signupApi } from '@/api/userApi';
 import { useUserStore } from '@/stores/userStore';
 import { storeToRefs } from 'pinia';
 import { useFormStore } from '@/stores/formStore';
+import { alertResult } from '@/api/baseApi';
 
 const router = useRouter();
 const userStore = useUserStore();
 const formStore = useFormStore();
 
-const { verifiedEmail } = storeToRefs(userStore);
 const { nickname, password, passwordConfirm, nicknameField, passwordField, passwordConfirmField } =
 	storeToRefs(formStore);
 formStore.initForm([nickname, password, passwordConfirm], [nicknameField, passwordField, passwordConfirmField]);
@@ -35,7 +35,7 @@ const signup = async () => {
 		return;
 	}
 
-	const { data } = await signupApi(verifiedEmail, password.value.value, nickname.value.value);
+	const { data } = await signupApi(userStore.verifiedEmail, password.value.value, nickname.value.value);
 	if (!data.isSuccess) {
 		await alertResult(false, '회원가입에 실패하였습니다.');
 		return;

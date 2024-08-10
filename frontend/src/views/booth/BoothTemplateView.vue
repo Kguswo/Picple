@@ -23,9 +23,18 @@ const templates = [
 	{ text: '2장', key: '2' },
 	{ text: '3장', key: '3' },
 	{ text: '4장', key: '4' },
+	{ text: '전체', key: 'all' },
+	{ text: '1장', key: '1' },
+	{ text: '2장', key: '2' },
+	{ text: '3장', key: '3' },
+	{ text: '4장', key: '4' },
 ];
 
 const templateImages = {
+	1: [temp_1x1_4x3_479x360],
+	2: [temp_1x2_4x5_288x360],
+	3: [temp_1x3_3x4_270x360],
+	4: [temp_2x2_4x3_481x360],
 	1: [temp_1x1_4x3_479x360],
 	2: [temp_1x2_4x5_288x360],
 	3: [temp_1x3_3x4_270x360],
