@@ -91,7 +91,7 @@ const deleteAccount = async () => {
 				<button
 					type="button"
 					class="form-button-small"
-					@click="router.push('modifyPassword/modify')"
+					@click="router.push({ name: 'modifyPassword' })"
 				>
 					변경
 				</button>
