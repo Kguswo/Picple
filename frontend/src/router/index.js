@@ -24,34 +24,50 @@ const router = createRouter({
 			meta: { notAuthRequired: true },
 		},
 		{
+			path: '/email-verification',
+			children: [
+				{
+					path: '/email-verification/signup',
+					name: 'signupEmail',
+					component: () => import('@/views/account/SignupEmailView.vue'),
+					meta: { notAuthRequired: true },
+				},
+				{
+					path: '/email-verification/find-password',
+					name: 'findPasswordEmail',
+					component: () => import('@/views/account/FindPasswordEmailView.vue'),
+					meta: { notAuthRequired: true },
+				},
+			],
+		},
+		{
 			path: '/signup',
 			name: 'signup',
 			component: () => import('@/views/account/SignupView.vue'),
 			meta: { emailRequired: true, notAuthRequired: true },
 		},
 		{
-			path: '/signup/email',
-			name: 'signupEmail',
-			component: () => import('@/views/account/SignupEmailView.vue'),
-			meta: { notAuthRequired: true },
-		},
-		{
-			path: '/modifyAccount',
+			path: '/modify-account',
 			name: 'modifyAccount',
 			component: () => import('@/views/account/ModifyAccountView.vue'),
 			meta: { authRequired: true },
 		},
 		{
-			path: '/modifyPassword/:path',
-			name: 'modifyPassword',
-			component: () => import('@/views/account/ModifyPasswordView.vue'),
-			meta: { authRequired: true },
-		},
-		{
-			path: '/findPassword',
-			name: 'findPassword',
-			component: () => import('@/views/account/FindPasswordView.vue'),
-			meta: { notAuthRequired: true },
+			path: '/modify-password',
+			children: [
+				{
+					path: '/modify-password/modify',
+					name: 'modifyPassword',
+					component: () => import('@/views/account/ModifyPasswordView.vue'),
+					meta: { authRequired: true },
+				},
+				{
+					path: '/modify-password/find',
+					name: 'findPassword',
+					component: () => import('@/views/account/ModifyPasswordView.vue'),
+					meta: { emailRequired: true, notAuthRequired: true },
+				},
+			],
 		},
 		{
 			path: '/board',

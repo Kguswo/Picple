@@ -93,7 +93,7 @@ const sharePhoto = async () => {
 	if (accept) {
 		const { data } = await calendarShareApi(currentPhoto.value.id);
 		if (!data.isSuccess) {
-			if (data.code == import.meta.env.VITE_ALREADY_SHARED) {
+			if (data.code == import.meta.env.VITE_CODE_ALREADY_SHARED) {
 				await alertResult(false, '이미 공유된 사진입니다.');
 				return;
 			}

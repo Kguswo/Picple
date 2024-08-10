@@ -99,7 +99,7 @@ const navigateTo = (name) => {
 				>
 				<FormButtonComp
 					size="none"
-					@click="navigateTo('findPassword')"
+					@click="navigateTo('findPasswordEmail')"
 					>비밀번호 찾기</FormButtonComp
 				>
 			</div>

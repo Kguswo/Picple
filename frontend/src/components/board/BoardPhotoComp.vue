@@ -31,7 +31,7 @@ const deleteBoard = async () => {
 	if (accept) {
 		const { data } = await boardDeleteApi(props.board.id);
 		if (!data.isSuccess) {
-			if (data.code == import.meta.env.VITE_REQUEST_ERROR) {
+			if (data.code == import.meta.env.VITE_CODE_REQUEST_ERROR) {
 				await alertResult(false, '게시글은 작성만 삭제할 수 있습니다.');
 				return;
 			}

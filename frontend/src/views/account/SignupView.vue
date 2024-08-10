@@ -14,6 +14,7 @@ const router = useRouter();
 const userStore = useUserStore();
 const formStore = useFormStore();
 
+const { verifiedEmail } = storeToRefs(userStore);
 const { nickname, password, passwordConfirm, nicknameField, passwordField, passwordConfirmField } =
 	storeToRefs(formStore);
 formStore.initForm([nickname, password, passwordConfirm], [nicknameField, passwordField, passwordConfirmField]);
@@ -35,7 +36,7 @@ const signup = async () => {
 		return;
 	}
 
-	const { data } = await signupApi(userStore.verifiedEmail, password.value.value, nickname.value.value);
+	const { data } = await signupApi(verifiedEmail.value, password.value.value, nickname.value.value);
 	if (!data.isSuccess) {
 		await alertResult(false, '회원가입에 실패하였습니다.');
 		return;

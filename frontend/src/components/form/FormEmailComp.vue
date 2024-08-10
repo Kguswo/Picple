@@ -11,7 +11,7 @@ import { useFormStore } from '@/stores/formStore';
 import { alertResult } from '@/api/baseApi';
 
 const props = defineProps({
-	path: String,
+	name: String,
 });
 
 const router = useRouter();
@@ -23,21 +23,6 @@ const { email, authNumber, emailField, authNumberField } = storeToRefs(formStore
 formStore.initForm([email, authNumber], [emailField, authNumberField]);
 
 const isSend = ref(false);
-const timerAuthNumber = ref(180);
-const timerMinutes = ref('');
-const timerSeconds = ref('');
-
-const setTimer = () => {
-	setInterval(() => {
-		if (timerAuthNumber.value > 0) {
-			const min = Math.floor(timerAuthNumber.value / 60);
-			const sec = String(timerAuthNumber.value % 60).padStart(2, '0');
-			timerMinutes.value = min;
-			timerSeconds.value = sec;
-			--timerAuthNumber.value;
-		}
-	}, 1000);
-};
 
 const validateInputField = () => {
 	emailField.value.message = validateEmailPattern(email.value.value);
@@ -47,32 +32,27 @@ const validateInputField = () => {
 	return true;
 };
 
-const send = async (data) => {
-	if (!data.isSuccess) {
-		await alertResult(false, '인증번호 전송에 실패하였습니다.');
-		return;
-	}
-	setTimer();
-	emailField.value.message = { text: `인증번호를 전송하였습니다.`, isError: false };
-	isSend.value = true;
-};
-
-const sendAuthNumberByFind = async (e) => {
-	e.stopPropagation();
-	if (!validateInputField()) {
-		return;
-	}
-	const { data } = await sendAuthNumberByFindApi(email.value.value);
-	send(data);
-};
-
 const sendAuthNumber = async (e) => {
 	e.stopPropagation();
 	if (!validateInputField()) {
 		return;
 	}
-	const { data } = await sendAuthNumberApi(email.value.value);
-	send(data);
+	isSend.value = true;
+	await alertResult(true, '인증번호가 전송되었습니다.');
+	const { data } =
+		props.name === 'signup'
+			? await sendAuthNumberApi(email.value.value)
+			: await sendAuthNumberByFindApi(email.value.value);
+	if (data.code == import.meta.env.VITE_CODE_DUPLICATED_USER_EMAIL) {
+		await alertResult(false, '해당 이메일이 이미 존재합니다.');
+		router.go(0);
+		return;
+	}
+	if (!data.isSuccess) {
+		await alertResult(false, '오류가 발생하였습니다. 다시 시도해주십시오.');
+		router.go(0);
+		return;
+	}
 };
 
 const verifyEmail = async () => {
@@ -90,15 +70,19 @@ const verifyEmail = async () => {
 		authNumberField.value.focusInput();
 		return;
 	}
-	// todo: 제한시간 검사
+
 	const { data } = await verifyAuthNumberApi(email.value.value, authNumber.value.value);
+	if (data.code == import.meta.env.VITE_CODE_NOT_EQUAL_EMAIL_CODE) {
+		await alertResult(false, '인증번호가 일치하지 않습니다.');
+		return;
+	}
 	if (!data.isSuccess) {
 		await alertResult(false, '이메일 인증에 실패하였습니다.');
 		return;
 	}
 	verifiedEmail.value = email.value.value;
 	await alertResult(true, '이메일 인증에 성공했습니다.');
-	router.push({ path: props.path });
+	router.push({ name: props.name });
 };
 </script>
 
@@ -113,15 +97,9 @@ const verifyEmail = async () => {
 			ref="emailField"
 		>
 			<FormButtonComp
-				v-if="path === '/signup'"
 				size="small"
 				@click="sendAuthNumber"
-				>전송</FormButtonComp
-			>
-			<FormButtonComp
-				v-else
-				size="small"
-				@click="sendAuthNumberByFind"
+				:disabled="isSend"
 				>전송</FormButtonComp
 			>
 		</FormInputComp>
@@ -131,12 +109,6 @@ const verifyEmail = async () => {
 			ref="authNumberField"
 			class="mt-10"
 		>
-			<div
-				class="timer"
-				v-if="timerMinutes && timerSeconds"
-			>
-				{{ timerMinutes }}:{{ timerSeconds }}
-			</div>
 		</FormInputComp>
 
 		<FormButtonComp
@@ -147,16 +119,4 @@ const verifyEmail = async () => {
 	</form>
 </template>
 
-<style scoped>
-.timer {
-	position: absolute;
-	right: 3%;
-	top: 50%;
-	transform: translateY(-50%);
-	padding: 5px 10px;
-	font-size: 15px;
-	border-radius: 3px;
-	transition: background-color 0.3s ease;
-	background-color: white;
-}
-</style>
+<style scoped></style>
