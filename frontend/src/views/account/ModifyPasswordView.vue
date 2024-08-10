@@ -56,7 +56,7 @@ const modify = async () => {
 		route.name === 'modifyPassword'
 			? await modifyPasswordApi(oldPassword.value.value, newPassword.value.value)
 			: await findPasswordApi(verifiedEmail.value, newPassword.value.value);
-	console.log(data);
+
 	if (!data.isSuccess) {
 		await alertResult(false, '비밀번호 변경에 실패하였습니다.');
 		return;
