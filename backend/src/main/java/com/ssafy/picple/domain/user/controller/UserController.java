@@ -194,6 +194,8 @@ public class UserController {
 
         Cookie cookie = new Cookie("refreshToken", null);
         cookie.setMaxAge(0);
+		cookie.setDomain(domain);
+		cookie.setHttpOnly(true);
         cookie.setPath("/");
         response.addCookie(cookie);
 
