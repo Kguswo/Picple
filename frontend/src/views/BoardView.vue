@@ -3,25 +3,62 @@ import WhiteBoardComp from '@/components/common/WhiteBoardComp.vue';
 import BoardPhotoComp from '@/components/board/BoardPhotoComp.vue';
 import Page from '@/components/common/PageComp.vue';
 import { onMounted, ref } from 'vue';
-import { boardListApi, boardSortApi } from '@/api/boardApi';
+import { boardListApi } from '@/api/boardApi';
 import { alertResult } from '@/api/baseApi';
 
 const boardList = ref([]);
-const sortArrow = ref('');
-const prevCriteria = ref('');
+const sortArrow = ref('↓');
+const prevCriteria = ref('createdAt');
 const nickname = ref('');
+const paging = ref({
+	page: 0,
+	size: 20,
+	sort: 'createdAt,desc',
+});
 
 onMounted(() => {
 	getBoardList();
 });
 
+const getNextBoards = async () => {
+	++paging.value.page;
+	getBoardList();
+};
+
 const getBoardList = async () => {
-	const { data } = await boardListApi();
+	const { data } = await boardListApi(nickname.value, paging.value);
 	if (!data.isSuccess) {
 		await alertResult(false, '게시판 조회에 실패하였습니다.');
 		return;
 	}
-	boardList.value = data.result;
+	boardList.value = boardList.value.concat(data.result);
+};
+
+const sortBoards = async (criteria) => {
+	paging.value.page = 0;
+	boardList.value = [];
+	if (prevCriteria.value !== criteria || sortArrow.value === '↑') {
+		paging.value.sort = `${criteria},desc`;
+	} else {
+		paging.value.sort = `${criteria},asc`;
+	}
+
+	getBoardList();
+	toggleSort(criteria);
+};
+
+const searchByNickname = async () => {
+	sortArrow.value = '↓';
+	prevCriteria.value = 'createdAt';
+	paging.value.page = 0;
+	paging.value.sort = 'createdAt,desc';
+	boardList.value = [];
+
+	if (!nickname.value) {
+		return;
+	}
+
+	getBoardList();
 };
 
 const toggleSort = (criteria) => {
@@ -36,37 +73,6 @@ const toggleSort = (criteria) => {
 
 	sortArrow.value = '↓';
 	prevCriteria.value = criteria;
-};
-
-const sortBoards = async (criteria) => {
-	const { data } = await boardSortApi(
-		nickname.value,
-		criteria,
-		prevCriteria.value !== criteria || sortArrow.value !== '↓' ? false : true,
-	);
-	if (!data.isSuccess) {
-		await alertResult(false, '게시글 정렬에 실패하였습니다.');
-		return;
-	}
-	boardList.value = data.result;
-	toggleSort(criteria);
-};
-
-const searchByNickname = async () => {
-	sortArrow.value = '';
-	prevCriteria.value = '';
-
-	if (!nickname.value) {
-		await getBoardList();
-		return;
-	}
-
-	const { data } = await boardSortApi(nickname.value, 'createdAt', false);
-	if (!data.isSuccess) {
-		await alertResult(false, '사용자 검색에 실패하였습니다.');
-		return;
-	}
-	boardList.value = data.result;
 };
 </script>
 
@@ -123,9 +129,12 @@ const searchByNickname = async () => {
 					</div>
 					<BoardPhotoComp
 						v-else
-						v-for="board in boardList"
+						v-for="(board, index) in boardList"
 						:key="board.id"
+						:count="index + 1"
+						:paging="paging"
 						:board="board"
+						@observe="getNextBoards"
 					/>
 				</div>
 			</div>
