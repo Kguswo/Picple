@@ -2,23 +2,32 @@
 import WhiteBoardComp from '@/components/common/WhiteBoardComp.vue';
 import BoardPhotoComp from '@/components/board/BoardPhotoComp.vue';
 import Page from '@/components/common/PageComp.vue';
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, watch } from 'vue';
 import { boardListApi } from '@/api/boardApi';
 import { alertResult } from '@/api/baseApi';
 
 const boardList = ref([]);
 const sortArrow = ref('↓');
 const prevCriteria = ref('createdAt');
+const prevNickname = ref('');
 const nickname = ref('');
 const paging = ref({
 	page: 0,
 	size: 20,
 	sort: 'createdAt,desc',
 });
+const isLoading = ref(true);
 
 onMounted(() => {
 	getBoardList();
 });
+
+watch(
+	() => paging.value.page,
+	() => {
+		isLoading.value = true;
+	},
+);
 
 const getNextBoards = async () => {
 	++paging.value.page;
@@ -26,12 +35,13 @@ const getNextBoards = async () => {
 };
 
 const getBoardList = async () => {
-	const { data } = await boardListApi(nickname.value, paging.value);
+	const { data } = await boardListApi(prevNickname.value, paging.value);
 	if (!data.isSuccess) {
 		await alertResult(false, '게시판 조회에 실패하였습니다.');
 		return;
 	}
 	boardList.value = boardList.value.concat(data.result);
+	isLoading.value = false;
 };
 
 const sortBoards = async (criteria) => {
@@ -48,6 +58,10 @@ const sortBoards = async (criteria) => {
 };
 
 const searchByNickname = async () => {
+	if (prevNickname.value === nickname.value) {
+		return;
+	}
+
 	sortArrow.value = '↓';
 	prevCriteria.value = 'createdAt';
 	paging.value.page = 0;
@@ -58,6 +72,7 @@ const searchByNickname = async () => {
 		return;
 	}
 
+	prevNickname.value = nickname.value;
 	getBoardList();
 };
 
@@ -122,7 +137,7 @@ const toggleSort = (criteria) => {
 
 				<div class="board">
 					<div
-						v-if="boardList.length === 0"
+						v-if="!isLoading && boardList.length === 0"
 						style="font-size: 50px"
 					>
 						게시글 없음
@@ -136,6 +151,15 @@ const toggleSort = (criteria) => {
 						:board="board"
 						@observe="getNextBoards"
 					/>
+					<div
+						v-if="isLoading"
+						class="loading"
+					>
+						<img
+							src="@/assets/icon/loading.gif"
+							alt="loading..."
+						/>
+					</div>
 				</div>
 			</div>
 		</WhiteBoardComp>
