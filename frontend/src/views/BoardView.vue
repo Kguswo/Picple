@@ -17,6 +17,7 @@ const paging = ref({
 	sort: 'createdAt,desc',
 });
 const isLoading = ref(true);
+const debounceTimer = ref(null);
 
 onMounted(() => {
 	getBoardList();
@@ -44,7 +45,19 @@ const getBoardList = async () => {
 	isLoading.value = false;
 };
 
+const debounce = (func, delay) => {
+	return () => {
+		if (debounceTimer.value) clearTimeout(debounceTimer.value);
+		debounceTimer.value = setTimeout(() => func(), delay);
+	};
+};
+
+const debouncedGetBoardList = debounce(getBoardList, 1000);
+
 const sortBoards = async (criteria) => {
+	if (isLoading.value) {
+		return;
+	}
 	paging.value.page = 0;
 	boardList.value = [];
 	if (prevCriteria.value !== criteria || sortArrow.value === '↑') {
@@ -52,13 +65,12 @@ const sortBoards = async (criteria) => {
 	} else {
 		paging.value.sort = `${criteria},asc`;
 	}
-
-	getBoardList();
+	debouncedGetBoardList();
 	toggleSort(criteria);
 };
 
 const searchByNickname = async () => {
-	if (prevNickname.value === nickname.value) {
+	if (isLoading.value || prevNickname.value === nickname.value) {
 		return;
 	}
 
@@ -69,7 +81,7 @@ const searchByNickname = async () => {
 	boardList.value = [];
 
 	prevNickname.value = nickname.value;
-	getBoardList();
+	debouncedGetBoardList();
 };
 
 const toggleSort = (criteria) => {
