@@ -4,6 +4,9 @@ import static com.ssafy.picple.config.baseResponse.BaseResponseStatus.*;
 
 import java.util.List;
 
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -27,60 +30,19 @@ public class BoardController {
 	private final BoardService boardService;
 
 	/**
-	 * Board 전체 조회(생성일, 사진, 좋아요여부, 좋아요수)
-	 *
-	 * @return
-	 */
-	@GetMapping("")
-	public BaseResponse<List<BoardDto>> findAllBoards(HttpServletRequest request) throws BaseException {
-		Long userId = boardService.getUserId(request);
-		List<BoardDto> boards = boardService.findAllBoards(userId);
-		return new BaseResponse<>(boards);
-	}
-
-	/**
-	 * 사용자 기준으로 정렬된 Board 조회
-	 *
-	 * @param criteria
-	 * @return
-	 */
-	@GetMapping("/sorted/{criteria}")
-	public BaseResponse<List<BoardDto>> findAllByOrderByMyCriteria(HttpServletRequest request,
-			@PathVariable String criteria) throws BaseException {
-		Long userId = boardService.getUserId(request);
-		List<BoardDto> boards = boardService.findAllBoardsOrderByMyCriteria(userId, criteria);
-		return new BaseResponse<>(boards);
-	}
-
-	/**
-	 * 사용자 닉네임 검색으로 해당 유저(닉네임) 포함된 사진 조회
-	 *
-	 * @param nickname
-	 * @return
-	 */
-	@GetMapping("/user/{nickname}")
-	public BaseResponse<List<BoardDto>> findAllBoardsByUserNickname(HttpServletRequest request,
-			@PathVariable String nickname) throws BaseException {
-		Long userId = boardService.getUserId(request);
-		List<BoardDto> boards = boardService.findAllBoardsByUserNickname(userId, nickname);
-		return new BaseResponse<>(boards);
-	}
-
-	/**
-	 * 사용자 닉네임 검색 및 선택 정렬 기준으로 조회
+	 * 닉네임 검색 및 정렬 기준으로 조회
 	 *
 	 * @param request
 	 * @param nickname
-	 * @param criteria
-	 * @return
+	 * @param pageable
+	 * @return BaseResponse
 	 * @throws BaseException
 	 */
-	@GetMapping("/sorted")
-	public BaseResponse<List<BoardDto>> findAllBoardsByUserNickname(HttpServletRequest request,
-			@RequestParam String nickname, @RequestParam(required = false) String criteria,
-			@RequestParam(value = "sortDirection", required = false) boolean sortDirection) throws BaseException {
+	@GetMapping("")
+	public BaseResponse<List<BoardDto>> findBoards(HttpServletRequest request,
+																	@RequestParam String nickname, @PageableDefault(page=0, size=20, sort="createdAt", direction=Sort.Direction.DESC) Pageable pageable) throws BaseException {
 		Long userId = boardService.getUserId(request);
-		List<BoardDto> boards = boardService.findAllBoardsByUserNickname(userId, nickname, criteria, sortDirection);
+		List<BoardDto> boards = boardService.findBoards(userId, nickname, pageable);
 		return new BaseResponse<>(boards);
 	}
 
@@ -102,5 +64,4 @@ public class BoardController {
 			return new BaseResponse<>(REQUEST_ERROR);
 		}
 	}
-
 }
