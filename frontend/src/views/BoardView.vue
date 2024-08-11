@@ -68,10 +68,6 @@ const searchByNickname = async () => {
 	paging.value.sort = 'createdAt,desc';
 	boardList.value = [];
 
-	if (!nickname.value) {
-		return;
-	}
-
 	prevNickname.value = nickname.value;
 	getBoardList();
 };
