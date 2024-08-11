@@ -31,7 +31,7 @@ watch(
 
 const getNextBoards = async () => {
 	++paging.value.page;
-	getBoardList();
+	setTimeout(getBoardList, 2000);
 };
 
 const getBoardList = async () => {
