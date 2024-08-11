@@ -241,6 +241,11 @@ const toggleSort = (criteria) => {
 	background-color: #62abd9;
 	color: white;
 	cursor: pointer;
+
+	&:active {
+		transform: translateY(-40%);
+		transition: transform 0.3s ease;
+	}
 }
 
 .button-group {
@@ -281,5 +286,18 @@ const toggleSort = (criteria) => {
 	align-items: center;
 
 	overflow: scroll;
+
+	&::-webkit-scrollbar {
+		width: 8px;
+	}
+
+	&::-webkit-scrollbar-thumb {
+		background: #888; /* Scrollbar color */
+		border-radius: 10px;
+	}
+
+	&::-webkit-scrollbar-thumb:hover {
+		background: #555;
+	}
 }
 </style>
