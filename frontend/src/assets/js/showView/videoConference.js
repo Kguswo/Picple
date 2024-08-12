@@ -137,6 +137,10 @@ export const applySegmentation = async (streamRef) => {
 
         // 세그멘테이션 결과를 처리하는 함수
         selfieSegmentation.onResults((results) => {
+            if (isProcessing) return;
+            
+            isProcessing = true;
+
             try {
                 canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
                 canvasCtx.drawImage(results.segmentationMask, 0, 0, canvasElement.width, canvasElement.height);
@@ -153,8 +157,10 @@ export const applySegmentation = async (streamRef) => {
                 }
 
                 originalStream.addTrack(videoTrack); // 새 비디오 트랙 추가
+                isProcessing = false;
             } catch (error) {
                 console.error('onResults 콜백 내부 오류:', error);
+                isProcessing = false;
             }
         });
 
@@ -166,16 +172,19 @@ export const applySegmentation = async (streamRef) => {
             height: videoElement.videoHeight || 480,
         });
 
-        console.log('16. Camera 객체 생성됨');
-        console.log('17. camera.start() 호출');
         await camera.start(); // 카메라 시작
-        console.log('18. camera.start() 성공');
 
         return new Promise((resolve) => {
-            setTimeout(() => {
-                console.log('19. 세그멘테이션 처리 완료');
-                resolve();
-            }, 1000); // 1초 후에 완료로 간주
+            const checkProcessing = () => {
+                if (!isProcessing) {
+                    console.log('세그멘테이션 처리 완료');
+                    resolve();
+                } 
+                else {
+                    setTimeout(checkProcessing, 100);
+                }
+            };
+            checkProcessing();
         });
     } catch (error) {
         console.error('세그멘테이션 적용 중 오류 발생:', error.message, error.stack);
