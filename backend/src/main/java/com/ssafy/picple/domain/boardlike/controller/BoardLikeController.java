@@ -23,8 +23,6 @@ import lombok.RequiredArgsConstructor;
 public class BoardLikeController {
 
 	private final BoardLikeService likeService;
-	private final BoardService boardService;
-
 
 	/**
 	 * 좋아요 여부 체크
