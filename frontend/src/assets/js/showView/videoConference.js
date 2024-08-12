@@ -1,7 +1,8 @@
 import { OpenVidu } from 'openvidu-browser';
 import { nextTick } from 'vue';
 import VideoBackgroundRemoval from '@/assets/js/showView/VideoBackgroundRemoval';
-import { Camera } from '@mediapipe/camera_utils';
+import * as camerUtils from '@mediapipe/camera_utils';
+const { Camera } = camerUtils;
 
 const OPENVIDU_SERVER_URL = import.meta.env.VITE_API_OPENVIDU_SERVER;
 const OPENVIDU_SERVER_SECRET = import.meta.env.VITE_OPENVIDU_SERVER_SECRET;
@@ -137,9 +138,12 @@ const applySegmentation = async (streamRef) => {
     const selfieSegmentation = await initializeSelfieSegmentation();
     console.log('selfieSegmentation 초기화 완료:', selfieSegmentation);
 
+    const Camera = await initializeCamera();
+    console.log('Camera 초기화 완료:', Camera);
+
     const canvasElement = document.createElement('canvas');
-    canvasElement.width = videoElement.videoWidth;
-    canvasElement.height = videoElement.videoHeight;
+    canvasElement.width = videoElement.videoWidth || 640;
+    canvasElement.height = videoElement.videoHeight || 480;
     const canvasCtx = canvasElement.getContext('2d');
 
     selfieSegmentation.onResults((results) => {
@@ -174,13 +178,19 @@ const applySegmentation = async (streamRef) => {
             console.log('onFrame 호출됨');
             await selfieSegmentation.send({ image: videoElement });
         },
-        width: videoElement.videoWidth,
-        height: videoElement.videoHeight,
+        width: videoElement.videoWidth || 640,
+        height: videoElement.videoHeight || 480,
     });
 
     console.log('Camera 객체 생성됨');
     console.log('camera.start() 호출');
-    camera.start();
+    try {
+        await camera.start();
+        console.log('camera.start() 성공');
+    } catch (error) {
+        console.error('camera.start() 실패:', error);
+        throw error;
+    }
 };
 
 const initializeBackgroundRemoval = async (videoElement, canvasElement) => {
@@ -206,4 +216,10 @@ const initializeBackgroundRemoval = async (videoElement, canvasElement) => {
     } catch (error) {
         console.error('MediaPipe 초기화 중 오류 발생:', error);
     }
+};
+
+const initializeCamera = async () => {
+    await window.loadSelfieSegmentation();
+    const cameraModule = await import('@mediapipe/camera_utils');
+    return cameraModule.Camera;
 };
