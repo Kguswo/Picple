@@ -1,8 +1,8 @@
 import { OpenVidu } from 'openvidu-browser';
 import { nextTick } from 'vue';
 import VideoBackgroundRemoval from '@/assets/js/showView/VideoBackgroundRemoval';
-import * as camerUtils from '@mediapipe/camera_utils/camera_utils';
-const { Camera } = camerUtils;
+import * as camerUtils from '@mediapipe/camera_utils';
+import { SelfieSegmentation } from '@mediapipe/selfie_segmentation';
 
 const OPENVIDU_SERVER_URL = import.meta.env.VITE_API_OPENVIDU_SERVER;
 const OPENVIDU_SERVER_SECRET = import.meta.env.VITE_OPENVIDU_SERVER_SECRET;
@@ -93,7 +93,6 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
     }
 };
 
-// applySegmentation 함수 수정
 export const applySegmentation = async (streamRef) => {
     try {
         if (!checkWebGLSupport()) {
@@ -137,33 +136,37 @@ export const applySegmentation = async (streamRef) => {
         console.log('7. Canvas 생성 완료');
 
         selfieSegmentation.onResults((results) => {
-            console.log('8. onResults 함수 호출됨');
+            try {
+                console.log('8. onResults 함수 호출됨');
 
-            canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-            canvasCtx.drawImage(results.segmentationMask, 0, 0, canvasElement.width, canvasElement.height);
+                canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+                canvasCtx.drawImage(results.segmentationMask, 0, 0, canvasElement.width, canvasElement.height);
 
-            canvasCtx.globalCompositeOperation = 'source-in';
-            canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+                canvasCtx.globalCompositeOperation = 'source-in';
+                canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
 
-            const videoStream = canvasElement.captureStream(30);
-            console.log('9. videoStream 생성됨:', videoStream);
-            const videoTrack = videoStream.getVideoTracks()[0];
-            console.log('10. videoTrack:', videoTrack);
-            const originalStream = actualStreamRef.stream.getMediaStream();
-            console.log('11. originalStream:', originalStream);
+                const videoStream = canvasElement.captureStream(30);
+                console.log('9. videoStream 생성됨:', videoStream);
+                const videoTrack = videoStream.getVideoTracks()[0];
+                console.log('10. videoTrack:', videoTrack);
+                const originalStream = actualStreamRef.stream.getMediaStream();
+                console.log('11. originalStream:', originalStream);
 
-            if (originalStream.getVideoTracks().length > 0) {
-                console.log('12. 기존 비디오 트랙 제거');
-                originalStream.removeTrack(originalStream.getVideoTracks()[0]);
+                if (originalStream.getVideoTracks().length > 0) {
+                    console.log('12. 기존 비디오 트랙 제거');
+                    originalStream.removeTrack(originalStream.getVideoTracks()[0]);
+                }
+
+                console.log('13. 새 비디오 트랙 추가');
+                originalStream.addTrack(videoTrack);
+            } catch (error) {
+                console.error('onResults 콜백 내부 오류:', error);
             }
-
-            console.log('13. 새 비디오 트랙 추가');
-            originalStream.addTrack(videoTrack);
         });
 
         console.log('14. selfieSegmentation.onResults 설정됨');
 
-        const camera = new Camera(videoElement, {
+        const camera = new camerUtils.Camera(videoElement, {
             onFrame: async () => {
                 console.log('15. onFrame 호출됨');
                 await selfieSegmentation.send({ image: videoElement });
@@ -177,9 +180,15 @@ export const applySegmentation = async (streamRef) => {
         await camera.start();
         console.log('18. camera.start() 성공');
 
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                console.log('19. 세그멘테이션 처리 완료');
+                resolve();
+            }, 1000); // 1초 후에 완료로 간주
+        });
+
     } catch (error) {
         console.error('세그멘테이션 적용 중 오류 발생:', error.message, error.stack);
-        // 사용자에게 오류 알림
         alert(`세그멘테이션 기능을 적용하는 데 문제가 발생했습니다: ${error.message}`);
         throw error;
     }
