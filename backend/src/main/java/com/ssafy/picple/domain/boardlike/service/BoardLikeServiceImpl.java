@@ -92,6 +92,17 @@ public class BoardLikeServiceImpl implements BoardLikeService {
 		}
 	}
 
+	@Transactional
+	@Override
+	public void toggleLike(Long boardId, Long userId) throws BaseException {
+		boolean isLiked = isPhotoLikedByUser(boardId, userId);
+		if (isLiked) {
+			unlikePhoto(boardId, userId);
+		} else {
+			likePhoto(boardId, userId);
+		}
+	}
+
 	@Override
 	public boolean isPhotoLikedByUser(Long boardId, Long userId) {
 		Optional<BoardLike> boardLike = boardLikeRepository.findByBoardIdAndUserId(boardId, userId);

@@ -1,5 +1,7 @@
 package com.ssafy.picple.domain.boardlike.controller;
 
+import static com.ssafy.picple.config.baseresponse.BaseResponseStatus.*;
+
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -52,23 +54,9 @@ public class BoardLikeController {
 	@PatchMapping("/{boardId}")
 	public BaseResponse<?> changeIsLiked(HttpServletRequest request,
 			@PathVariable Long boardId) throws BaseException {
-		Long userId = (Long)request.getAttribute("userId");
-		if (userId != null) {
-			try {
-				boolean isLiked = likeService.isPhotoLikedByUser(boardId, userId);
-				if (isLiked) {
-					likeService.unlikePhoto(boardId, userId);
-				} else {
-					likeService.likePhoto(boardId, userId);
-				}
-				return new BaseResponse<>(BaseResponseStatus.SUCCESS);
-			} catch (Exception e) {
-				e.printStackTrace();
-				return new BaseResponse<>(BaseResponseStatus.RESPONSE_ERROR);
-			}
-		} else {
-			return new BaseResponse<>(BaseResponseStatus.GET_USER_EMPTY);
-		}
+		Long userId = (Long) request.getAttribute("userId");
+		likeService.toggleLike(boardId, userId);
+		return new BaseResponse<>(SUCCESS);
 	}
 
 }
