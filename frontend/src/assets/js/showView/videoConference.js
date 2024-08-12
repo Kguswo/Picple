@@ -122,7 +122,9 @@ export const applySegmentation = async (streamRef) => {
         console.log('4. videoElement 생성 및 재생 시작');
 
         console.log('5. SelfieSegmentation 초기화 시작');
-        const SelfieSegmentation = (await import('@mediapipe/selfie_segmentation')).SelfieSegmentation;
+        const SelfieSegmentation = await new SelfieSegmentation({
+            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file}`,
+        });
         console.log('SelfieSegmentation loaded:', SelfieSegmentation);
         
         if (typeof SelfieSegmentation !== 'function') {
