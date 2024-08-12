@@ -31,6 +31,9 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
         OV.setAdvancedConfiguration({
             logLevel: 'DEBUG', // 디버그 로그 레벨 설정
             noStreamPlayingEventExceptionTimeout: 8000,
+            iceServers: [
+                { urls: 'turn:i11a503.p.ssafy.io:3478', username: 'picplessafy', credential: 'ssafya503!picple' }
+            ],
         });
 
         session.value = OV.initSession(); // 세션 초기화
