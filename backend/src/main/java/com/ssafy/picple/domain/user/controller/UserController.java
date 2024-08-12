@@ -116,8 +116,7 @@ public class UserController {
         if (emailDto.getEmail() == null || emailDto.getEmail().trim().isEmpty()) {
             throw new BaseException(USER_EMAIL_EMPTY);
         }
-        emailService.sendEmail(emailDto.getEmail());
-        return new BaseResponse<>(null);
+        return new BaseResponse<>(emailService.sendEmail(emailDto.getEmail()));
     }
 
 	/**
@@ -169,7 +168,7 @@ public class UserController {
 	 * @return
 	 * @throws BaseException
 	 */
-	@PostMapping("/reset-password")
+	@PatchMapping("/reset-password")
 	public BaseResponse<BaseResponseStatus> resetPassword(@RequestBody ResetPasswordRequest resetPasswordRequest) throws BaseException {
 		return new BaseResponse<>(userService.resetPassword(
 				resetPasswordRequest.getEmail(),
@@ -195,6 +194,8 @@ public class UserController {
 
         Cookie cookie = new Cookie("refreshToken", null);
         cookie.setMaxAge(0);
+		cookie.setDomain(domain);
+		cookie.setHttpOnly(true);
         cookie.setPath("/");
         response.addCookie(cookie);
 
