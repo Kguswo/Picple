@@ -88,6 +88,13 @@ public enum BaseResponseStatus {
 	FILE_SIZE_TOO_SMALL(false, 3223, "사진 크기가 너무 작습니다."),
 	FILE_CONVERSION_ERROR(false, 3226, "파일을 변환하는데 실패하였습니다."),
 
+	// websocket
+	WEBSOCKET_CONNECTION_ERROR(false, 3250, "WebSocket 연결 중 오류가 발생하였습니다."),
+	WEBSOCKET_MESSAGE_PROCESSING_ERROR(false, 3251, "WebSocket 메시지 처리 중 오류가 발생하였습니다."),
+	WEBSOCKET_BOOTH_CREATION_ERROR(false, 3252, "부스 생성 중 오류가 발생하였습니다."),
+	WEBSOCKET_BOOTH_JOIN_ERROR(false, 3253, "부스 참여 중 오류가 발생하였습니다."),
+	BACKGROUND_CHANGE_ERROR(false, 3254, "배경 변경에 실패하였습니다."),
+
 	/**
 	 * 4000 : Database, Server
 	 */
