@@ -2,9 +2,10 @@
 import WhiteBoardComp from '@/components/common/WhiteBoardComp.vue';
 import BoardPhotoComp from '@/components/board/BoardPhotoComp.vue';
 import Page from '@/components/common/PageComp.vue';
-import { onMounted, ref, watch } from 'vue';
+import { onMounted, ref } from 'vue';
 import { boardListApi } from '@/api/boardApi';
 import { alertResult } from '@/api/baseApi';
+import { debounce } from '@/assets/js/util';
 
 const boardList = ref([]);
 const sortArrow = ref('↓');
@@ -17,22 +18,16 @@ const paging = ref({
 	sort: 'createdAt,desc',
 });
 const isLoading = ref(true);
-const debounceTimer = ref(null);
+const debounceTimer = ref(0);
 
 onMounted(() => {
-	getBoardList();
+	debounce(debounceTimer, getBoardList, 1000)();
 });
-
-watch(
-	() => paging.value.page,
-	() => {
-		isLoading.value = true;
-	},
-);
 
 const getNextBoards = async () => {
 	++paging.value.page;
-	setTimeout(getBoardList, 2000);
+	isLoading.value = true;
+	debounce(debounceTimer, getBoardList, 2000)();
 };
 
 const getBoardList = async () => {
@@ -45,15 +40,6 @@ const getBoardList = async () => {
 	isLoading.value = false;
 };
 
-const debounce = (func, delay) => {
-	return () => {
-		if (debounceTimer.value) clearTimeout(debounceTimer.value);
-		debounceTimer.value = setTimeout(() => func(), delay);
-	};
-};
-
-const debouncedGetBoardList = debounce(getBoardList, 1000);
-
 const sortBoards = async (criteria) => {
 	if (isLoading.value) {
 		return;
@@ -65,7 +51,8 @@ const sortBoards = async (criteria) => {
 	} else {
 		paging.value.sort = `${criteria},asc`;
 	}
-	debouncedGetBoardList();
+	isLoading.value = true;
+	debounce(debounceTimer, getBoardList, 1000)();
 	toggleSort(criteria);
 };
 
@@ -80,8 +67,9 @@ const searchByNickname = async () => {
 	paging.value.sort = 'createdAt,desc';
 	boardList.value = [];
 
+	isLoading.value = true;
 	prevNickname.value = nickname.value;
-	debouncedGetBoardList();
+	debounce(debounceTimer, getBoardList, 1000)();
 };
 
 const toggleSort = (criteria) => {
