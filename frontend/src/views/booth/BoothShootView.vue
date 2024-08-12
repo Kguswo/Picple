@@ -11,6 +11,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { useBoothStore } from '@/stores/boothStore';
 import { useUserStore } from '@/stores/userStore';
 import { joinExistingSession } from '@/assets/js/showView/videoConference';
+import { applySegmentation } from '@/assets/js/showView/videoConference';
 
 import videoOn from '@/assets/icon/video_on.png';
 import videoOff from '@/assets/icon/video_off.png';
@@ -129,13 +130,18 @@ onMounted(async () => {
   try {
     await joinExistingSession(session, publisher, subscribers, myVideo, sessionId, boothStore);
 
+    // applySegmentation 호출 추가
+    if (publisher.value) {
+      await applySegmentation(publisher.value);
+    }
+
     WebSocketService.setBoothStore(boothStore);
     WebSocketService.on('background_info', (message) => {
       boothStore.setBgImage(message.backgroundImage);
     });
   } catch (error) {
-    console.error('세션 참가 중 오류 발생:', error);
-	alert('세션 참가 중 오류가 발생했습니다. 새로고침 후 다시 시도해주세요.');
+    console.error('세션 참가 또는 세그멘테이션 적용 중 오류 발생:', error);
+    alert('세션 참가 또는 세그멘테이션 적용 중 오류가 발생했습니다. 새로고침 후 다시 시도해주세요.');
   }
 });
 
