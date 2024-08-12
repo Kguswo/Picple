@@ -212,7 +212,11 @@ public class UserServiceImpl implements UserService {
         Claims claims = jwtUtil.parseRefreshToken(refreshToken);
 
         User user = userRepository.findByEmail(claims.getSubject())
-                .orElseThrow(() -> new BaseException(INVALID_JWT));
+                .orElseThrow(() -> new BaseException(INVALID_REFRESH_TOKEN));
+
+        if (user.getRefreshToken() == null) {
+            new BaseException(INVALID_REFRESH_TOKEN);
+        }
 
         String accessToken = jwtUtil.createAccessToken(user);
         return accessToken;

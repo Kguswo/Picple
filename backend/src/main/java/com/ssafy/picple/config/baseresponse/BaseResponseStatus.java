@@ -88,6 +88,22 @@ public enum BaseResponseStatus {
 	FILE_SIZE_TOO_SMALL(false, 3223, "사진 크기가 너무 작습니다."),
 	FILE_CONVERSION_ERROR(false, 3226, "파일을 변환하는데 실패하였습니다."),
 
+	// booth
+	BOOTH_GENERATION_ERROR(false, 3250, "부스를 생성할 수 없습니다."),
+	JOIN_BOOTH_SUCCESSFULLY(true, 3251, "부스에 참가하였습니다."),
+	FAILED_TO_JOIN_BOOTH(false, 3252, "부스 참가에 실패하였습니다."),
+	FULL_BOOTH_ERROR(false, 3253, "이미 최대 인원이 참여 중입니다."),
+	LEAVE_BOOTH_SUCCESSFULLY(true, 3254, "부스에서 떠났습니다."),
+	FAILED_TO_LEAVE_BOOTH(false, 3255, "부스 떠나기에 실패하였습니다."),
+	BOOTH_NOT_FOUND(false, 3256, "부스를 찾을 수 없습니다."),
+
+	// websocket
+	WEBSOCKET_CONNECTION_ERROR(false, 3280, "WebSocket 연결 중 오류가 발생하였습니다."),
+	WEBSOCKET_MESSAGE_PROCESSING_ERROR(false, 3281, "WebSocket 메시지 처리 중 오류가 발생하였습니다."),
+	WEBSOCKET_BOOTH_CREATION_ERROR(false, 3282, "부스 생성 중 오류가 발생하였습니다."),
+	WEBSOCKET_BOOTH_JOIN_ERROR(false, 3283, "부스 참여 중 오류가 발생하였습니다."),
+	BACKGROUND_CHANGE_ERROR(false, 3284, "배경 변경에 실패하였습니다."),
+
 	/**
 	 * 4000 : Database, Server
 	 */
