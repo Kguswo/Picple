@@ -2,6 +2,8 @@ FROM node:21 as build-stage
 WORKDIR /app
 COPY package*.json ./
 RUN npm install
+RUN npm install @mediapipe/selfie_segmentation @mediapipe/camera_utils
+
 COPY . .
 RUN npm run build
 
