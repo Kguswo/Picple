@@ -1,4 +1,8 @@
 package com.ssafy.picple.domain.chat.repository;
 
-public class ChatRepository {
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.ssafy.picple.domain.chat.entity.ChatMessage;
+
+public interface ChatRepository extends JpaRepository<ChatMessage, Long> {
 }
