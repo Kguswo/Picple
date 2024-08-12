@@ -94,7 +94,7 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
 };
 
 // applySegmentation 함수 수정
-const applySegmentation = async (streamRef) => {
+export const applySegmentation = async (streamRef) => {
     try {
         
         if (!checkWebGLSupport()) {
@@ -212,14 +212,3 @@ const initializeBackgroundRemoval = async (videoElement, canvasElement) => {
         console.error('MediaPipe 초기화 중 오류 발생:', error);
     }
 };
-// const initializeCamera = async () => {
-//     try {
-//         await window.loadSelfieSegmentation();
-//         const cameraModule = await import('@mediapipe/camera_utils');
-//         console.log('Camera module:', cameraModule);
-//         return cameraModule.Camera;
-//     } catch (error) {
-//         console.error('Camera 초기화 중 오류:', error);
-//         throw error;
-//     }
-// };

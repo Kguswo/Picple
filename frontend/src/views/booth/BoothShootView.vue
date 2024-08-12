@@ -10,8 +10,7 @@ import { ref, onMounted, onUnmounted, computed, provide } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useBoothStore } from '@/stores/boothStore';
 import { useUserStore } from '@/stores/userStore';
-import { joinExistingSession } from '@/assets/js/showView/videoConference';
-import { applySegmentation } from '@/assets/js/showView/videoConference';
+import { joinExistingSession, applySegmentation} from '@/assets/js/showView/videoConference';
 
 import videoOn from '@/assets/icon/video_on.png';
 import videoOff from '@/assets/icon/video_off.png';
