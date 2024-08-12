@@ -1,70 +1,82 @@
 import { OpenVidu } from 'openvidu-browser';
 import { nextTick } from 'vue';
 import VideoBackgroundRemoval from '@/assets/js/showView/VideoBackgroundRemoval';
-//import * as cameraUtils from '@mediapipe/camera_utils'; // 카메라 유틸리티 임포트
-//import * as SelfieSegmentation from '@mediapipe/selfie_segmentation'; // SelfieSegmentation 클래스 임포트
 
-const OPENVIDU_SERVER_URL = import.meta.env.VITE_API_OPENVIDU_SERVER; // OpenVidu 서버 URL 환경 변수
-const OPENVIDU_SERVER_SECRET = import.meta.env.VITE_OPENVIDU_SERVER_SECRET; // OpenVidu 서버 시크릿 환경 변수
+const OPENVIDU_SERVER_URL = import.meta.env.VITE_API_OPENVIDU_SERVER;
+const OPENVIDU_SERVER_SECRET = import.meta.env.VITE_OPENVIDU_SERVER_SECRET;
 
-// WebGL 지원 여부를 확인하는 함수
 function checkWebGLSupport() {
     const canvas = document.createElement('canvas');
     const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-    return !!gl; // WebGL 컨텍스트가 생성되었는지 여부를 반환
+    return !!gl;
 }
 
-// 기존 세션에 참여하는 함수
+const showErrorToUser = (message) => {
+    // 사용자 친화적인 에러 표시 로직 구현
+    console.error(message);
+    // 예: 모달 팝업이나 토스트 메시지 등
+};
+
 export const joinExistingSession = async (session, publisher, subscribers, myVideo, sessionId, boothStore) => {
     try {
-        const sessionInfo = boothStore.getSessionInfo(); // 부스 스토어에서 세션 정보 가져오기
+        const sessionInfo = boothStore.getSessionInfo();
 
         if (!sessionInfo || !sessionInfo.sessionId || !sessionInfo.token) {
-            throw new Error('세션 정보가 없습니다.'); // 세션 정보가 없을 때 오류 발생
+            throw new Error('세션 정보가 없습니다.');
         }
 
-        const { token } = sessionInfo; // 세션 토큰 가져오기
+        const { token } = sessionInfo;
 
-        const OV = new OpenVidu(); // OpenVidu 객체 생성
+        const OV = new OpenVidu();
 
-        OV.enableProdMode(false); // 프로덕션 모드를 비활성화
+        OV.enableProdMode(false);
         OV.setAdvancedConfiguration({
-            logLevel: 'DEBUG', // 디버그 로그 레벨 설정
+            logLevel: 'DEBUG',
             noStreamPlayingEventExceptionTimeout: 8000,
             iceServers: [
+                { urls: 'stun:stun.l.google.com:19302' },
                 { urls: 'turn:i11a503.p.ssafy.io:3478', username: 'picplessafy', credential: 'ssafya503!picple' }
             ],
         });
 
-        session.value = OV.initSession(); // 세션 초기화
+        session.value = OV.initSession();
 
-        // 스트림이 생성되었을 때 실행되는 이벤트 핸들러
         session.value.on('streamCreated', async ({ stream }) => {
-            const subscriber = await session.value.subscribe(stream); // 스트림 구독
-            subscribers.value.push({ subscriber }); // 구독자 리스트에 추가
+            const subscriber = await session.value.subscribe(stream);
+            subscribers.value.push({ subscriber });
 
-            // DOM이 업데이트된 후 실행
             nextTick(async () => {
                 const video = document.getElementById(`video-${subscriber.stream.streamId}`);
                 const canvas = document.getElementById(`canvas-${subscriber.stream.streamId}`);
                 if (video && canvas) {
-                    await initializeBackgroundRemoval(video, canvas); // 배경 제거 초기화
+                    await initializeBackgroundRemoval(video, canvas);
                 }
             });
         });
 
-        // 스트림이 종료되었을 때 실행되는 이벤트 핸들러
         session.value.on('streamDestroyed', ({ stream }) => {
             const index = subscribers.value.findIndex((sub) => sub.stream.streamId === stream.streamId);
             if (index >= 0) {
-                subscribers.value.splice(index, 1); // 구독자 리스트에서 제거
+                subscribers.value.splice(index, 1);
             }
         });
 
-        await session.value.connect(token); // 세션에 연결
+        session.value.on('connectionStateChanged', (event) => {
+            console.log('Connection state changed:', event.connectionState);
+            if (event.connectionState === 'failed') {
+                console.error('Connection failed. Attempting to reconnect...');
+                attemptReconnection();
+            }
+        });
 
-        const devices = await OV.getDevices(); // 사용 가능한 장치 가져오기
-        const videoDevices = devices.filter((device) => device.kind === 'videoinput'); // 비디오 입력 장치 필터링
+        session.value.on('iceCandidate', (event) => {
+            console.log('ICE candidate:', event.candidate);
+        });
+
+        await session.value.connect(token);
+
+        const devices = await OV.getDevices();
+        const videoDevices = devices.filter((device) => device.kind === 'videoinput');
 
         const publisherOptions = {
             audioSource: undefined,
@@ -72,46 +84,55 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
             publishAudio: true,
             publishVideo: true,
             resolution: '640x480',
-            frameRate: 60,
+            frameRate: 30,
             insertMode: 'APPEND',
             mirror: true,
         };
 
-        publisher.value = await OV.initPublisherAsync(undefined, publisherOptions); // 퍼블리셔 초기화
+        publisher.value = await OV.initPublisherAsync(undefined, publisherOptions);
 
-        await session.value.publish(publisher.value); // 세션에 퍼블리셔 게시
+        await session.value.publish(publisher.value);
 
         if (myVideo.value && publisher.value.stream && publisher.value.stream.getMediaStream()) {
-            myVideo.value.srcObject = publisher.value.stream.getMediaStream(); // 내 비디오 엘리먼트에 스트림 연결
+            myVideo.value.srcObject = publisher.value.stream.getMediaStream();
         }
 
         try {
-            await applySegmentation(publisher); // 세그멘테이션 적용
+            if (!checkWebGLSupport()) {
+                console.warn('WebGL이 지원되지 않습니다. 배경 제거 기능을 사용할 수 없습니다.');
+                return;
+            }
+            await applySegmentation(publisher);
         } catch (error) {
             console.error('세그멘테이션 적용 중 오류 발생:', error);
-            alert('세그멘테이션 기능을 적용하는 데 문제가 발생했습니다. 새로고침 후 다시 시도해주세요.');
+            showErrorToUser('세그멘테이션 기능을 적용하는 데 문제가 발생했습니다. 새로고침 후 다시 시도해주세요.');
         }
     } catch (error) {
         console.error('세션 참가 중 오류 발생:', error);
         if (error.name === 'DEVICE_ACCESS_DENIED') {
-            alert('카메라 또는 마이크 접근이 거부되었습니다. 브라우저 설정에서 권한을 확인해주세요.');
+            showErrorToUser('카메라 또는 마이크 접근이 거부되었습니다. 브라우저 설정에서 권한을 확인해주세요.');
         } else {
-            alert(`오류 발생: ${error.message}`);
+            showErrorToUser(`오류 발생: ${error.message}`);
         }
     }
 };
 
-// 세그멘테이션을 적용하는 함수
+const attemptReconnection = async () => {
+    try {
+        await session.value.disconnect();
+        await joinExistingSession(session, publisher, subscribers, myVideo, sessionId, boothStore);
+    } catch (error) {
+        console.error('재연결 실패:', error);
+        showErrorToUser('연결에 실패했습니다. 잠시 후 다시 시도해주세요.');
+    }
+};
+
 export const applySegmentation = async (streamRef) => {
     let isProcessing = false;
     let selfieSegmentation;
     let camera;
 
     try {
-        if (!checkWebGLSupport()) {
-            throw new Error('WebGL이 지원되지 않습니다. 세그멘테이션 기능을 사용할 수 없습니다.');
-        }
-
         const actualStreamRef = streamRef.value || streamRef;
         if (!actualStreamRef || !actualStreamRef.stream) {
             throw new Error('스트림 참조가 유효하지 않습니다.');
@@ -193,7 +214,6 @@ export const applySegmentation = async (streamRef) => {
         console.error('세그멘테이션 적용 중 오류 발생:', error);
         throw error;
     } finally {
-        // 리소스 정리
         if (camera) {
             camera.stop();
         }
@@ -203,7 +223,6 @@ export const applySegmentation = async (streamRef) => {
     }
 };
 
-// 배경 제거를 초기화하는 함수
 const initializeBackgroundRemoval = async (videoElement, canvasElement) => {
     if (!videoElement || !canvasElement) return;
 
@@ -228,4 +247,3 @@ const initializeBackgroundRemoval = async (videoElement, canvasElement) => {
         console.error('MediaPipe 초기화 중 오류 발생:', error);
     }
 };
-
