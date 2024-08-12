@@ -9,7 +9,8 @@ import WebSocketService from '@/services/WebSocketService';
 import { ref, onMounted, onUnmounted, computed, provide } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useBoothStore } from '@/stores/boothStore';
-import { useUserStore, useUserNickname } from '@/stores/userStore';
+// import { useUserStore, useUserNickname } from '@/stores/userStore';
+import { useUserStore } from '@/stores/userStore';
 import { joinExistingSession } from '@/assets/js/showView/videoConference';
 
 import videoOn from '@/assets/icon/video_on.png';
@@ -196,7 +197,7 @@ const { remainPicCnt, images } = PhotoService;
                                 :key="sub.subscriber.stream.streamId"
                                 class="stream-container"
                             >
-                                <h3>{{ sub.username }}</h3>
+                                <!-- <h3>{{ sub.username }}</h3> -->
                                 <video
                                     :id="`video-${sub.subscriber.stream.streamId}`"
                                     :width="320"
