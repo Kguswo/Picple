@@ -42,6 +42,11 @@ public class BackgroundServiceImpl implements BackgroundService {
 	// 특정 사용자가 추가한 배경 사진을 DB에서 조회하여 반환
 	@Override
 	public List<BackgroundResponseDto> getUserBackgrounds(Long userId) throws BaseException {
+		Long id = userRepository.findById(userId).get().getId();
+		if (id == null) {
+			throw new BaseException(GET_USER_EMPTY);
+		}
+
 		return getBackgroundsBy(() -> backgroundRepository.findByUserId(userId));
 	}
 
@@ -93,22 +98,26 @@ public class BackgroundServiceImpl implements BackgroundService {
 
 	// 배경 사진의 정보, 사용자와 배경 사진의 관계를 DB에 저장
 	private void saveBackgroundToDB(Long userId, String backgroundUrl, String fileName) throws BaseException {
-		// 데이터베이스에 저장
-		Background background = Background.builder()
-				.backgroundTitle(fileName)
-				.backgroundUrl(backgroundUrl)
-				.build();
-		backgroundRepository.save(background);
+		try {
+			// 데이터베이스에 저장
+			Background background = Background.builder()
+					.backgroundTitle(fileName)
+					.backgroundUrl(backgroundUrl)
+					.build();
+			backgroundRepository.save(background);
 
-		// Background와 User의 관계 저장
-		User user = userRepository.findById(userId)
-				.orElseThrow(() -> new BaseException(NOT_FOUND_USER));
+			// Background와 User의 관계 저장
+			User user = userRepository.findById(userId)
+					.orElseThrow(() -> new BaseException(NOT_FOUND_USER));
 
-		BackgroundUser backgroundUser = BackgroundUser.builder()
-				.background(background)
-				.user(user)
-				.build();
-		backgroundUserRepository.save(backgroundUser);
+			BackgroundUser backgroundUser = BackgroundUser.builder()
+					.background(background)
+					.user(user)
+					.build();
+			backgroundUserRepository.save(backgroundUser);
+	    } catch (Exception e) {
+			throw new BaseException(DATABASE_ERROR);
+		}
 	}
 
 	// 배경 사진을 DB에서 삭제
