@@ -96,7 +96,6 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
 // applySegmentation 함수 수정
 export const applySegmentation = async (streamRef) => {
     try {
-        
         if (!checkWebGLSupport()) {
             throw new Error('WebGL이 지원되지 않습니다. 세그멘테이션 기능을 사용할 수 없습니다.');
         }
@@ -124,23 +123,21 @@ export const applySegmentation = async (streamRef) => {
         console.log('4. videoElement 생성 및 재생 시작');
 
         console.log('5. SelfieSegmentation 초기화 시작');
-        const selfieSegmentation = await initializeSelfieSegmentation();
+        const selfieSegmentation = new SelfieSegmentation({
+            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file}`
+        });
+        await selfieSegmentation.setOptions({ modelSelection: 1 });
+        await selfieSegmentation.initialize();
         console.log('6. selfieSegmentation 초기화 완료:', selfieSegmentation);
-
-        console.log('7. Camera 초기화 완료:', Camera);
-
-        if (!Camera) {
-            throw new Error('Camera 객체를 초기화할 수 없습니다.');
-        }
 
         const canvasElement = document.createElement('canvas');
         canvasElement.width = videoElement.videoWidth || 640;
         canvasElement.height = videoElement.videoHeight || 480;
         const canvasCtx = canvasElement.getContext('2d');
-        console.log('8. Canvas 생성 완료');
+        console.log('7. Canvas 생성 완료');
 
         selfieSegmentation.onResults((results) => {
-            console.log('9. onResults 함수 호출됨');
+            console.log('8. onResults 함수 호출됨');
 
             canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
             canvasCtx.drawImage(results.segmentationMask, 0, 0, canvasElement.width, canvasElement.height);
@@ -149,36 +146,36 @@ export const applySegmentation = async (streamRef) => {
             canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
 
             const videoStream = canvasElement.captureStream(30);
-            console.log('10. videoStream 생성됨:', videoStream);
+            console.log('9. videoStream 생성됨:', videoStream);
             const videoTrack = videoStream.getVideoTracks()[0];
-            console.log('11. videoTrack:', videoTrack);
+            console.log('10. videoTrack:', videoTrack);
             const originalStream = actualStreamRef.stream.getMediaStream();
-            console.log('12. originalStream:', originalStream);
+            console.log('11. originalStream:', originalStream);
 
             if (originalStream.getVideoTracks().length > 0) {
-                console.log('13. 기존 비디오 트랙 제거');
+                console.log('12. 기존 비디오 트랙 제거');
                 originalStream.removeTrack(originalStream.getVideoTracks()[0]);
             }
 
-            console.log('14. 새 비디오 트랙 추가');
+            console.log('13. 새 비디오 트랙 추가');
             originalStream.addTrack(videoTrack);
         });
 
-        console.log('15. selfieSegmentation.onResults 설정됨');
+        console.log('14. selfieSegmentation.onResults 설정됨');
 
         const camera = new Camera(videoElement, {
             onFrame: async () => {
-                console.log('16. onFrame 호출됨');
+                console.log('15. onFrame 호출됨');
                 await selfieSegmentation.send({ image: videoElement });
             },
             width: videoElement.videoWidth || 640,
             height: videoElement.videoHeight || 480,
         });
 
-        console.log('17. Camera 객체 생성됨');
-        console.log('18. camera.start() 호출');
+        console.log('16. Camera 객체 생성됨');
+        console.log('17. camera.start() 호출');
         await camera.start();
-        console.log('19. camera.start() 성공');
+        console.log('18. camera.start() 성공');
 
     } catch (error) {
         console.error('세그멘테이션 적용 중 오류 발생:', error.message, error.stack);
