@@ -1,8 +1,8 @@
 import { OpenVidu } from 'openvidu-browser';
 import { nextTick } from 'vue';
 import VideoBackgroundRemoval from '@/assets/js/showView/VideoBackgroundRemoval';
-import * as cameraUtils from '@mediapipe/camera_utils'; // 카메라 유틸리티 임포트
-import * as SelfieSegmentation from '@mediapipe/selfie_segmentation'; // SelfieSegmentation 클래스 임포트
+//import * as cameraUtils from '@mediapipe/camera_utils'; // 카메라 유틸리티 임포트
+//import * as SelfieSegmentation from '@mediapipe/selfie_segmentation'; // SelfieSegmentation 클래스 임포트
 
 const OPENVIDU_SERVER_URL = import.meta.env.VITE_API_OPENVIDU_SERVER; // OpenVidu 서버 URL 환경 변수
 const OPENVIDU_SERVER_SECRET = import.meta.env.VITE_OPENVIDU_SERVER_SECRET; // OpenVidu 서버 시크릿 환경 변수
@@ -128,7 +128,7 @@ export const applySegmentation = async (streamRef) => {
         console.log('4. videoElement 생성 및 재생 시작');
 
         console.log('5. SelfieSegmentation 초기화 시작');
-        const selfieSegmentation = new SelfieSegmentation.SelfieSegmentation({
+        const selfieSegmentation = new window.SelfieSegmentation({
             locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file}`,
         });
         console.log('selfieSegmentation:', selfieSegmentation);
@@ -175,7 +175,7 @@ export const applySegmentation = async (streamRef) => {
 
         console.log('14. selfieSegmentation.onResults 설정됨');
 
-        const camera = new cameraUtils.Camera(videoElement, {
+        const camera = new window.Camera(videoElement, {
             onFrame: async () => {
                 console.log('15. onFrame 호출됨');
                 await selfieSegmentation.send({ image: videoElement }); // 세그멘테이션에 이미지 전송

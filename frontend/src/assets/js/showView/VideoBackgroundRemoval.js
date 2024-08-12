@@ -1,4 +1,4 @@
-import { SelfieSegmentation } from '@mediapipe/selfie_segmentation/selfie_segmentation.js';
+//import { SelfieSegmentation } from '@mediapipe/selfie_segmentation/selfie_segmentation.js';
 
 export default class VideoBackgroundRemoval {
     constructor() {
@@ -6,14 +6,14 @@ export default class VideoBackgroundRemoval {
     }
 
     async initialize() {
-        this.selfieSegmentation = new SelfieSegmentation({
+        this.selfieSegmentation = new window.SelfieSegmentation({
             locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file}`,
-    });
+        });
 
-    await this.selfieSegmentation.initialize();
-        this.selfieSegmentation.setOptions({
-        modelSelection: 1,
-    });
+        await this.selfieSegmentation.initialize();
+            this.selfieSegmentation.setOptions({
+            modelSelection: 1,
+        });
         this.selfieSegmentation.onResults(this.onResults.bind(this));
     }
 
