@@ -5,7 +5,7 @@ import FormEmailComp from '@/components/form/FormEmailComp.vue';
 
 <template>
 	<FormComp title="비밀번호 찾기">
-		<FormEmailComp path="/modifyPassword/find" />
+		<FormEmailComp name="findPassword" />
 	</FormComp>
 </template>
 
