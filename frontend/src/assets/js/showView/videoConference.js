@@ -9,21 +9,32 @@ const OPENVIDU_SERVER_SECRET = import.meta.env.VITE_OPENVIDU_SERVER_SECRET;
 
 const initializeSelfieSegmentation = async () => {
     try {
+        console.log('1. 라이브러리 로딩 시작');
         await window.loadSelfieSegmentation();
+        console.log('2. 라이브러리 로딩 완료');
+
         const { SelfieSegmentation } = window;
         if (!SelfieSegmentation) {
             throw new Error('SelfieSegmentation is not loaded');
         }
+        console.log('3. SelfieSegmentation 객체 확인');
+
         const selfieSegmentation = new SelfieSegmentation({
             locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file}`,
         });
+        console.log('4. SelfieSegmentation 인스턴스 생성');
+
         await selfieSegmentation.setOptions({
             modelSelection: 1,
         });
+        console.log('5. 옵션 설정 완료');
+
         await selfieSegmentation.initialize();
+        console.log('6. 초기화 완료');
+
         return selfieSegmentation;
     } catch (error) {
-        console.error('SelfieSegmentation 초기화 중 오류 발생:', error);
+        console.error('SelfieSegmentation 초기화 중 오류 발생:', error.message, error.stack);
         throw error;
     }
 };
