@@ -6,12 +6,16 @@ export default class VideoBackgroundRemoval {
 
     async initialize() {
         try {
-            const { SelfieSegmentation } = await import('@mediapipe/selfie_segmentation');
+            await window.loadSelfieSegmentation();
+            const { SelfieSegmentation } = window;
+            if (!SelfieSegmentation) {
+                throw new Error('SelfieSegmentation is not loaded');
+            }
             this.selfieSegmentation = new SelfieSegmentation({
                 locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file}`,
             });
 
-            this.selfieSegmentation.setOptions({
+            await this.selfieSegmentation.setOptions({
                 modelSelection: 1,
             });
 
@@ -67,6 +71,16 @@ export default class VideoBackgroundRemoval {
             await this.initialize();
         }
         this.initCanvas(canvasElement);
+        await new Promise((resolve) => {
+            const checkVideo = () => {
+                if (videoElement.readyState >= 2) {
+                    resolve();
+                } else {
+                    requestAnimationFrame(checkVideo);
+                }
+            };
+            checkVideo();
+        });
         this.processVideo(videoElement, canvasElement);
     }
 }

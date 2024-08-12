@@ -2,23 +2,24 @@
 <html lang="en">
 	<head>
 		<meta charset="UTF-8" />
-		<link
-			rel="icon"
-			href="/picple.png"
-		/>
-		<meta
-			name="viewport"
-			content="width=device-width, initial-scale=1.0"
-		/>
+		<link rel="icon" href="/picple.png" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>PicPle</title>
-		<meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com https://www.google-analytics.com https://cdn.jsdelivr.net;">
-		<script src="https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation"></script>
+		<meta http-equiv="Content-Security-Policy" content="connect-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation https://www.google-analytics.com https://cdn.jsdelivr.net;">
 	</head>
 	<body>
 		<div id="app"></div>
-		<script
-			type="module"
-			src="/src/main.js"
-		></script>
+		<script type="module" src="/src/main.js"></script>
+		<script>
+			window.loadSelfieSegmentation = async function() {
+				return new Promise((resolve, reject) => {
+					const script = document.createElement('script');
+					script.src = "https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation";
+					script.onload = resolve;
+					script.onerror = reject;
+					document.body.appendChild(script);
+				});
+			}
+		</script>
 	</body>
 </html>
