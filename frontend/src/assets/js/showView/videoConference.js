@@ -1,17 +1,13 @@
 import { OpenVidu } from 'openvidu-browser';
 import { nextTick } from 'vue';
 import VideoBackgroundRemoval from '@/assets/js/showView/VideoBackgroundRemoval';
-import * as camerUtils from '@mediapipe/camera_utils';
 import { SelfieSegmentation } from '@mediapipe/selfie_segmentation';
+import { Camera } from '@mediapipe/camera_utils';
 
 const OPENVIDU_SERVER_URL = import.meta.env.VITE_API_OPENVIDU_SERVER;
 const OPENVIDU_SERVER_SECRET = import.meta.env.VITE_OPENVIDU_SERVER_SECRET;
 
-function checkWebGLSupport() {
-    const canvas = document.createElement('canvas');
-    const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-    return !!gl;
-}
+let selfieSegmentation;
 
 export const joinExistingSession = async (session, publisher, subscribers, myVideo, sessionId, boothStore) => {
     try {
@@ -77,12 +73,7 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
             myVideo.value.srcObject = publisher.value.stream.getMediaStream();
         }
 
-        try {
-            await applySegmentation(publisher);
-        } catch (error) {
-            console.error('세그멘테이션 적용 중 오류 발생:', error);
-            alert('세그멘테이션 기능을 적용하는 데 문제가 발생했습니다. 새로고침 후 다시 시도해주세요.');
-        }
+        applySegmentation(publisher);
     } catch (error) {
         console.error('세션 참가 중 오류 발생:', error);
         if (error.name === 'DEVICE_ACCESS_DENIED') {
@@ -93,119 +84,61 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
     }
 };
 
-export const applySegmentation = async (streamRef) => {
-    try {
-        if (!checkWebGLSupport()) {
-            throw new Error('WebGL이 지원되지 않습니다. 세그멘테이션 기능을 사용할 수 없습니다.');
-        }
+const applySegmentation = (streamRef) => {
+    const actualStreamRef = streamRef.value || streamRef;
 
-        console.log('1. applySegmentation 함수 시작');
-        const actualStreamRef = streamRef.value || streamRef;
-        console.log('2. actualStreamRef:', actualStreamRef);
+    if (!actualStreamRef || !actualStreamRef.stream) return;
 
-        if (!actualStreamRef || !actualStreamRef.stream) {
-            throw new Error('스트림 참조가 유효하지 않습니다.');
-        }
+    const mediaStream = actualStreamRef.stream.getMediaStream();
 
-        const mediaStream = actualStreamRef.stream.getMediaStream();
-        console.log('3. mediaStream:', mediaStream);
+    if (!mediaStream) return;
 
-        if (!mediaStream) {
-            throw new Error('미디어 스트림을 가져올 수 없습니다.');
-        }
+    const videoElement = document.createElement('video');
+    videoElement.srcObject = mediaStream;
 
-        const videoElement = document.createElement('video');
-        videoElement.srcObject = mediaStream;
-        videoElement.muted = true;
-        videoElement.playsInline = true;
-        await videoElement.play();
-        console.log('4. videoElement 생성 및 재생 시작');
+    selfieSegmentation = new SelfieSegmentation({
+        locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file}`,
+    });
 
-        console.log('5. SelfieSegmentation 초기화 시작');
-        const SelfieSegmentation = await new SelfieSegmentation({
-            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file}`,
-        });
-        console.log('SelfieSegmentation loaded:', SelfieSegmentation);
-        
-        if (typeof SelfieSegmentation !== 'function') {
-            throw new Error('SelfieSegmentation is not a constructor');
-        }
-        
-        let selfieSegmentation;
+    selfieSegmentation.setOptions({
+        modelSelection: 1,
+    });
 
-        console.log('SelfieSegmentation:', SelfieSegmentation);
-        selfieSegmentation = new SelfieSegmentation({
-            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file}`,
-        });
-        console.log('selfieSegmentation:', selfieSegmentation);
-        
-        await selfieSegmentation.setOptions({ modelSelection: 1 });
-        await selfieSegmentation.initialize();
-        console.log('6. selfieSegmentation 초기화 완료:', selfieSegmentation);
-
+    const onResults = (results) => {
         const canvasElement = document.createElement('canvas');
-        canvasElement.width = videoElement.videoWidth || 640;
-        canvasElement.height = videoElement.videoHeight || 480;
         const canvasCtx = canvasElement.getContext('2d');
-        console.log('7. Canvas 생성 완료');
 
-        selfieSegmentation.onResults((results) => {
-            try {
-                console.log('8. onResults 함수 호출됨');
+        canvasElement.width = results.image.width;
+        canvasElement.height = results.image.height;
 
-                canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-                canvasCtx.drawImage(results.segmentationMask, 0, 0, canvasElement.width, canvasElement.height);
+        canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+        canvasCtx.drawImage(results.segmentationMask, 0, 0, canvasElement.width, canvasElement.height);
 
-                canvasCtx.globalCompositeOperation = 'source-in';
-                canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+        canvasCtx.globalCompositeOperation = 'source-in';
+        canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
 
-                const videoStream = canvasElement.captureStream(30);
-                console.log('9. videoStream 생성됨:', videoStream);
-                const videoTrack = videoStream.getVideoTracks()[0];
-                console.log('10. videoTrack:', videoTrack);
-                const originalStream = actualStreamRef.stream.getMediaStream();
-                console.log('11. originalStream:', originalStream);
+        const videoStream = canvasElement.captureStream(30);
+        const videoTrack = videoStream.getVideoTracks()[0];
+        const originalStream = actualStreamRef.stream.getMediaStream();
 
-                if (originalStream.getVideoTracks().length > 0) {
-                    console.log('12. 기존 비디오 트랙 제거');
-                    originalStream.removeTrack(originalStream.getVideoTracks()[0]);
-                }
+        if (originalStream.getVideoTracks().length > 0) {
+            originalStream.removeTrack(originalStream.getVideoTracks()[0]);
+        }
 
-                console.log('13. 새 비디오 트랙 추가');
-                originalStream.addTrack(videoTrack);
-            } catch (error) {
-                console.error('onResults 콜백 내부 오류:', error);
-            }
-        });
+        originalStream.addTrack(videoTrack);
+    };
 
-        console.log('14. selfieSegmentation.onResults 설정됨');
+    selfieSegmentation.onResults(onResults);
 
-        const camera = new camerUtils.Camera(videoElement, {
-            onFrame: async () => {
-                console.log('15. onFrame 호출됨');
-                await selfieSegmentation.send({ image: videoElement });
-            },
-            width: videoElement.videoWidth || 640,
-            height: videoElement.videoHeight || 480,
-        });
+    const camera = new Camera(videoElement, {
+        onFrame: async () => {
+            await selfieSegmentation.send({ image: videoElement });
+        },
+        width: 640,
+        height: 480,
+    });
 
-        console.log('16. Camera 객체 생성됨');
-        console.log('17. camera.start() 호출');
-        await camera.start();
-        console.log('18. camera.start() 성공');
-
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                console.log('19. 세그멘테이션 처리 완료');
-                resolve();
-            }, 1000); // 1초 후에 완료로 간주
-        });
-
-    } catch (error) {
-        console.error('세그멘테이션 적용 중 오류 발생:', error.message, error.stack);
-        alert(`세그멘테이션 기능을 적용하는 데 문제가 발생했습니다: ${error.message}`);
-        throw error;
-    }
+    camera.start();
 };
 
 const initializeBackgroundRemoval = async (videoElement, canvasElement) => {
@@ -232,3 +165,4 @@ const initializeBackgroundRemoval = async (videoElement, canvasElement) => {
         console.error('MediaPipe 초기화 중 오류 발생:', error);
     }
 };
+

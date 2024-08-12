@@ -2,27 +2,21 @@ import { SelfieSegmentation } from '@mediapipe/selfie_segmentation';
 
 export default class VideoBackgroundRemoval {
     constructor() {
-        this.selfieSegmentation = null;
+        this.selfieSegmentation = new SelfieSegmentation({
+            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file}`,
+        });
+
+        this.selfieSegmentation.setOptions({
+            modelSelection: 1,
+        });
+
+        this.selfieSegmentation.onResults(this.onResults.bind(this));
+
         this.ctx = null;
     }
 
     async initialize() {
-        try {
-            this.selfieSegmentation = new SelfieSegmentation({
-                locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file}`,
-            });
-
-            await this.selfieSegmentation.setOptions({
-                modelSelection: 1,
-            });
-
-            this.selfieSegmentation.onResults(this.onResults.bind(this));
-
-            await this.selfieSegmentation.initialize();
-        } catch (error) {
-            console.error('SelfieSegmentation 초기화 중 오류 발생:', error);
-            throw error;
-        }
+        await this.selfieSegmentation.initialize();
     }
 
     initCanvas(canvas) {
@@ -56,28 +50,14 @@ export default class VideoBackgroundRemoval {
         canvasElement.width = videoElement.videoWidth;
         canvasElement.height = videoElement.videoHeight;
 
-        if (this.selfieSegmentation) {
-            await this.selfieSegmentation.send({ image: videoElement });
-        }
+        await this.selfieSegmentation.send({ image: videoElement });
 
         requestAnimationFrame(() => this.processVideo(videoElement, canvasElement));
     }
 
-    async startProcessing(videoElement, canvasElement) {
-        if (!this.selfieSegmentation) {
-            await this.initialize();
-        }
+    startProcessing(videoElement, canvasElement) {
         this.initCanvas(canvasElement);
-        await new Promise((resolve) => {
-            const checkVideo = () => {
-                if (videoElement.readyState >= 2) {
-                    resolve();
-                } else {
-                    requestAnimationFrame(checkVideo);
-                }
-            };
-            checkVideo();
-        });
         this.processVideo(videoElement, canvasElement);
     }
 }
+
