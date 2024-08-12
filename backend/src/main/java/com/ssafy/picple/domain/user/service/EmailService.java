@@ -1,6 +1,6 @@
 package com.ssafy.picple.domain.user.service;
 
-import com.ssafy.picple.config.baseResponse.BaseException;
+import com.ssafy.picple.config.baseresponse.BaseException;
 
 /**
  * EmailService 인터페이스

@@ -1,6 +1,6 @@
 package com.ssafy.picple.domain.background.service;
 
-import static com.ssafy.picple.config.baseResponse.BaseResponseStatus.*;
+import static com.ssafy.picple.config.baseresponse.BaseResponseStatus.*;
 
 import java.util.List;
 import java.util.function.Supplier;
@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.ssafy.picple.config.baseResponse.BaseException;
+import com.ssafy.picple.config.baseresponse.BaseException;
 import com.ssafy.picple.domain.background.dto.response.BackgroundResponseDto;
 import com.ssafy.picple.domain.background.entity.Background;
 import com.ssafy.picple.domain.background.repository.BackgroundRepository;

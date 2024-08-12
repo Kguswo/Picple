@@ -1,6 +1,6 @@
 package com.ssafy.picple.domain.photo.service;
 
-import static com.ssafy.picple.config.baseResponse.BaseResponseStatus.*;
+import static com.ssafy.picple.config.baseresponse.BaseResponseStatus.*;
 
 import java.io.IOException;
 

@@ -1,13 +1,13 @@
 package com.ssafy.picple.domain.boardlike.service;
 
-import static com.ssafy.picple.config.baseResponse.BaseResponseStatus.*;
+import static com.ssafy.picple.config.baseresponse.BaseResponseStatus.*;
 
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.ssafy.picple.config.baseResponse.BaseException;
+import com.ssafy.picple.config.baseresponse.BaseException;
 import com.ssafy.picple.domain.board.entity.Board;
 import com.ssafy.picple.domain.board.repository.BoardRepository;
 import com.ssafy.picple.domain.boardlike.entity.BoardLike;

@@ -1,12 +1,12 @@
 package com.ssafy.picple.domain.photouser.service;
 
-import static com.ssafy.picple.config.baseResponse.BaseResponseStatus.*;
+import static com.ssafy.picple.config.baseresponse.BaseResponseStatus.*;
 import static com.ssafy.picple.domain.photouser.dto.response.PhotoUserResponseDto.*;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.ssafy.picple.config.baseResponse.BaseException;
+import com.ssafy.picple.config.baseresponse.BaseException;
 import com.ssafy.picple.domain.photo.entity.Photo;
 import com.ssafy.picple.domain.photo.repository.PhotoRepository;
 import com.ssafy.picple.domain.photouser.dto.request.PhotoUserRequestDto;

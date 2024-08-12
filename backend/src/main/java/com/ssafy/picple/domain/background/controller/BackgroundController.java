@@ -1,6 +1,6 @@
 package com.ssafy.picple.domain.background.controller;
 
-import static com.ssafy.picple.config.baseResponse.BaseResponseStatus.*;
+import static com.ssafy.picple.config.baseresponse.BaseResponseStatus.*;
 
 import java.util.List;
 
@@ -14,8 +14,8 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.ssafy.picple.config.baseResponse.BaseException;
-import com.ssafy.picple.config.baseResponse.BaseResponse;
+import com.ssafy.picple.config.baseresponse.BaseException;
+import com.ssafy.picple.config.baseresponse.BaseResponse;
 import com.ssafy.picple.domain.background.dto.request.CreateAIBackgroundRequest;
 import com.ssafy.picple.domain.background.dto.request.DeleteBackgroundRequest;
 import com.ssafy.picple.domain.background.dto.response.BackgroundResponseDto;

@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.springframework.web.multipart.MultipartFile;
 
-import com.ssafy.picple.config.baseResponse.BaseException;
+import com.ssafy.picple.config.baseresponse.BaseException;
 import com.ssafy.picple.domain.background.dto.response.BackgroundResponseDto;
 
 public interface BackgroundService {

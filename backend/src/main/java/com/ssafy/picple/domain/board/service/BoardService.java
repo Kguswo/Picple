@@ -2,7 +2,7 @@ package com.ssafy.picple.domain.board.service;
 
 import java.util.List;
 
-import com.ssafy.picple.config.baseResponse.BaseException;
+import com.ssafy.picple.config.baseresponse.BaseException;
 import com.ssafy.picple.domain.board.dto.BoardDto;
 
 import jakarta.servlet.http.HttpServletRequest;
