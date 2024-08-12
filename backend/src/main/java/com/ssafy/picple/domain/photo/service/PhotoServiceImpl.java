@@ -9,7 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.ssafy.picple.aws.S3FileUploadService;
-import com.ssafy.picple.config.baseResponse.BaseException;
+import com.ssafy.picple.config.baseresponse.BaseException;
 import com.ssafy.picple.domain.calendar.entity.Calendar;
 import com.ssafy.picple.domain.calendar.repository.CalendarRepository;
 import com.ssafy.picple.domain.photo.entity.Photo;
