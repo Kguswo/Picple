@@ -61,6 +61,8 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
                 subscribers.value.splice(index, 1);
             }
         });
+        
+        console.log('toekn in video Conf :', token);
 
         await session.value.connect(token);
 
@@ -85,12 +87,14 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
         if (myVideo.value && publisher.value.stream && publisher.value.stream.getMediaStream()) {
             myVideo.value.srcObject = publisher.value.stream.getMediaStream();
         }
+        
+        console.log('publihser: ',publisher.value);
 
         try {
             await applySegmentation(publisher);
         } catch (error) {
             console.error('세그멘테이션 적용 중 오류 발생:', error);
-            alert('세그멘테이션 기능을 적용하는 데 문제가 발생했습니다. 새로고침 후 다시 시도해주세요.');
+            alert('세그멘테이션 기능을 적용하는 데 문제가 발생했습니다. 새로고침 후 다시 시도해주세요.  : ', error);
         }
     } catch (error) {
         console.error('세션 참가 중 오류 발생:', error);
