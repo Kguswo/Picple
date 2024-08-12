@@ -1,7 +1,7 @@
 import { OpenVidu } from 'openvidu-browser';
 import { nextTick } from 'vue';
 import VideoBackgroundRemoval from '@/assets/js/showView/VideoBackgroundRemoval';
-import * as camerUtils from '@mediapipe/camera_utils';
+import * as camerUtils from '@mediapipe/camera_utils/camera_utils';
 const { Camera } = camerUtils;
 
 const OPENVIDU_SERVER_URL = import.meta.env.VITE_API_OPENVIDU_SERVER;
@@ -228,9 +228,14 @@ const initializeBackgroundRemoval = async (videoElement, canvasElement) => {
         console.error('MediaPipe 초기화 중 오류 발생:', error);
     }
 };
-
 const initializeCamera = async () => {
-    await window.loadSelfieSegmentation();
-    const cameraModule = await import('@mediapipe/camera_utils');
-    return cameraModule.Camera;
+    try {
+        await window.loadSelfieSegmentation();
+        const cameraModule = await import('@mediapipe/camera_utils');
+        console.log('Camera module:', cameraModule);
+        return cameraModule.Camera;
+    } catch (error) {
+        console.error('Camera 초기화 중 오류:', error);
+        throw error;
+    }
 };
