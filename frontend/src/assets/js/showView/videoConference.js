@@ -133,7 +133,7 @@ export const applySegmentation = async (streamRef) => {
 
         console.log('SelfieSegmentation:', SelfieSegmentation);
         selfieSegmentation = new SelfieSegmentation({
-            locateFile: (file) => https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file},
+            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file}`,
         });
         console.log('selfieSegmentation:', selfieSegmentation);
         
