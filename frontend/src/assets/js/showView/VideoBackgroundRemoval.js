@@ -1,3 +1,5 @@
+import { SelfieSegmentation } from '@mediapipe/selfie_segmentation';
+
 export default class VideoBackgroundRemoval {
     constructor() {
         this.selfieSegmentation = null;
@@ -6,11 +8,6 @@ export default class VideoBackgroundRemoval {
 
     async initialize() {
         try {
-            await window.loadSelfieSegmentation();
-            const { SelfieSegmentation } = window;
-            if (!SelfieSegmentation) {
-                throw new Error('SelfieSegmentation is not loaded');
-            }
             this.selfieSegmentation = new SelfieSegmentation({
                 locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file}`,
             });

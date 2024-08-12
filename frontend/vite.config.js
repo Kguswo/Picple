@@ -20,6 +20,9 @@ export default defineConfig({
 		// 		drop_debugger: true,
 		// 	},
 		// },
+		commonjsOptions: {
+        	transformMixedEsModules: true,
+    	},
 	},
 	devServer: {
 		https: true,
