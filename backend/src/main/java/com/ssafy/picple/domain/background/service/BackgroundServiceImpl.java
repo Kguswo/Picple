@@ -45,8 +45,10 @@ public class BackgroundServiceImpl implements BackgroundService {
 		return getBackgroundsBy(() -> backgroundRepository.findByUserId(userId));
 	}
 
-	// 배경 사진 리스트를 조회하고, BackgroundResponseDto로 변환
-	// getDefaultBackgrounds와 getUserBackgrounds에서 쓰임
+	/*
+	 배경 사진 리스트를 조회하고, BackgroundResponseDto로 변환
+	 getDefaultBackgrounds와 getUserBackgrounds에서 쓰임
+	 */
 	private List<BackgroundResponseDto> getBackgroundsBy(Supplier<List<Background>> backgroundSupplier) throws
 			BaseException {
 		try {
