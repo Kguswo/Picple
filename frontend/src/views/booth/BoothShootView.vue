@@ -135,6 +135,7 @@ onMounted(async () => {
     });
   } catch (error) {
     console.error('세션 참가 중 오류 발생:', error);
+	alert('세션 참가 중 오류가 발생했습니다. 새로고침 후 다시 시도해주세요.');
   }
 });
 
@@ -228,12 +229,6 @@ const { remainPicCnt, images } = PhotoService;
 									:src="isvideoOn ? videoOn : videoOff"
 									alt="Toggle Camera"
 								/>
-							</button>
-							<button
-								class="ract-btn"
-								@click="toggleMirror"
-							>
-								반전
 							</button>
 						</div>
 
