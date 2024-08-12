@@ -105,17 +105,6 @@ const exitphoto = async () => {
 	}
 };
 
-const toggleMirror = () => {
-	isMirrored.value = !isMirrored.value;
-	const transform = isMirrored.value ? 'scaleX(-1)' : 'scaleX(1)';
-	if (videoElement.value) {
-		videoElement.value.style.transform = transform;
-	}
-	if (canvasElement.value) {
-		canvasElement.value.style.transform = transform;
-	}
-};
-
 const toggleCamera = () => {
 	isvideoOn.value = !isvideoOn.value;
 	if (InitializationService.videoElement) {
@@ -136,13 +125,17 @@ const toggleMicro = () => {
 
 // boothshoot
 
-onMounted(() => {
-	joinExistingSession(session, publisher, subscribers, myVideo, sessionId, boothStore);
+onMounted(async () => {
+  try {
+    await joinExistingSession(session, publisher, subscribers, myVideo, sessionId, boothStore);
 
-	WebSocketService.setBoothStore(boothStore);
-	WebSocketService.on('background_info', (message) => {
-		boothStore.setBgImage(message.backgroundImage);
-	});
+    WebSocketService.setBoothStore(boothStore);
+    WebSocketService.on('background_info', (message) => {
+      boothStore.setBgImage(message.backgroundImage);
+    });
+  } catch (error) {
+    console.error('세션 참가 중 오류 발생:', error);
+  }
 });
 
 onUnmounted(() => {});
