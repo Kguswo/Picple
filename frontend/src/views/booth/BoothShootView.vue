@@ -9,7 +9,6 @@ import WebSocketService from '@/services/WebSocketService';
 import { ref, onMounted, onUnmounted, computed, provide } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useBoothStore } from '@/stores/boothStore';
-// import { useUserStore, useUserNickname } from '@/stores/userStore';
 import { useUserStore } from '@/stores/userStore';
 import { joinExistingSession } from '@/assets/js/showView/videoConference';
 
@@ -30,7 +29,8 @@ const myVideo = ref(null);
 
 const boothStore = useBoothStore();
 const userStore = useUserStore();
-const username = useUserNickname();
+
+const username = userStore.userNickname;
 
 const route = useRoute();
 const router = useRouter();
