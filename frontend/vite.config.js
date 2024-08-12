@@ -12,7 +12,7 @@ export default defineConfig({
 		},
 	},
 	build: {
-		sourcemap: false,
+		// sourcemap: false,
 		// minify: 'terser',
 		// terserOptions: {
 		// 	compress: {

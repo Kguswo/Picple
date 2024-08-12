@@ -160,7 +160,6 @@ const applySegmentation = async (streamRef) => {
         const selfieSegmentation = await initializeSelfieSegmentation();
         console.log('6. selfieSegmentation 초기화 완료:', selfieSegmentation);
 
-        const Camera = await initializeCamera();
         console.log('7. Camera 초기화 완료:', Camera);
 
         if (!Camera) {
@@ -246,14 +245,14 @@ const initializeBackgroundRemoval = async (videoElement, canvasElement) => {
         console.error('MediaPipe 초기화 중 오류 발생:', error);
     }
 };
-const initializeCamera = async () => {
-    try {
-        await window.loadSelfieSegmentation();
-        const cameraModule = await import('@mediapipe/camera_utils');
-        console.log('Camera module:', cameraModule);
-        return cameraModule.Camera;
-    } catch (error) {
-        console.error('Camera 초기화 중 오류:', error);
-        throw error;
-    }
-};
+// const initializeCamera = async () => {
+//     try {
+//         await window.loadSelfieSegmentation();
+//         const cameraModule = await import('@mediapipe/camera_utils');
+//         console.log('Camera module:', cameraModule);
+//         return cameraModule.Camera;
+//     } catch (error) {
+//         console.error('Camera 초기화 중 오류:', error);
+//         throw error;
+//     }
+// };
