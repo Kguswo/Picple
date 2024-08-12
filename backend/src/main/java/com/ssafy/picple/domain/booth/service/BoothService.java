@@ -1,6 +1,6 @@
 package com.ssafy.picple.domain.booth.service;
 
-import static com.ssafy.picple.config.baseResponse.BaseResponseStatus.*;
+import static com.ssafy.picple.config.baseresponse.BaseResponseStatus.*;
 
 import java.security.SecureRandom;
 import java.util.concurrent.TimeUnit;
@@ -8,7 +8,7 @@ import java.util.concurrent.TimeUnit;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
-import com.ssafy.picple.config.baseResponse.BaseException;
+import com.ssafy.picple.config.baseresponse.BaseException;
 
 import lombok.RequiredArgsConstructor;
 
