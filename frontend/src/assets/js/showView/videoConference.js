@@ -104,54 +104,76 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
 
 // applySegmentation 함수 수정
 const applySegmentation = async (streamRef) => {
+    console.log('applySegmentation 함수 시작');
     const actualStreamRef = streamRef.value || streamRef;
-
-    if (!actualStreamRef || !actualStreamRef.stream) return;
-
+    console.log('actualStreamRef:', actualStreamRef);
+    
+    if (!actualStreamRef || !actualStreamRef.stream) {
+        console.log('actualStreamRef 또는 stream이 없음');
+        return;
+    }
+    
     const mediaStream = actualStreamRef.stream.getMediaStream();
-
-    if (!mediaStream) return;
-
+    console.log('mediaStream:', mediaStream);
+    
+    if (!mediaStream) {
+        console.log('mediaStream이 없음');
+        return;
+    }
+    
     const videoElement = document.createElement('video');
     videoElement.srcObject = mediaStream;
-
-    // SelfieSegmentation 초기화
+    console.log('videoElement 생성됨');
+    
+    console.log('SelfieSegmentation 초기화 시작');
     const selfieSegmentation = await initializeSelfieSegmentation();
-
+    console.log('selfieSegmentation 초기화 완료:', selfieSegmentation);
+    
     const onResults = (results) => {
+        console.log('onResults 함수 호출됨');
         const canvasElement = document.createElement('canvas');
         const canvasCtx = canvasElement.getContext('2d');
-
+        
         canvasElement.width = results.image.width;
         canvasElement.height = results.image.height;
-
+        console.log('Canvas 크기 설정:', canvasElement.width, canvasElement.height);
+        
         canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
         canvasCtx.drawImage(results.segmentationMask, 0, 0, canvasElement.width, canvasElement.height);
-
+        
         canvasCtx.globalCompositeOperation = 'source-in';
         canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
-
+        
         const videoStream = canvasElement.captureStream(30);
+        console.log('videoStream 생성됨:', videoStream);
         const videoTrack = videoStream.getVideoTracks()[0];
+        console.log('videoTrack:', videoTrack);
         const originalStream = actualStreamRef.stream.getMediaStream();
-
+        console.log('originalStream:', originalStream);
+        
         if (originalStream.getVideoTracks().length > 0) {
+            console.log('기존 비디오 트랙 제거');
             originalStream.removeTrack(originalStream.getVideoTracks()[0]);
         }
-
+        
+        console.log('새 비디오 트랙 추가');
         originalStream.addTrack(videoTrack);
     };
-
+    
     selfieSegmentation.onResults(onResults);
-
+    console.log('selfieSegmentation.onResults 설정됨');
+    
     const camera = new Camera(videoElement, {
         onFrame: async () => {
+            console.log('onFrame 호출됨');
             await selfieSegmentation.send({ image: videoElement });
         },
         width: 640,
         height: 480,
     });
-
+    console.log('Camera 객체 생성됨');
+    
+    console.log('camera.start() 호출');
     camera.start();
 };
 
