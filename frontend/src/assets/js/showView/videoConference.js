@@ -129,9 +129,14 @@ export const applySegmentation = async (streamRef) => {
             throw new Error('SelfieSegmentation is not a constructor');
         }
         
-        const selfieSegmentation = new SelfieSegmentation({
-            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file}`
+        let selfieSegmentation;
+
+        console.log('SelfieSegmentation:', SelfieSegmentation);
+        selfieSegmentation = new SelfieSegmentation({
+            locateFile: (file) => https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file},
         });
+        console.log('selfieSegmentation:', selfieSegmentation);
+        
         await selfieSegmentation.setOptions({ modelSelection: 1 });
         await selfieSegmentation.initialize();
         console.log('6. selfieSegmentation 초기화 완료:', selfieSegmentation);
