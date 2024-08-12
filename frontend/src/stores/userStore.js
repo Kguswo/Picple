@@ -47,7 +47,7 @@ export const useUserStore = defineStore(
     },
 );
 
-// export const useUserNickname = () => {
-//     const store = useUserStore();
-//     return store.userNickname;
-// };
+export const useUserNickname = () => {
+    const store = useUserStore();
+    return store.userNickname;
+};

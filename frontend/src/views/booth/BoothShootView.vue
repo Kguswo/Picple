@@ -30,7 +30,7 @@ const myVideo = ref(null);
 
 const boothStore = useBoothStore();
 const userStore = useUserStore();
-const username = useUserNickname();
+// const username = useUserNickname();
 
 const route = useRoute();
 const router = useRouter();
