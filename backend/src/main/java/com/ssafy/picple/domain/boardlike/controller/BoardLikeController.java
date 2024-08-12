@@ -37,8 +37,10 @@ public class BoardLikeController {
 	@GetMapping("/{boardId}")
 	public BaseResponse<Boolean> isPhotoLikedByUser(HttpServletRequest request,
 			@PathVariable Long boardId) throws BaseException {
+
 		Long userId = (Long)request.getAttribute("userId");
 		boolean isLiked = likeService.isPhotoLikedByUser(boardId, userId);
+
 		return new BaseResponse<>(isLiked);
 	}
 
@@ -54,8 +56,10 @@ public class BoardLikeController {
 	@PatchMapping("/{boardId}")
 	public BaseResponse<?> changeIsLiked(HttpServletRequest request,
 			@PathVariable Long boardId) throws BaseException {
+
 		Long userId = (Long) request.getAttribute("userId");
 		likeService.toggleLike(boardId, userId);
+
 		return new BaseResponse<>(SUCCESS);
 	}
 
