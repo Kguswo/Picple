@@ -1,6 +1,6 @@
 package com.ssafy.picple.domain.calendar.controller;
 
-import static com.ssafy.picple.config.baseResponse.BaseResponseStatus.*;
+import static com.ssafy.picple.config.baseresponse.BaseResponseStatus.*;
 
 import java.io.FileNotFoundException;
 import java.time.LocalDate;
@@ -16,9 +16,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.ssafy.picple.config.baseResponse.BaseException;
-import com.ssafy.picple.config.baseResponse.BaseResponse;
-import com.ssafy.picple.config.baseResponse.BaseResponseStatus;
+import com.ssafy.picple.config.baseresponse.BaseException;
+import com.ssafy.picple.config.baseresponse.BaseResponse;
+import com.ssafy.picple.config.baseresponse.BaseResponseStatus;
 import com.ssafy.picple.domain.calendar.dto.CalendarDto;
 import com.ssafy.picple.domain.calendar.service.CalendarService;
 

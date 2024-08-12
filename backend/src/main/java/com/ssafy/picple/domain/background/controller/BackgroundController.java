@@ -1,6 +1,6 @@
 package com.ssafy.picple.domain.background.controller;
 
-import static com.ssafy.picple.config.baseResponse.BaseResponseStatus.*;
+import static com.ssafy.picple.config.baseresponse.BaseResponseStatus.*;
 
 import java.util.List;
 
@@ -14,12 +14,11 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.ssafy.picple.config.baseResponse.BaseException;
-import com.ssafy.picple.config.baseResponse.BaseResponse;
+import com.ssafy.picple.config.baseresponse.BaseException;
+import com.ssafy.picple.config.baseresponse.BaseResponse;
 import com.ssafy.picple.domain.background.dto.request.CreateAIBackgroundRequest;
 import com.ssafy.picple.domain.background.dto.request.DeleteBackgroundRequest;
 import com.ssafy.picple.domain.background.dto.response.BackgroundResponseDto;
-import com.ssafy.picple.domain.background.dto.response.ModifyBackgroundTitleResponse;
 import com.ssafy.picple.domain.background.service.BackgroundService;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -81,7 +80,7 @@ public class BackgroundController {
 
 	// 사용자의 배경 사진 삭제
 	@DeleteMapping("/{backgroundId}")
-	public BaseResponse<ModifyBackgroundTitleResponse> deleteBackground(
+	public BaseResponse<Object> deleteBackground(
 			HttpServletRequest request,
 			@PathVariable Long backgroundId,
 			@RequestBody DeleteBackgroundRequest deleteBackgroundRequest) throws BaseException {

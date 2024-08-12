@@ -7,6 +7,6 @@ import lombok.Data;
  */
 
 @Data
-public class LocalFileUploadResponse {
+public class UploadLocalFileResponse {
 	private String url; // 업로드된 파일의 URL
 }

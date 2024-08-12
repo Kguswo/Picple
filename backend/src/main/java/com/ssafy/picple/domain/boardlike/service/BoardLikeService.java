@@ -1,6 +1,6 @@
 package com.ssafy.picple.domain.boardlike.service;
 
-import com.ssafy.picple.config.baseResponse.BaseException;
+import com.ssafy.picple.config.baseresponse.BaseException;
 
 public interface BoardLikeService {
 
