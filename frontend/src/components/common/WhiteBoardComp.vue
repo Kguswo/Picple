@@ -25,8 +25,9 @@
 
 .whiteboard-area-booth {
     width: 60%;
-    height: 90%;
-    min-height: 540px;
+    height: 85%;
+    min-height: 545px;
+
     min-width: 880px;
 }
 
@@ -41,7 +42,7 @@
 
     border: 8px solid rgba(0, 0, 0, 0.9);
     border-radius: 20px;
-    background-color: rgba(255, 255, 255, 0.85);
+    background-color: #f4f0d1f7;
 
     box-shadow: 10px 15px 10px rgb(0 0 0 / 85%);
 }

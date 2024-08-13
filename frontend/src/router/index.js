@@ -84,6 +84,7 @@ const router = createRouter({
         {
             path: '/booth/:boothId',
             component: () => import('@/views/booth/BoothShootView.vue'),
+            redirect: { name: 'background' },
             children: [
                 {
                     path: 'bg',
@@ -107,6 +108,12 @@ const router = createRouter({
             path: '/boothCode',
             name: 'boothCode',
             component: () => import('@/views/booth/BoothCodeView.vue'),
+            meta: { authRequired: true },
+        },
+        {
+            path: '/boothVideoTest/:boothId',
+            name: 'boothVideoTest',
+            component: () => import('@/views/booth/BoothVideoTestView.vue'),
             meta: { authRequired: true },
         },
         {

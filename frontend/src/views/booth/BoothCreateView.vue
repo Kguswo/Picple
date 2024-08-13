@@ -211,7 +211,7 @@ onMounted(async () => {
 
     // 로딩 화면 표시 시간 계산
     const elapsedTime = Date.now() - startTime;
-    const remainingTime = Math.max(1000 - elapsedTime, 0);
+    const remainingTime = Math.max(2000 - elapsedTime, 0);
 
     setTimeout(() => {
         isLoading.value = false;
@@ -270,15 +270,18 @@ const toggleMicro = () => {
 
         <div class="booth-content">
             <div class="close-btn">
-                <button
-                    class="close"
+                <img
+                    class="close-icon"
+                    src="@/assets/img/common/close.png"
+                    alt="Close"
                     @click="navigateTo('main')"
-                >
-                    closeBtn
-                </button>
+                />
             </div>
 
-            <div v-show="isvideoOn">
+            <div
+                v-show="isvideoOn"
+                class="video-container"
+            >
                 <video
                     ref="videoElement"
                     autoplay
@@ -348,10 +351,12 @@ const toggleMicro = () => {
     align-items: center;
     width: 100%;
     height: 100%;
+    background-color: #f4f0d1f7;
+    border-radius: 20px;
 }
 
 .create-btn {
-    width: 90%;
+    width: 98%;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -372,27 +377,47 @@ const toggleMicro = () => {
     border-radius: 50%;
     width: 50px;
     height: 50px;
-    line-height: 50px;
-    padding: 5px;
+    padding: 10px;
     display: flex;
     justify-content: center;
     align-items: center;
-    margin: 0 5px;
-    border: none;
-    background-color: transparent;
+    margin: 0 10px;
+    background-color: #b2f2bb;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease, background-color 0.2s ease;
+    cursor: pointer;
+}
+
+.circle-btn img {
+    width: 24px;
+    height: 24px;
+}
+
+.circle-btn:hover {
+    transform: scale(1.1);
+    background-color: #8ef49c;
 }
 
 .ract-btn {
     border: none;
     border-radius: 20px;
-    width: 75px;
+    width: 100px;
     height: 40px;
     margin: 5px;
-    padding: 5px;
+    padding: 10px;
+    background-color: #f7a1a1; /* 파스텔 핑크 */
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
 
-    &:hover {
-        background-color: rgb(136, 136, 136);
-    }
+.ract-btn:hover {
+    background-color: #f58080; /* 파스텔 라일락 */
+    transform: scale(1.05);
 }
 
 .left-btn {
@@ -402,7 +427,19 @@ const toggleMicro = () => {
 .close-btn {
     width: 90%;
     display: flex;
-    justify-content: right;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+.close-icon {
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.close-icon:hover {
+    transform: scale(1.1);
 }
 
 .loading-overlay {
@@ -411,12 +448,12 @@ const toggleMicro = () => {
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: #8551ff;
+    background-color: rgb(133, 81, 255);
     display: flex;
     justify-content: center;
     align-items: center;
     z-index: 9999;
-    filter: hue-rotate(320deg) saturate(10%) brightness(90%) contrast(80%);
+    filter: hue-rotate(110deg) saturate(40%) brightness(250%) contrast(80%);
 }
 
 .loading-overlay img {
@@ -434,16 +471,19 @@ video {
     border-radius: 20px;
 }
 
-#app > div > div > div > div > div:nth-child(2) {
-    width: 90%;
-    height: 75%;
-}
-
 .video-off {
     width: 90%;
     height: 75%;
     display: flex;
     justify-content: center;
     align-items: center;
+    font-size: 18px;
+    color: #ff6666;
+    font-weight: bold;
+}
+
+.video-container {
+    width: 90%;
+    height: 75%;
 }
 </style>

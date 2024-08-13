@@ -10,11 +10,10 @@ import axios from 'axios';
 
 const router = useRouter();
 const boothStore = useBoothStore();
-
 const boothCode = ref({ type: 'text', label: '부스 코드', value: '' });
 
-const OPENVIDU_SERVER_URL = import.meta.env.VITE_API_OPENVIDU_SERVER; // OpenVidu 서버 URL
-const OPENVIDU_SERVER_SECRET = import.meta.env.VITE_OPENVIDU_SERVER_SECRET; // OpenVidu 서버 시크릿
+const OPENVIDU_SERVER_URL = import.meta.env.VITE_API_OPENVIDU_SERVER;
+const OPENVIDU_SERVER_SECRET = import.meta.env.VITE_OPENVIDU_SERVER_SECRET;
 
 const getToken = async (sessionId) => {
     try {
@@ -40,14 +39,16 @@ const join = async () => {
         const sessionId = boothCode.value.value;
         await WebSocketService.joinBooth(sessionId);
 
-        // OpenVidu 토큰 얻기
         const token = await getToken(sessionId);
 
-        // 세션 정보를 store에 저장
         boothStore.setSessionInfo({ sessionId, token });
 
-        // BoothShootView 페이지로 이동
-        router.push({ path: `/booth/${sessionId}` });
+        router.push({
+            name: 'boothVideoTest',
+            params: {
+                boothId: sessionId,
+            },
+        });
     } catch (error) {
         console.error('Failed to join booth:', error);
         alert('부스 참여에 실패했습니다. 부스 코드를 확인해 주세요.');
