@@ -351,7 +351,7 @@ const toggleMicro = () => {
     align-items: center;
     width: 100%;
     height: 100%;
-    background-color: #f4f0d1db;
+    background-color: #f4f0d1f7;
     border-radius: 20px;
 }
 
