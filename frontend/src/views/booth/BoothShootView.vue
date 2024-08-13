@@ -10,8 +10,7 @@ import { ref, onMounted, onUnmounted, computed, provide } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useBoothStore } from '@/stores/boothStore';
 import { useUserStore } from '@/stores/userStore';
-import { joinExistingSession } from '@/assets/js/showView/videoConference';
-import { initializeBackgroundRemoval } from '@/assets/js/showView/videoConference';
+import { joinExistingSession, applySegmentation  } from '@/assets/js/showView/videoConference';
 
 import videoOn from '@/assets/icon/video_on.png';
 import videoOff from '@/assets/icon/video_off.png';
@@ -128,6 +127,19 @@ const toggleMicro = () => {
 
 onMounted(async() => {
     await joinExistingSession(session, publisher, subscribers, myVideo, sessionId, boothStore);
+
+    session.value.on('streamCreated', async ({ stream }) => {
+        const subscriber = await session.value.subscribe(stream);
+        subscribers.value.push({ subscriber });
+
+        nextTick(async () => {
+            try {
+                await applySegmentation({ stream: subscriber });
+            } catch (error) {
+                console.error('Subscriber 배경 제거 적용 중 오류:', error);
+            }
+        });
+    });
     
     WebSocketService.setBoothStore(boothStore);
     WebSocketService.on('background_info', (message) => {
@@ -177,12 +189,8 @@ const { remainPicCnt, images } = PhotoService;
                                     :ref="`video-${sub.subscriber.stream.streamId}`"
                                     autoplay
                                     playsinline
-                                ></video>
-                                <canvas
-                                    :id="`canvas-${sub.subscriber.stream.streamId}`"
-                                    :ref="`canvas-${sub.subscriber.stream.streamId}`"
                                     class="mirrored-video"
-                                ></canvas>
+                                ></video>
                             </div>
                         </div>
                     </div>

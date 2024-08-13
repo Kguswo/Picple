@@ -113,7 +113,10 @@ export const applySegmentation = async (streamRef) => {
             throw new Error('스트림 참조가 유효하지 않습니다.');
         }
 
-        const mediaStream = actualStreamRef.stream.getMediaStream();
+        const mediaStream = actualStreamRef.stream.getMediaStream
+            ? actualStreamRef.stream.getMediaStream()
+            : actualStreamRef.stream.streamManager.stream.getMediaStream();
+
         if (!mediaStream) {
             throw new Error('미디어 스트림을 가져올 수 없습니다.');
         }
