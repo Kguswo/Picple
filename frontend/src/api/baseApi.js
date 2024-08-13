@@ -28,7 +28,7 @@ axiosAuth.interceptors.response.use(
 		const userStore = useUserStore();
 		const { config, data } = response;
 
-		if (data.code == import.meta.env.VITE_CODE_INVALID_JWT) {
+		if (data.code == import.meta.env.VITE_CODE_INVALID_JWT || data.code == import.meta.env.VITE_CODE_EMPTY_JWT) {
 			const accessToken = await tokenRefresh();
 			if (accessToken) {
 				userStore.setUserInfo(accessToken);

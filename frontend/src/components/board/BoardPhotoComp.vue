@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue';
+import { onMounted, onUnmounted, ref } from 'vue';
 import BoardModalComp from '@/components/board/BoardModalComp.vue';
 import { boardDeleteApi, boardLikeApi } from '@/api/boardApi';
 import router from '@/router';
@@ -7,9 +7,39 @@ import { alertConfirm, alertResult } from '@/api/baseApi';
 
 const props = defineProps({
 	board: Object,
+	count: Number,
+	paging: Object,
+});
+
+const emit = defineEmits(['observe']);
+
+onMounted(() => {
+	observer.observe(imgRef.value);
+});
+
+onUnmounted(() => {
+	observer.disconnect();
 });
 
 const isModalOpen = ref(false);
+const imgRef = ref(null);
+
+const observer = new IntersectionObserver(
+	(entries, observer) => {
+		entries.forEach((entry) => {
+			if (entry.isIntersecting) {
+				entry.target.src = entry.target.dataset.src;
+				observer.unobserve(entry.target);
+				if (props.count === (props.paging.page + 1) * props.paging.size) {
+					emit('observe');
+				}
+			}
+		});
+	},
+	{
+		threshold: 0.5,
+	},
+);
 
 const toggleLike = async () => {
 	const { data } = await boardLikeApi(props.board.id);
@@ -59,8 +89,9 @@ const closeModal = () => {
 			@click="openModal"
 		>
 			<img
-				:src="board.photoUrl"
+				:data-src="board.photoUrl"
 				alt="사진"
+				ref="imgRef"
 				@contextmenu.prevent
 				@dragstart.prevent
 			/>
