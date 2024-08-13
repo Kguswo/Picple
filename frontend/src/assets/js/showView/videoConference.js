@@ -26,7 +26,7 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
         const { token } = sessionInfo;
 
         const OV = new OpenVidu();
-        console.log('코드 실행 시작');
+        console.log('코드 실행 시작 : ', OV);
         OV.enableProdMode(false);
 
         OV.setAdvancedConfiguration({
@@ -46,11 +46,10 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
             ],
             iceTransportPolicy: 'all',
         });
-        console.log('세션 초기화 시작');
+
         session.value = OV.initSession();
-        console.log('세션 초기화 완료');
-        
-        console.log('+==============================+')
+
+        console.log('+==============================+');
         session.value.on('streamCreated', async ({ stream }) => {
             console.log('streamCreated 이벤트 처리 시작');
             const subscriber = await session.value.subscribe(stream);
@@ -66,7 +65,7 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
             });
             console.log('streamCreated 이벤트 처리 완료');
         });
-        console.log('이벤트 리스너 등록 시작');
+
         session.value.on('streamDestroyed', ({ stream }) => {
             console.log('streamDestroyed 이벤트 발생');
             console.log('streamDestroyed 이벤트 처리 시작');
@@ -76,7 +75,7 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
             }
             console.log('streamDestroyed 이벤트 처리 완료');
         });
-
+        await session.value.connect(token);
         session.value.on('connectionStateChanged', (event) => {
             console.log('connectionStateChanged 이벤트 발생');
             console.log('connectionStateChanged 이벤트 처리 시작');
@@ -95,9 +94,9 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
             console.log('iceCandidate 이벤트 처리 완료');
         });
         console.log('이벤트 리스너 등록 완료');
-        console.log('+==============================+')
+        console.log('+==============================+');
 
-        await session.value.connect(token);
+        // await session.value.connect(token);
 
         const devices = await OV.getDevices();
         const videoDevices = devices.filter((device) => device.kind === 'videoinput');
@@ -166,6 +165,9 @@ export const applySegmentation = async (streamRef) => {
         }
 
         const mediaStream = actualStreamRef.stream.getMediaStream();
+
+        console.logs('mediaStream log: ', mediaStream);
+
         if (!mediaStream) {
             throw new Error('미디어 스트림을 가져올 수 없습니다.');
         }
@@ -174,12 +176,7 @@ export const applySegmentation = async (streamRef) => {
         videoElement.srcObject = mediaStream;
         videoElement.muted = true;
         videoElement.playsInline = true;
-        await videoElement.play();
-
-        const canvasElement = document.createElement('canvas');
-        canvasElement.width = videoElement.videoWidth || 640;
-        canvasElement.height = videoElement.videoHeight || 480;
-        const canvasCtx = canvasElement.getContext('2d');
+        // await videoElement.play();
 
         selfieSegmentation = new window.SelfieSegmentation({
             locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file}`,
@@ -194,11 +191,17 @@ export const applySegmentation = async (streamRef) => {
 
             try {
                 console.log('세그멘테이션 결과 처리 시작');
+                const canvasElement = document.createElement('canvas');
+                const canvasCtx = canvasElement.getContext('2d');
+
+                canvasElement.width = results.image.width;
+                canvasElement.height = results.image.height;
+
                 canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
                 canvasCtx.drawImage(results.segmentationMask, 0, 0, canvasElement.width, canvasElement.height);
+
                 canvasCtx.globalCompositeOperation = 'source-in';
                 canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
-                canvasCtx.globalCompositeOperation = 'source-over';
 
                 const videoStream = canvasElement.captureStream(30);
                 const videoTrack = videoStream.getVideoTracks()[0];
@@ -207,6 +210,7 @@ export const applySegmentation = async (streamRef) => {
                 if (originalStream.getVideoTracks().length > 0) {
                     originalStream.removeTrack(originalStream.getVideoTracks()[0]);
                 }
+
                 originalStream.addTrack(videoTrack);
                 console.log('세그멘테이션 결과 처리 완료');
             } catch (error) {
@@ -215,6 +219,7 @@ export const applySegmentation = async (streamRef) => {
                 isProcessing = false;
             }
         });
+        selfieSegmentation.onResults(onResults);
 
         camera = new window.Camera(videoElement, {
             onFrame: async () => {
@@ -228,16 +233,16 @@ export const applySegmentation = async (streamRef) => {
 
         await camera.start();
 
-        return new Promise((resolve) => {
-            const checkProcessing = () => {
-                if (!isProcessing) {
-                    resolve();
-                } else {
-                    requestAnimationFrame(checkProcessing);
-                }
-            };
-            checkProcessing();
-        });
+        // return new Promise((resolve) => {
+        //     const checkProcessing = () => {
+        //         if (!isProcessing) {
+        //             resolve();
+        //         } else {
+        //             requestAnimationFrame(checkProcessing);
+        //         }
+        //     };
+        //     checkProcessing();
+        // });
     } catch (error) {
         console.error('세그멘테이션 적용 중 오류 발생:', error);
         throw error;
