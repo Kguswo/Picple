@@ -91,6 +91,7 @@ header {
 		border-right: 0;
 		margin-left: -8px;
 		margin-top: -19px;
+		z-index: 2;
 	}
 }
 

@@ -27,6 +27,7 @@
     width: 60%;
     height: 85%;
     min-height: 545px;
+
     min-width: 880px;
 }
 

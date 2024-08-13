@@ -152,7 +152,7 @@ const toggleSort = (criteria) => {
 						class="loading"
 					>
 						<img
-							src="@/assets/icon/loading.gif"
+							src="@/assets/icon/모래시계.gif"
 							alt="loading..."
 						/>
 					</div>
