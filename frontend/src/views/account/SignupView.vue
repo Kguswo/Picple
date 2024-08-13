@@ -9,6 +9,8 @@ import { useUserStore } from '@/stores/userStore';
 import { storeToRefs } from 'pinia';
 import { useFormStore } from '@/stores/formStore';
 import { alertResult } from '@/api/baseApi';
+import { ref } from 'vue';
+import { throttle } from '@/assets/js/util';
 
 const router = useRouter();
 const userStore = useUserStore();
@@ -19,7 +21,9 @@ const { nickname, password, passwordConfirm, nicknameField, passwordField, passw
 	storeToRefs(formStore);
 formStore.initForm([nickname, password, passwordConfirm], [nicknameField, passwordField, passwordConfirmField]);
 
-const signup = async () => {
+const lastCall = ref(0);
+
+const onClickSignup = () => {
 	nicknameField.value.message = validateNicknamePattern(nickname.value.value);
 	passwordField.value.message = validatePasswordPattern(password.value.value);
 	passwordConfirmField.value.message = validatePasswordConfirm(password.value.value, passwordConfirm.value.value);
@@ -35,7 +39,10 @@ const signup = async () => {
 	if (formStore.focusInputField(passwordConfirmField)) {
 		return;
 	}
+	throttle(lastCall, signup, 5000)();
+};
 
+const signup = async () => {
 	const { data } = await signupApi(verifiedEmail.value, password.value.value, nickname.value.value);
 	if (!data.isSuccess) {
 		await alertResult(false, '회원가입에 실패하였습니다.');
@@ -73,7 +80,7 @@ const signup = async () => {
 
 			<FormButtonComp
 				size="big"
-				@click="signup"
+				@click="onClickSignup"
 				>가입</FormButtonComp
 			>
 		</form>

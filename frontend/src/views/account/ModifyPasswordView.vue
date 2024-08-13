@@ -9,6 +9,8 @@ import { useFormStore } from '@/stores/formStore';
 import { storeToRefs } from 'pinia';
 import { alertResult } from '@/api/baseApi';
 import { useUserStore } from '@/stores/userStore';
+import { ref } from 'vue';
+import { throttle } from '@/assets/js/util';
 
 const route = useRoute();
 const router = useRouter();
@@ -22,6 +24,7 @@ formStore.initForm(
 	[oldPasswordField, newPasswordField, newPasswordConfirmField],
 );
 const { verifiedEmail } = storeToRefs(userStore);
+const lastCall = ref(0);
 
 const validateInputField = () => {
 	if (route.name === 'modifyPassword' && !oldPassword.value.value) {
@@ -50,10 +53,14 @@ const validateInputField = () => {
 	return true;
 };
 
-const modify = async () => {
+const onClickModify = () => {
 	if (!validateInputField()) {
 		return;
 	}
+	throttle(lastCall, modify, 2000)();
+};
+
+const modify = async () => {
 	const { data } =
 		route.name === 'modifyPassword'
 			? await modifyPasswordApi(oldPassword.value.value, newPassword.value.value)
@@ -96,7 +103,7 @@ const modify = async () => {
 
 			<FormButtonComp
 				size="big"
-				@click="modify"
+				@click="onClickModify"
 				>확인</FormButtonComp
 			>
 
