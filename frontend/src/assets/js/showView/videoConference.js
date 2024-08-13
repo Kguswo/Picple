@@ -41,12 +41,6 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
             ],
             iceTransportPolicy: 'all',
             forceMediaReconnectionAfterNetworkDrop: true,
-            retryOnFailure: true,
-            publisherSpeakingEventsOptions: {
-                interval: 100,
-                threshold: -50
-            },
-
             forceTurn: true,
             turnCreditRestoreTime: 120000, // 2분
             maxTries: 3,
@@ -58,7 +52,6 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
         session.value.on('streamCreated', async ({ stream }) => {
             const subscriber = await session.value.subscribe(stream);
             subscribers.value.push({ subscriber });
-            
 
             nextTick(async () => {
                 const video = document.getElementById(`video-${subscriber.stream.streamId}`);
@@ -114,7 +107,6 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
 };
 
 export const applySegmentation = async (streamRef) => {
-    
     let isProcessing = false;
     let selfieSegmentation;
     let camera;
@@ -128,7 +120,6 @@ export const applySegmentation = async (streamRef) => {
         const mediaStream = actualStreamRef.stream.getMediaStream
             ? actualStreamRef.stream.getMediaStream()
             : actualStreamRef.stream.streamManager.stream.getMediaStream();
-
 
         if (!mediaStream) {
             throw new Error('미디어 스트림을 가져올 수 없습니다.');
@@ -193,3 +184,4 @@ export const applySegmentation = async (streamRef) => {
         throw error;
     }
 };
+
