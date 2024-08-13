@@ -41,6 +41,11 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
             ],
             iceTransportPolicy: 'all',
             forceMediaReconnectionAfterNetworkDrop: true,
+            retryOnFailure: true,
+            publisherSpeakingEventsOptions: {
+                interval: 100,
+                threshold: -50
+            },
         });
 
         session.value = OV.initSession();
@@ -103,6 +108,7 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
 };
 
 export const applySegmentation = async (streamRef) => {
+    
     let isProcessing = false;
     let selfieSegmentation;
     let camera;

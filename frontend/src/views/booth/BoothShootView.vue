@@ -135,7 +135,7 @@ onMounted(async() => {
 
             nextTick(async () => {
                 try {
-                    await applySegmentation({ stream: subscriber });
+                    await applySegmentation(subscriber);
                 } catch (error) {
                     console.error('Subscriber 배경 제거 적용 중 오류:', error);
                 }
