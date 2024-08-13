@@ -61,7 +61,6 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
                 if (video && canvas) {
                     console.log('background제거를 위한 await 진행');
                     await initializeBackgroundRemoval(video, canvas);
-                    console.log('배경제거 초기화함수 실행 완료')
                 }
             });
             console.log('streamCreated 이벤트 처리 완료');
@@ -220,7 +219,6 @@ export const applySegmentation = async (streamRef) => {
                 isProcessing = false;
             }
         });
-        selfieSegmentation.onResults(onResults);
 
         camera = new window.Camera(videoElement, {
             onFrame: async () => {
