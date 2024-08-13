@@ -11,13 +11,11 @@ export default class VideoBackgroundRemoval {
                 locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file}`,
             });
 
+            await this.selfieSegmentation.setOptions({ modelSelection: 1 });
             await this.selfieSegmentation.initialize();
-            this.selfieSegmentation.setOptions({
-                modelSelection: 1,
-            });
-            this.selfieSegmentation.onResults(this.onResults.bind(this));
         } catch (error) {
             console.error('VideoBackgroundRemoval 초기화 중 오류:', error);
+            throw error;
         }
     }
 
@@ -28,38 +26,35 @@ export default class VideoBackgroundRemoval {
         }
     }
 
-    onResults(results) {
-        if (!this.ctx) return;
+    async processFrame(videoElement, canvas) {
+        if (this.isProcessing) return;
+        this.isProcessing = true;
 
-        this.ctx.save();
-        this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
-        
-        this.ctx.drawImage(results.segmentationMask, 0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
-        
-        this.ctx.globalCompositeOperation = 'source-in';
-        this.ctx.drawImage(results.image, 0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
-        
-        this.ctx.globalCompositeOperation = 'destination-atop';
-        this.ctx.fillStyle = '#00FF00';  // 초록색 배경, 필요에 따라 변경 가능
-        this.ctx.fillRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
-        
-        this.ctx.restore();
+        try {
+            await this.selfieSegmentation.send({ image: videoElement });
+            this.selfieSegmentation.onResults((results) => {
+                this.ctx.clearRect(0, 0, canvas.width, canvas.height);
+                this.ctx.drawImage(results.segmentationMask, 0, 0, canvas.width, canvas.height);
+                this.ctx.globalCompositeOperation = 'source-in';
+                this.ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
+                this.ctx.globalCompositeOperation = 'source-over';
+            });
+        } catch (error) {
+            console.error('세그멘테이션 처리 중 오류:', error);
+        } finally {
+            this.isProcessing = false;
+        }
+
+        requestAnimationFrame(() => this.processFrame(videoElement, canvas));
     }
 
     async createProcessedStream(videoElement) {
         const canvas = document.createElement('canvas');
-        canvas.width = videoElement.videoWidth;
-        canvas.height = videoElement.videoHeight;
+        canvas.width = videoElement.videoWidth || 640;
+        canvas.height = videoElement.videoHeight || 480;
         this.initCanvas(canvas);
 
-        const processFrame = async () => {
-            if (videoElement.videoWidth > 0 && videoElement.videoHeight > 0) {
-                await this.selfieSegmentation.send({ image: videoElement });
-            }
-            requestAnimationFrame(processFrame);
-        };
-
-        processFrame();
+        this.processFrame(videoElement, canvas);
 
         return canvas.captureStream(30);
     }

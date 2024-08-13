@@ -136,11 +136,9 @@ onMounted(async () => {
             boothStore.setBgImage(message.backgroundImage);
         });
     } catch (error) {
-        console.error("Error during mounting:", error);
-        // 오류 처리 로직
+        console.error("Error during session join:", error);
     }
 });
-
 onUnmounted(() => {});
 
 const { remainPicCnt, images } = PhotoService;
