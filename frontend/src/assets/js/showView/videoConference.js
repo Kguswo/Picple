@@ -94,7 +94,8 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
         };
 
         publisher.value = await OV.initPublisherAsync(undefined, publisherOptions);
-
+        console.log("Publisher initialized:", publisher.value);
+        
         // Publisher의 비디오 요소 가져오기
         let publisherVideoElement = null;
         if (publisher.value && publisher.value.videos && publisher.value.videos.length > 0) {
