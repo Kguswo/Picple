@@ -165,11 +165,6 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
 };
 
 export const applySegmentation = async (streamRef) => {
-    console.log('세그멘테이션 적용 시작');
-    let isProcessing = false;
-    let selfieSegmentation;
-    let camera;
-
     try {
         const actualStreamRef = streamRef.value || streamRef;
         if (!actualStreamRef || !actualStreamRef.stream) {
@@ -178,98 +173,45 @@ export const applySegmentation = async (streamRef) => {
 
         const mediaStream = actualStreamRef.stream.getMediaStream();
 
-        console.log('mediaStream 확인:', mediaStream);
-
         if (!mediaStream) {
             throw new Error('미디어 스트림을 가져올 수 없습니다.');
         }
 
-        console.log('비디오 엘리먼트 생성');
         const videoElement = document.createElement('video');
         videoElement.srcObject = mediaStream;
         videoElement.muted = true;
         videoElement.playsInline = true;
+        await videoElement.play();  // 비디오 재생 시작
 
-        console.log('세그멘테이션 모델 초기화');
-        selfieSegmentation = new window.SelfieSegmentation({
-            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file}`,
-        });
+        const canvasElement = document.createElement('canvas');
+        
+        // initializeBackgroundRemoval 함수를 호출하고 결과를 저장
+        const backgroundRemoval = await initializeBackgroundRemoval(videoElement, canvasElement);
 
-        await selfieSegmentation.setOptions({ modelSelection: 1 });
-        await selfieSegmentation.initialize();
+        // 처리된 스트림 캡처
+        const processedStream = canvasElement.captureStream(30);
+        const processedVideoTrack = processedStream.getVideoTracks()[0];
+        
+        // 원본 스트림의 비디오 트랙 교체
+        if (mediaStream.getVideoTracks().length > 0) {
+            mediaStream.removeTrack(mediaStream.getVideoTracks()[0]);
+        }
+        mediaStream.addTrack(processedVideoTrack);
 
-        console.log('세그멘테이션 결과 처리 함수 설정');
-        selfieSegmentation.onResults((results) => {
-            if (isProcessing) return;
-            isProcessing = true;
+        return backgroundRemoval;  // 생성된 BackgroundRemoval 인스턴스 반환
 
-            try {
-                console.log('세그멘테이션 결과 처리 시작');
-                const canvasElement = document.createElement('canvas');
-                const canvasCtx = canvasElement.getContext('2d');
-
-                canvasElement.width = results.image.width;
-                canvasElement.height = results.image.height;
-
-                canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-                canvasCtx.drawImage(results.segmentationMask, 0, 0, canvasElement.width, canvasElement.height);
-
-                canvasCtx.globalCompositeOperation = 'source-in';
-                canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
-
-                const videoStream = canvasElement.captureStream(30);
-                const videoTrack = videoStream.getVideoTracks()[0];
-                const originalStream = actualStreamRef.stream.getMediaStream();
-
-                if (originalStream.getVideoTracks().length > 0) {
-                    originalStream.removeTrack(originalStream.getVideoTracks()[0]);
-                }
-
-                originalStream.addTrack(videoTrack);
-                console.log('세그멘테이션 결과 처리 완료');
-            } catch (error) {
-                console.error('세그멘테이션 처리 중 오류:', error);
-            } finally {
-                isProcessing = false;
-            }
-        });
-
-        console.log('카메라 설정');
-        camera = new window.Camera(videoElement, {
-            onFrame: async () => {
-                if (!isProcessing) {
-                    await selfieSegmentation.send({ image: videoElement });
-                }
-            },
-            width: videoElement.videoWidth || 640,
-            height: videoElement.videoHeight || 480,
-        });
-
-        console.log('카메라 시작');
-        await camera.start();
-
-        console.log('세그멘테이션 적용 완료');
     } catch (error) {
         console.error('세그멘테이션 적용 중 오류 발생:', error);
         throw error;
-    } finally {
-        if (camera) {
-            camera.stop();
-        }
-        if (selfieSegmentation) {
-            selfieSegmentation.close();
-        }
     }
 };
 
 export const initializeBackgroundRemoval = async (videoElement, canvasElement) => {
-    console.log('배경 제거 초기화 시작');
     if (!videoElement || !canvasElement) {
         console.log('비디오 또는 캔버스 엘리먼트가 없습니다.');
         return;
     }
 
-    console.log('비디오 준비 상태 확인');
     await new Promise((resolve) => {
         const checkVideo = () => {
             if (videoElement.readyState >= 2 && videoElement.videoWidth > 0 && videoElement.videoHeight > 0) {
@@ -284,14 +226,12 @@ export const initializeBackgroundRemoval = async (videoElement, canvasElement) =
     });
 
     try {
-        console.log('VideoBackgroundRemoval 클래스 초기화');
         const newBackgroundRemoval = new VideoBackgroundRemoval();
         await newBackgroundRemoval.initialize();
-        console.log('배경 제거 처리 시작');
         newBackgroundRemoval.startProcessing(videoElement, canvasElement);
-        console.log('배경 제거 처리 시작 완료');
+        return newBackgroundRemoval;  
     } catch (error) {
-        console.error('MediaPipe 초기화 중 오류 발생:', error);
+        console.error('배경 제거 초기화 중 오류 발생:', error);
+        throw error;
     }
-    console.log('배경 제거 초기화 완료');
 };
