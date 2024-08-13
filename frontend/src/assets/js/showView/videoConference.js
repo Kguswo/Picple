@@ -26,8 +26,9 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
         const { token } = sessionInfo;
 
         const OV = new OpenVidu();
-
+        console.log('코드 실행 시작');
         OV.enableProdMode(false);
+
         OV.setAdvancedConfiguration({
             logLevel: 'DEBUG',
             noStreamPlayingEventExceptionTimeout: 8000,
@@ -45,8 +46,10 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
             ],
             iceTransportPolicy: 'all',
         });
-
+        console.log('세션 초기화 시작');
         session.value = OV.initSession();
+        console.log('세션 초기화 완료');
+        
         console.log('+==============================+')
         session.value.on('streamCreated', async ({ stream }) => {
             console.log('streamCreated 이벤트 처리 시작');
@@ -152,7 +155,6 @@ const attemptReconnection = async () => {
 };
 
 export const applySegmentation = async (streamRef) => {
-    console.log('세그멘테이션 적용 시작');
     let isProcessing = false;
     let selfieSegmentation;
     let camera;
@@ -214,7 +216,6 @@ export const applySegmentation = async (streamRef) => {
             }
         });
 
-        console.log('카메라 설정 시작');
         camera = new window.Camera(videoElement, {
             onFrame: async () => {
                 if (!isProcessing) {
@@ -226,12 +227,10 @@ export const applySegmentation = async (streamRef) => {
         });
 
         await camera.start();
-        console.log('카메라 설정 완료');
 
         return new Promise((resolve) => {
             const checkProcessing = () => {
                 if (!isProcessing) {
-                    console.log('세그멘테이션 처리 완료');
                     resolve();
                 } else {
                     requestAnimationFrame(checkProcessing);
@@ -250,7 +249,6 @@ export const applySegmentation = async (streamRef) => {
             selfieSegmentation.close();
         }
     }
-    console.log('세그멘테이션 적용 완료');
 };
 
 const initializeBackgroundRemoval = async (videoElement, canvasElement) => {
