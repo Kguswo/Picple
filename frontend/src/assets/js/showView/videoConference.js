@@ -1,6 +1,6 @@
 import { OpenVidu } from 'openvidu-browser';
 import { nextTick } from 'vue';
-import VideoBackgroundRemoval from '@/assets/js/showView/VideoBackgroundRemoval';
+import VideoBackgroundRemoval from './VideoBackgroundRemoval';
 
 const OPENVIDU_SERVER_URL = import.meta.env.VITE_API_OPENVIDU_SERVER;
 const OPENVIDU_SERVER_SECRET = import.meta.env.VITE_OPENVIDU_SERVER_SECRET;
@@ -41,7 +41,7 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
                         'turns:i11a503.p.ssafy.io:3479',
                     ],
                     username: 'picplessafy',
-                    credential: 'ssafya503!picple',
+                    credential: 'ssafya503@picple',
                 },
             ],
             iceTransportPolicy: 'all',
@@ -251,7 +251,7 @@ export const applySegmentation = async (streamRef) => {
     }
 };
 
-const initializeBackgroundRemoval = async (videoElement, canvasElement) => {
+export const initializeBackgroundRemoval = async (videoElement, canvasElement) => {
     console.log('배경 제거 초기화 시작');
     if (!videoElement || !canvasElement) return;
 

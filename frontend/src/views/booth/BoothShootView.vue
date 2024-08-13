@@ -11,6 +11,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { useBoothStore } from '@/stores/boothStore';
 import { useUserStore } from '@/stores/userStore';
 import { joinExistingSession } from '@/assets/js/showView/videoConference';
+import { initializeBackgroundRemoval } from '@/assets/js/showView/videoConference';
 
 import videoOn from '@/assets/icon/video_on.png';
 import videoOff from '@/assets/icon/video_off.png';
@@ -26,6 +27,10 @@ const session = ref(null);
 const publisher = ref(null);
 const subscribers = ref([]);
 const myVideo = ref(null);
+
+//=========test code==========
+const myCanvas = ref(null);
+//============================
 
 const boothStore = useBoothStore();
 const userStore = useUserStore();
@@ -105,17 +110,6 @@ const exitphoto = async () => {
     }
 };
 
-const toggleMirror = () => {
-    isMirrored.value = !isMirrored.value;
-    const transform = isMirrored.value ? 'scaleX(-1)' : 'scaleX(1)';
-    if (videoElement.value) {
-        videoElement.value.style.transform = transform;
-    }
-    if (canvasElement.value) {
-        canvasElement.value.style.transform = transform;
-    }
-};
-
 const toggleCamera = () => {
     isvideoOn.value = !isvideoOn.value;
     if (InitializationService.videoElement) {
@@ -136,14 +130,28 @@ const toggleMicro = () => {
 
 // boothshoot
 
-onMounted(() => {
-    joinExistingSession(session, publisher, subscribers, myVideo, sessionId, boothStore);
+// onMounted(() => {
+//     joinExistingSession(session, publisher, subscribers, myVideo, sessionId, boothStore);
 
+//     WebSocketService.setBoothStore(boothStore);
+//     WebSocketService.on('background_info', (message) => {
+//         boothStore.setBgImage(message.backgroundImage);
+//     });
+// });
+
+onMounted(async() =>{
+
+    await joinExistingSession(session, publisher, subscribers, myVideo, sessionId, boothStore);
+
+    if (myVideo.value && myCanvas.value) {
+        await initializeBackgroundRemoval(myVideo.value, myCanvas.value);
+    }
+    
     WebSocketService.setBoothStore(boothStore);
     WebSocketService.on('background_info', (message) => {
         boothStore.setBgImage(message.backgroundImage);
     });
-});
+})
 
 onUnmounted(() => {});
 
@@ -198,7 +206,7 @@ const { remainPicCnt, images } = PhotoService;
                                 class="stream-container"
                             >
                                 <!-- <h3>{{ sub.username }}</h3> -->
-                                <video
+                                <!-- <video
                                     :id="`video-${sub.subscriber.stream.streamId}`"
                                     :width="320"
                                     :height="240"
@@ -212,7 +220,9 @@ const { remainPicCnt, images } = PhotoService;
                                     :width="320"
                                     :height="240"
                                     class="mirrored-video"
-                                ></canvas>
+                                ></canvas> -->
+                                <video ref="myVideo" autoplay muted playsinline style="display: none;"></video>
+                                <canvas ref="myCanvas" class="mirrored-video"></canvas>
                             </div>
                         </div>
                     </div>
@@ -235,12 +245,6 @@ const { remainPicCnt, images } = PhotoService;
                                     :src="isvideoOn ? videoOn : videoOff"
                                     alt="Toggle Camera"
                                 />
-                            </button>
-                            <button
-                                class="ract-btn"
-                                @click="toggleMirror"
-                            >
-                                반전
                             </button>
                         </div>
 
