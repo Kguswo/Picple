@@ -15,40 +15,6 @@ const showErrorToUser = (message) => {
     console.error(message);
 };
 
-export const initializeLocalStream = async (myVideo) => {
-    console.log('로컬 스트림 초기화 시작');
-    try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
-        console.log('사용자 미디어 스트림 획득 성공');
-
-        const videoElement = document.createElement('video');
-        videoElement.srcObject = stream;
-        videoElement.muted = true;
-        videoElement.playsInline = true;
-        await videoElement.play();
-
-        const canvasElement = document.createElement('canvas');
-        canvasElement.width = videoElement.videoWidth || 640;
-        canvasElement.height = videoElement.videoHeight || 480;
-
-        const backgroundRemoval = new VideoBackgroundRemoval();
-        await backgroundRemoval.initialize();
-        backgroundRemoval.startProcessing(videoElement, canvasElement);
-
-        const processedStream = canvasElement.captureStream(30);
-        if (myVideo.value) {
-            myVideo.value.srcObject = processedStream;
-            await myVideo.value.play();
-        }
-
-        console.log('로컬 스트림 초기화 및 배경 제거 완료');
-        return { stream: processedStream, backgroundRemoval };
-    } catch (error) {
-        console.error('로컬 스트림 초기화 중 오류 발생:', error);
-        throw error;
-    }
-};
-
 export const joinExistingSession = async (session, publisher, subscribers, myVideo, sessionId, boothStore) => {
     try {
         const sessionInfo = boothStore.getSessionInfo();
@@ -57,16 +23,8 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
         }
         const { token } = sessionInfo;
 
-        console.log('1. 로컬 스트림 초기화 시작');
-        const { stream: localStream, backgroundRemoval } = await initializeLocalStream(myVideo);
-        console.log('1. 로컬 스트림 초기화 완료');
-
-        console.log('2. OpenVidu 객체 초기화 시작');
         const OV = new OpenVidu();
         OV.enableProdMode(false);
-        console.log('2. OpenVidu 객체 초기화 완료');
-
-        console.log('3. OpenVidu 고급 설정 시작');
         OV.setAdvancedConfiguration({
             logLevel: 'DEBUG',
             noStreamPlayingEventExceptionTimeout: 8000,
@@ -84,56 +42,34 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
             ],
             iceTransportPolicy: 'all',
         });
-        console.log('3. OpenVidu 고급 설정 완료');
 
-        console.log('4. 세션 초기화 시작');
         session.value = OV.initSession();
-        console.log('4. 세션 초기화 완료');
 
-        console.log('5. 이벤트 리스너 등록 시작');
         session.value.on('streamCreated', async ({ stream }) => {
-            console.log('5-1. streamCreated 이벤트 처리 시작');
             const subscriber = await session.value.subscribe(stream);
-            
+            subscribers.value.push({ subscriber });
+
             nextTick(async () => {
                 const video = document.getElementById(`video-${subscriber.stream.streamId}`);
                 const canvas = document.getElementById(`canvas-${subscriber.stream.streamId}`);
                 if (video && canvas) {
-                    console.log('5-2. 원격 참가자 background 제거 초기화 시작');
-                    const remoteBackgroundRemoval = new VideoBackgroundRemoval();
-                    await remoteBackgroundRemoval.initialize();
-                    remoteBackgroundRemoval.startProcessing(video, canvas);
-
-                    const processedStream = canvas.captureStream(30);
-                    video.srcObject = processedStream;
-                    await video.play();
-
-                    console.log('5-2. 원격 참가자 background 제거 초기화 완료');
+                    await applySegmentation({ stream: subscriber });
                 }
             });
-            
-            subscribers.value.push({ subscriber, backgroundRemoval: null });
-            console.log('5-1. streamCreated 이벤트 처리 완료');
         });
 
         session.value.on('streamDestroyed', ({ stream }) => {
-            console.log('5-3. streamDestroyed 이벤트 처리 시작');
             const index = subscribers.value.findIndex((sub) => sub.subscriber.stream.streamId === stream.streamId);
             if (index >= 0) {
                 subscribers.value.splice(index, 1);
             }
-            console.log('5-3. streamDestroyed 이벤트 처리 완료');
         });
-        console.log('5. 이벤트 리스너 등록 완료');
 
-        console.log('6. 세션 연결 시작');
         await session.value.connect(token);
-        console.log('6. 세션 연결 완료');
 
-        console.log('7. 퍼블리셔 옵션 설정 시작');
         const publisherOptions = {
-            audioSource: localStream.getAudioTracks()[0],
-            videoSource: localStream.getVideoTracks()[0],
+            audioSource: undefined,
+            videoSource: undefined,
             publishAudio: true,
             publishVideo: true,
             resolution: '640x480',
@@ -141,16 +77,21 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
             insertMode: 'APPEND',
             mirror: true,
         };
-        console.log('7. 퍼블리셔 옵션 설정 완료');
 
-        console.log('8. 퍼블리셔 초기화 시작');
         publisher.value = await OV.initPublisherAsync(undefined, publisherOptions);
-        console.log('8. 퍼블리셔 초기화 완료');
 
-        console.log('9. 퍼블리셔 발행 시작');
         await session.value.publish(publisher.value);
-        console.log('9. 퍼블리셔 발행 완료');
 
+        if (myVideo.value && publisher.value.stream && publisher.value.stream.getMediaStream()) {
+            myVideo.value.srcObject = publisher.value.stream.getMediaStream();
+        }
+
+        if (!checkWebGLSupport()) {
+            console.warn('WebGL이 지원되지 않습니다. 배경 제거 기능을 사용할 수 없습니다.');
+            return;
+        }
+
+        await applySegmentation(publisher);
     } catch (error) {
         console.error('세션 참가 중 오류 발생:', error);
         if (error.name === 'DEVICE_ACCESS_DENIED') {
@@ -161,32 +102,78 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
     }
 };
 
-export const initializeBackgroundRemoval = async (videoElement, canvasElement) => {
-    if (!videoElement || !canvasElement) {
-        console.log('비디오 또는 캔버스 엘리먼트가 없습니다.');
-        return;
-    }
-
-    await new Promise((resolve) => {
-        const checkVideo = () => {
-            if (videoElement.readyState >= 2 && videoElement.videoWidth > 0 && videoElement.videoHeight > 0) {
-                canvasElement.width = videoElement.videoWidth;
-                canvasElement.height = videoElement.videoHeight;
-                resolve();
-            } else {
-                requestAnimationFrame(checkVideo);
-            }
-        };
-        checkVideo();
-    });
+export const applySegmentation = async (streamRef) => {
+    let isProcessing = false;
+    let selfieSegmentation;
+    let camera;
 
     try {
-        const newBackgroundRemoval = new VideoBackgroundRemoval();
-        await newBackgroundRemoval.initialize();
-        newBackgroundRemoval.startProcessing(videoElement, canvasElement);
-        return newBackgroundRemoval;  
+        const actualStreamRef = streamRef.value || streamRef;
+        if (!actualStreamRef || !actualStreamRef.stream) {
+            throw new Error('스트림 참조가 유효하지 않습니다.');
+        }
+
+        const mediaStream = actualStreamRef.stream.getMediaStream();
+        if (!mediaStream) {
+            throw new Error('미디어 스트림을 가져올 수 없습니다.');
+        }
+
+        const videoElement = document.createElement('video');
+        videoElement.srcObject = mediaStream;
+        videoElement.muted = true;
+        videoElement.playsInline = true;
+
+        const canvasElement = document.createElement('canvas');
+        canvasElement.width = videoElement.videoWidth || 640;
+        canvasElement.height = videoElement.videoHeight || 480;
+        const canvasCtx = canvasElement.getContext('2d');
+
+        selfieSegmentation = new window.SelfieSegmentation({
+            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file}`,
+        });
+
+        await selfieSegmentation.setOptions({ modelSelection: 1 });
+        await selfieSegmentation.initialize();
+
+        selfieSegmentation.onResults((results) => {
+            if (isProcessing) return;
+            isProcessing = true;
+
+            try {
+                canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+                canvasCtx.drawImage(results.segmentationMask, 0, 0, canvasElement.width, canvasElement.height);
+                canvasCtx.globalCompositeOperation = 'source-in';
+                canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+                canvasCtx.globalCompositeOperation = 'source-over';
+
+                const videoStream = canvasElement.captureStream(30);
+                const videoTrack = videoStream.getVideoTracks()[0];
+                const originalStream = actualStreamRef.stream.getMediaStream();
+
+                if (originalStream.getVideoTracks().length > 0) {
+                    originalStream.removeTrack(originalStream.getVideoTracks()[0]);
+                }
+                originalStream.addTrack(videoTrack);
+            } catch (error) {
+                console.error('세그멘테이션 처리 중 오류:', error);
+            } finally {
+                isProcessing = false;
+            }
+        });
+
+        camera = new window.Camera(videoElement, {
+            onFrame: async () => {
+                if (!isProcessing) {
+                    await selfieSegmentation.send({ image: videoElement });
+                }
+            },
+            width: videoElement.videoWidth || 640,
+            height: videoElement.videoHeight || 480,
+        });
+
+        await camera.start();
     } catch (error) {
-        console.error('배경 제거 초기화 중 오류 발생:', error);
+        console.error('세그멘테이션 적용 중 오류 발생:', error);
         throw error;
     }
 };
