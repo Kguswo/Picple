@@ -9,6 +9,7 @@ import { useUserStore } from '@/stores/userStore';
 import { storeToRefs } from 'pinia';
 import { useFormStore } from '@/stores/formStore';
 import { alertResult } from '@/api/baseApi';
+import { throttle } from '@/assets/js/util';
 
 const props = defineProps({
 	name: String,
@@ -23,6 +24,7 @@ const { email, authNumber, emailField, authNumberField } = storeToRefs(formStore
 formStore.initForm([email, authNumber], [emailField, authNumberField]);
 
 const isSend = ref(false);
+const lastCall = ref(0);
 
 const validateInputField = () => {
 	emailField.value.message = validateEmailPattern(email.value.value);
@@ -32,13 +34,15 @@ const validateInputField = () => {
 	return true;
 };
 
-const sendAuthNumber = async (e) => {
+const onClickSend = (e) => {
 	e.stopPropagation();
 	if (!validateInputField()) {
 		return;
 	}
-	isSend.value = true;
-	await alertResult(true, '인증번호가 전송되었습니다.');
+	throttle(lastCall, sendAuthNumber, 10000)();
+};
+
+const sendAuthNumber = async () => {
 	const { data } =
 		props.name === 'signup'
 			? await sendAuthNumberApi(email.value.value)
@@ -53,6 +57,8 @@ const sendAuthNumber = async (e) => {
 		router.go(0);
 		return;
 	}
+	isSend.value = true;
+	await alertResult(true, '인증번호가 전송되었습니다.');
 };
 
 const verifyEmail = async () => {
@@ -98,7 +104,7 @@ const verifyEmail = async () => {
 		>
 			<FormButtonComp
 				size="small"
-				@click="sendAuthNumber"
+				@click="onClickSend"
 				:disabled="isSend"
 				>전송</FormButtonComp
 			>
