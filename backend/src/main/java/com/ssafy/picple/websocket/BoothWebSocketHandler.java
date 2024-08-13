@@ -22,7 +22,6 @@ public class BoothWebSocketHandler extends TextWebSocketHandler {
 	public void afterConnectionEstablished(WebSocketSession session) throws Exception {
 		String boothId = extractBoothId(session);
 		boothSessions.computeIfAbsent(boothId, k -> new ConcurrentHashMap<>()).put(session.getId(), session);
-		System.out.println("부스 WebSocket 연결 성공: " + session.getId() + " (부스: " + boothId + ")");
 	}
 
 	@Override
@@ -52,7 +51,6 @@ public class BoothWebSocketHandler extends TextWebSocketHandler {
 				boothSessions.remove(boothId);
 			}
 		}
-		System.out.println("부스 WebSocket 연결 종료: " + session.getId() + " (부스: " + boothId + ")");
 	}
 
 	private String extractBoothId(WebSocketSession session) {

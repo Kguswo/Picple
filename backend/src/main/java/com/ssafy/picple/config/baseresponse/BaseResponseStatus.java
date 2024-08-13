@@ -89,6 +89,7 @@ public enum BaseResponseStatus {
 	FILE_CONVERSION_ERROR(false, 3226, "파일을 변환하는데 실패하였습니다."),
 
 	// booth
+	GENERATE_BOOTH_SUCCESSFULLY(true, 3257, "부스를 성공적으로 생성하였습니다."),
 	BOOTH_GENERATION_ERROR(false, 3250, "부스를 생성할 수 없습니다."),
 	JOIN_BOOTH_SUCCESSFULLY(true, 3251, "부스에 참가하였습니다."),
 	FAILED_TO_JOIN_BOOTH(false, 3252, "부스 참가에 실패하였습니다."),

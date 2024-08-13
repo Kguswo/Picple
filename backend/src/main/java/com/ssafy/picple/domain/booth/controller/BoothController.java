@@ -1,6 +1,6 @@
 package com.ssafy.picple.domain.booth.controller;
 
-import static com.ssafy.picple.config.baseResponse.BaseResponseStatus.*;
+import static com.ssafy.picple.config.baseresponse.BaseResponseStatus.*;
 
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -9,8 +9,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.ssafy.picple.config.baseResponse.BaseException;
-import com.ssafy.picple.config.baseResponse.BaseResponse;
+import com.ssafy.picple.config.baseresponse.BaseException;
+import com.ssafy.picple.config.baseresponse.BaseResponse;
 import com.ssafy.picple.domain.booth.dto.BoothCreateRequest;
 import com.ssafy.picple.domain.booth.service.BoothService;
 
@@ -43,7 +43,7 @@ public class BoothController {
         String boothId = boothService.createBooth(request.getName(), request.getMaxParticipants());
 
         // Service단에서 예외 처리를 하기 때문에 성공 반환
-        return new BaseResponse<>(SUCCESS);
+        return new BaseResponse<>(GENERATE_BOOTH_SUCCESSFULLY);
     }
 
     /**
@@ -60,7 +60,7 @@ public class BoothController {
         boolean joined = boothService.joinBooth(boothId);
 
         // Service단에서 예외 처리를 하기 때문에 성공 반환
-        return new BaseResponse<>(SUCCESS);
+        return new BaseResponse<>(JOIN_BOOTH_SUCCESSFULLY);
     }
 
     /**
@@ -79,6 +79,6 @@ public class BoothController {
         boothService.leaveBooth(boothId, participantId);
 
         // Service단에서 예외 처리를 하기 때문에 성공 반환
-        return new BaseResponse<>(SUCCESS);
+        return new BaseResponse<>(LEAVE_BOOTH_SUCCESSFULLY);
     }
 }
