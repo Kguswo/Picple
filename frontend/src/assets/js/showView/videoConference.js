@@ -61,6 +61,7 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
                 if (video && canvas) {
                     console.log('background제거를 위한 await 진행');
                     await initializeBackgroundRemoval(video, canvas);
+                    console.log('배경제거 초기화함수 실행 완료')
                 }
             });
             console.log('streamCreated 이벤트 처리 완료');
@@ -166,7 +167,7 @@ export const applySegmentation = async (streamRef) => {
 
         const mediaStream = actualStreamRef.stream.getMediaStream();
 
-        console.logs('mediaStream log: ', mediaStream);
+        console.log('mediaStream log: ', mediaStream);
 
         if (!mediaStream) {
             throw new Error('미디어 스트림을 가져올 수 없습니다.');
