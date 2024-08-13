@@ -12,7 +12,7 @@ const validateEmailPattern = (email) => {
 
 const validatePasswordPattern = (password) => {
 	if (!patternPassword.test(password) || patternWhiteSpace.test(password)) {
-		return setFormMessage('비밀번호는 8~64자의 영문 대/소문자, 숫자, 특수문자만 가능합니다.', true);
+		return setFormMessage('영문, 숫자, 특수문자(!,@,#,$,%,^,&,*)를 각각 하나 이상 포함해야 합니다.', true);
 	}
 	return setFormMessage('', false);
 };
