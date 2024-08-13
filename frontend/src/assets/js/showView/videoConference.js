@@ -59,21 +59,14 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
             const subscriber = await session.value.subscribe(stream);
             subscribers.value.push({ subscriber });
             
-            setTimeout(async () => {
-                try {
-                    await applySegmentation(subscriber);
-                } catch (error) {
-                    console.error('Subscriber 배경 제거 적용 중 오류:', error);
-                }
-            }, 1000); 
 
-            // nextTick(async () => {
-            //     const video = document.getElementById(`video-${subscriber.stream.streamId}`);
-            //     const canvas = document.getElementById(`canvas-${subscriber.stream.streamId}`);
-            //     if (video && canvas) {
-            //         await applySegmentation({ stream: subscriber });
-            //     }
-            // });
+            nextTick(async () => {
+                const video = document.getElementById(`video-${subscriber.stream.streamId}`);
+                const canvas = document.getElementById(`canvas-${subscriber.stream.streamId}`);
+                if (video && canvas) {
+                    await applySegmentation({ stream: subscriber });
+                }
+            });
         });
 
         session.value.on('streamDestroyed', ({ stream }) => {
@@ -132,16 +125,10 @@ export const applySegmentation = async (streamRef) => {
             throw new Error('스트림 참조가 유효하지 않습니다.');
         }
 
-        let mediaStream;
-        if (streamRef.stream) {
-            mediaStream = streamRef.stream.getMediaStream 
-                ? streamRef.stream.getMediaStream()
-                : streamRef.stream;
-        } else if (streamRef.getMediaStream) {
-            mediaStream = streamRef.getMediaStream();
-        } else {
-            mediaStream = streamRef;
-        }
+        const mediaStream = actualStreamRef.stream.getMediaStream
+            ? actualStreamRef.stream.getMediaStream()
+            : actualStreamRef.stream.streamManager.stream.getMediaStream();
+
 
         if (!mediaStream) {
             throw new Error('미디어 스트림을 가져올 수 없습니다.');
