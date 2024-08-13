@@ -1,5 +1,5 @@
 import { OpenVidu } from 'openvidu-browser';
-import { nextTick } from 'vue';
+import VideoBackgroundRemoval from '@/assets/js/showView/BackgroundRemoval';
 
 const OPENVIDU_SERVER_URL = import.meta.env.VITE_API_OPENVIDU_SERVER;
 const OPENVIDU_SERVER_SECRET = import.meta.env.VITE_OPENVIDU_SERVER_SECRET;
@@ -14,7 +14,7 @@ const showErrorToUser = (message) => {
     console.error(message);
 };
 
-export const joinExistingSession = async (session, publisher, subscribers, myVideo, sessionId, boothStore) => {
+export const joinExistingSession = async (session, publisher, subscribers, myVideo, sessionId, boothStore, backgroundRemoval) => {
     try {
         const sessionInfo = boothStore.getSessionInfo();
         if (!sessionInfo || !sessionInfo.sessionId || !sessionInfo.token) {
@@ -53,13 +53,10 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
             const subscriber = await session.value.subscribe(stream);
             subscribers.value.push({ subscriber });
 
-            nextTick(async () => {
-                const video = document.getElementById(`video-${subscriber.stream.streamId}`);
-                const canvas = document.getElementById(`canvas-${subscriber.stream.streamId}`);
-                if (video && canvas) {
-                    await applySegmentation({ stream: subscriber });
-                }
-            });
+            // 원격 참가자의 비디오에도 배경 제거 적용
+            const video = subscriber.videos[0].video;
+            const processedStream = await backgroundRemoval.createProcessedStream(video);
+            subscriber.videos[0].video.srcObject = processedStream;
         });
 
         session.value.on('streamDestroyed', ({ stream }) => {
@@ -83,6 +80,11 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
         };
 
         publisher.value = await OV.initPublisherAsync(undefined, publisherOptions);
+
+        // 배경 제거된 스트림 생성 및 적용
+        const processedStream = await backgroundRemoval.createProcessedStream(publisher.value.videos[0].video);
+        publisher.value.stream.removeTrack(publisher.value.stream.getVideoTracks()[0]);
+        publisher.value.stream.addTrack(processedStream.getVideoTracks()[0]);
 
         await session.value.publish(publisher.value);
 

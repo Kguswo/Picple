@@ -11,6 +11,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { useBoothStore } from '@/stores/boothStore';
 import { useUserStore } from '@/stores/userStore';
 import { joinExistingSession, applySegmentation  } from '@/assets/js/showView/videoConference';
+import VideoBackgroundRemoval from '@/assets/js/showView/BackgroundRemoval';
 
 import videoOn from '@/assets/icon/video_on.png';
 import videoOff from '@/assets/icon/video_off.png';
@@ -125,26 +126,13 @@ const toggleMicro = () => {
 
 // boothshoot
 
-onMounted(async() => {
-    await joinExistingSession(session, publisher, subscribers, myVideo, sessionId, boothStore);
+// 수정 코드 (BackgroundRemoval사용하는 코드)
+const backgroundRemoval = ref(new VideoBackgroundRemoval());
 
-    session.value.on('streamCreated', async ({ stream }) => {
-        try {
-            const subscriber = await session.value.subscribe(stream);
-            subscribers.value.push({ subscriber });
+onMounted(async () => {
+    await backgroundRemoval.value.initialize();
+    await joinExistingSession(session, publisher, subscribers, myVideo, sessionId, boothStore, backgroundRemoval.value);
 
-            nextTick(async () => {
-                try {
-                    await applySegmentation(subscriber);
-                } catch (error) {
-                    console.error('Subscriber 배경 제거 적용 중 오류:', error);
-                }
-            });
-        } catch (error) {
-            console.error('스트림 구독 중 오류 발생:', error);
-        }
-    });
-    
     WebSocketService.setBoothStore(boothStore);
     WebSocketService.on('background_info', (message) => {
         boothStore.setBgImage(message.backgroundImage);

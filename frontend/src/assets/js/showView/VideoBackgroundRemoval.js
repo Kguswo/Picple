@@ -46,37 +46,21 @@ export default class VideoBackgroundRemoval {
         this.ctx.restore();
     }
 
-    async processVideo(videoElement, canvasElement) {
-        if (this.isProcessing) return;
-        this.isProcessing = true;
+    async createProcessedStream(videoElement) {
+        const canvas = document.createElement('canvas');
+        canvas.width = videoElement.videoWidth;
+        canvas.height = videoElement.videoHeight;
+        this.initCanvas(canvas);
 
-        if (!videoElement || !canvasElement) {
-            this.isProcessing = false;
-            return;
-        }
+        const processFrame = async () => {
+            if (videoElement.videoWidth > 0 && videoElement.videoHeight > 0) {
+                await this.selfieSegmentation.send({ image: videoElement });
+            }
+            requestAnimationFrame(processFrame);
+        };
 
-        if (videoElement.videoWidth === 0 || videoElement.videoHeight === 0) {
-            this.isProcessing = false;
-            return;
-        }
+        processFrame();
 
-        if (canvasElement.width !== videoElement.videoWidth || canvasElement.height !== videoElement.videoHeight) {
-            canvasElement.width = videoElement.videoWidth;
-            canvasElement.height = videoElement.videoHeight;
-        }
-
-        try {
-            await this.selfieSegmentation.send({ image: videoElement });
-        } catch (error) {
-            console.error('세그멘테이션 처리 중 오류:', error);
-        }
-
-        this.isProcessing = false;
-        requestAnimationFrame(() => this.processVideo(videoElement, canvasElement));
-    }
-
-    startProcessing(videoElement, canvasElement) {
-        this.initCanvas(canvasElement);
-        this.processVideo(videoElement, canvasElement);
+        return canvas.captureStream(30);
     }
 }
