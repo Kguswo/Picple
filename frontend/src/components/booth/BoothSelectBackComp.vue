@@ -1,5 +1,6 @@
 <script setup>
 import { ref, defineEmits, defineProps, onMounted, inject } from 'vue';
+import AIPromptModal from '@/components/booth/AIPromptModal.vue';
 
 const boothActions = inject('boothActions', {
 	changeImage: () => console.warn('changeImage not provided'),
@@ -7,6 +8,7 @@ const boothActions = inject('boothActions', {
 
 const props = defineProps({
 	boothId: String,
+	userId: String
 });
 
 const selectBackground = (image) => {
@@ -67,11 +69,18 @@ const fileUpload = (event) => {
 	}
 };
 
-// AI 이미지 생성
+// 모달의 표시 여부를 관리하는 상태
+const showModal = ref(false);
+
+// AI 생성 버튼 클릭 시 모달을 표시하는 메서드
 const createAI = () => {
 	console.log('AI 생성 클릭');
+	showModal.value = true;
+};
 
-	// 이미지 생성을 위한 dalle3 연결 코드 필요
+// 모달이 닫힐 때 호출되는 메서드
+const handleCloseModal = () => {
+	showModal.value = false;
 };
 </script>
 
@@ -111,6 +120,7 @@ const createAI = () => {
 			/>
 		</div>
 	</div>
+	<AIPromptModal v-if="showModal" :userId="userId" @close="showModal = false" />
 </template>
 
 <style scoped>
