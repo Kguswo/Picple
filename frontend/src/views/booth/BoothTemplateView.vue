@@ -1,88 +1,144 @@
 <script setup>
-import { ref, watch, computed } from 'vue';
-import { useRouter, useRoute } from 'vue-router';
+import { ref } from 'vue';
 import WhiteBoardComp from '@/components/common/WhiteBoardComp.vue';
 import BoothBack from '@/components/booth/BoothBackComp.vue';
 import TemplateComp from '@/components/template/TemplateComp.vue';
 import { usePhotoStore } from '@/stores/photoStore';
+import { storeToRefs } from 'pinia';
 
-const row = ref(0);
-const col = ref(0);
+const photoStore = usePhotoStore();
+const { photoList, templateList, draggedPhoto, templateColor } = storeToRefs(photoStore);
+const selectedTemplate = ref(null);
 
-const frameSizes = [
-	{ row: 1, col: 1 },
-	{ row: 2, col: 1 },
-	{ row: 3, col: 1 },
-	{ row: 4, col: 1 },
-	{ row: 2, col: 2 },
-];
+const selectTemplate = (item) => {
+	selectedTemplate.value = item;
+};
 
-const selectFrameSize = (item) => {
-	row.value = item.row;
-	col.value = item.col;
+const onDragStart = (event, photo, index) => {
+	if (selectedTemplate.value) {
+		draggedPhoto.value = {
+			src: photo,
+			index,
+		};
+		event.dataTransfer.effectAllowed = 'move';
+	}
+};
+
+const changeColor = () => {
+	templateColor.value = !templateColor.value;
 };
 </script>
 
 <template>
 	<WhiteBoardComp class="whiteboard-area-booth">
 		<div class="booth-content">
-			<div class="close-btn">
-				<button
-					class="close"
-					@click="navigateTo('main')"
+			<div class="template-list">
+				<div
+					v-for="(item, index) in templateList"
+					:key="index"
+					class="template-text"
 				>
-					X
-				</button>
+					<button @click="selectTemplate(item)">{{ item.row }} x {{ item.col }}</button>
+				</div>
+				<button @click="changeColor">{{ templateColor ? '검정색' : '흰색' }}</button>
 			</div>
 
 			<div class="booth-content-main">
-				<div class="template-list">
-					<div
-						v-for="(item, index) in frameSizes"
-						:key="index"
-						class="template-text"
-					>
-						<button @click="selectFrameSize(item)">{{ item.row }} x {{ item.col }}</button>
-					</div>
-				</div>
 				<BoothBack class="booth-camera-box">
 					<TemplateComp
-						v-if="row && col"
-						:row="row"
-						:col="col"
+						v-if="selectedTemplate"
+						:template="selectedTemplate"
 					/>
 				</BoothBack>
-
-				<!-- <BoothBack class="booth-select-box">
+				<BoothBack class="booth-select-box">
 					<div class="select-box">
 						<div class="select-text-box">
-							<div>템플릿 선택</div>
+							<div>사진 선택</div>
 						</div>
-						<div class="select-temp-box">
-							<div class="temp-area">
-								<div
-									v-for="template in templates"
-									:key="template.text"
-									class="array-area"
-								>
-									<button
-										class="array-button"
-										@click="selectTemplate(template)"
-									>
-										{{ template.text }}
-									</button>
-								</div>
+						<div class="select-photo-box">
+							<div
+								v-for="(photo, index) in photoList"
+								:key="index"
+								class="photo-div"
+							>
+								{{ index + 1 }}
+								<img
+									:src="photo"
+									class="photo"
+									alt="사진"
+									draggable="true"
+									@dragstart="(event) => onDragStart(event, photo, index)"
+								/>
 							</div>
 						</div>
 					</div>
-				</BoothBack> -->
+				</BoothBack>
 			</div>
 		</div>
 	</WhiteBoardComp>
 </template>
 
 <style scoped>
-@import url('@/assets/css/boothsSelectTemp.css');
+.booth-content {
+	display: flex;
+	flex-direction: column;
+	justify-content: space-evenly;
+	align-items: center;
+	width: 100%;
+	height: 100%;
+}
+.booth-content-main {
+	display: flex;
+	flex-wrap: wrap;
+	align-content: center;
+	justify-content: space-around;
+	width: 100%;
+	height: 100%;
+	max-height: 99%;
+	overflow: auto;
+	overflow-x: hidden;
+}
+
+.booth-camera-box {
+	width: 75%;
+}
+
+.booth-select-box {
+	width: 20%;
+}
+
+.select-box {
+	width: 100%;
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	overflow: hidden;
+}
+
+.select-text-box {
+	width: 100%;
+	height: 13%;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+.select-photo-box {
+	width: 100%;
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-start;
+	align-items: center;
+	gap: 10px;
+	overflow-y: auto;
+	overflow-x: hidden;
+}
+
+.photo {
+	width: 100px;
+	height: 100px;
+}
 
 .template-list {
 	width: 75%;
