@@ -127,16 +127,18 @@ const toggleMicro = () => {
 // boothshoot
 
 // 수정 코드 (BackgroundRemoval사용하는 코드)
-const backgroundRemoval = ref(new VideoBackgroundRemoval());
-
 onMounted(async () => {
-    await backgroundRemoval.value.initialize();
-    await joinExistingSession(session, publisher, subscribers, myVideo, sessionId, boothStore, backgroundRemoval.value);
+    try {
+        await joinExistingSession(session, publisher, subscribers, myVideo, sessionId, boothStore);
 
-    WebSocketService.setBoothStore(boothStore);
-    WebSocketService.on('background_info', (message) => {
-        boothStore.setBgImage(message.backgroundImage);
-    });
+        WebSocketService.setBoothStore(boothStore);
+        WebSocketService.on('background_info', (message) => {
+            boothStore.setBgImage(message.backgroundImage);
+        });
+    } catch (error) {
+        console.error("Error during mounting:", error);
+        // 오류 처리 로직
+    }
 });
 
 onUnmounted(() => {});

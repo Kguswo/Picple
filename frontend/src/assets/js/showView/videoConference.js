@@ -1,4 +1,5 @@
 import { OpenVidu } from 'openvidu-browser';
+import VideoBackgroundRemoval from './VideoBackgroundRemoval';
 
 const OPENVIDU_SERVER_URL = import.meta.env.VITE_API_OPENVIDU_SERVER;
 const OPENVIDU_SERVER_SECRET = import.meta.env.VITE_OPENVIDU_SERVER_SECRET;
@@ -13,16 +14,22 @@ const showErrorToUser = (message) => {
     console.error(message);
 };
 
-export const joinExistingSession = async (session, publisher, subscribers, myVideo, sessionId, boothStore, backgroundRemoval) => {
+export const joinExistingSession = async (session, publisher, subscribers, myVideo, sessionId, boothStore) => {
+    const backgroundRemoval = new VideoBackgroundRemoval();
+    await backgroundRemoval.initialize();
+
     try {
         const sessionInfo = boothStore.getSessionInfo();
+
         if (!sessionInfo || !sessionInfo.sessionId || !sessionInfo.token) {
             throw new Error('세션 정보가 없습니다.');
         }
+
         const { token } = sessionInfo;
 
         const OV = new OpenVidu();
         OV.enableProdMode(false);
+
         OV.setAdvancedConfiguration({
             logLevel: 'DEBUG',
             noStreamPlayingEventExceptionTimeout: 8000,
@@ -48,21 +55,13 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
 
         session.value = OV.initSession();
 
-        session.value.on('streamCreated', async ({ stream }) => {
+         session.value.on('streamCreated', async ({ stream }) => {
             const subscriber = await session.value.subscribe(stream);
             subscribers.value.push({ subscriber });
 
-            // 원격 참가자의 비디오에도 배경 제거 적용
-            const video = subscriber.videos[0].video;
-            const processedStream = await backgroundRemoval.createProcessedStream(video);
-            subscriber.videos[0].video.srcObject = processedStream;
-        });
-
-        session.value.on('streamDestroyed', ({ stream }) => {
-            const index = subscribers.value.findIndex((sub) => sub.subscriber.stream.streamId === stream.streamId);
-            if (index >= 0) {
-                subscribers.value.splice(index, 1);
-            }
+            // subscriber에 대한 배경 제거 적용
+            const processedSubscriberStream = await backgroundRemoval.createProcessedStream(subscriber.videos[0].video);
+            subscriber.videos[0].video.srcObject = processedSubscriberStream;
         });
 
         await session.value.connect(token);
@@ -80,7 +79,7 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
 
         publisher.value = await OV.initPublisherAsync(undefined, publisherOptions);
 
-        // 배경 제거된 스트림 생성 및 적용
+        // 배경 제거 적용
         const processedStream = await backgroundRemoval.createProcessedStream(publisher.value.videos[0].video);
         publisher.value.stream.removeTrack(publisher.value.stream.getVideoTracks()[0]);
         publisher.value.stream.addTrack(processedStream.getVideoTracks()[0]);
