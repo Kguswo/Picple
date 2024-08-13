@@ -221,8 +221,10 @@ const { remainPicCnt, images } = PhotoService;
                                     :height="240"
                                     class="mirrored-video"
                                 ></canvas> -->
-                                <video ref="myVideo" autoplay muted playsinline style="display: none;"></video>
-                                <canvas ref="myCanvas" class="mirrored-video"></canvas>
+                                <canvas
+                                    ref="myCanvas"
+                                    class="mirrored-video"
+                                ></canvas>
                             </div>
                         </div>
                     </div>
