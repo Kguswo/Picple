@@ -39,6 +39,10 @@ public class OpenAIService {
 	 * @throws BaseException 예외 발생 시
 	 */
 	public String[] createAIBackground(String prompt) throws BaseException {
+		if (prompt.replace(" ", "").isEmpty()) {
+			throw new BaseException(NULL_PROMPT_ERROR);
+		}
+
 		try {
 			Mono<String> result = requestImageGeneration(prompt);
 
@@ -71,7 +75,11 @@ public class OpenAIService {
 				.contentType(MediaType.APPLICATION_JSON)
 				.bodyValue("""
 						{
-						  "prompt": "%s. 이를 주제로 한 8비트 스타일 배경 사진을 그려줘!",
+						  "prompt": "%s. 이는 사용자가 바라는 그림의 주제야.
+						  이 주제를 바탕으로 8비트 픽셀 스타일의 그림을 그려줘.
+						  주제에 특정 연예인이나 선수 같은 인물에 대한 요청이 있다면 나오지 않아야 해.
+						  너무 개체가 많으면 산만하니 그러지 않도록 그려줘.
+						  어색한 부분이 있는지 검토하고 어색한 부분이 있다면 다시 공들여서 그려줘!",
 						  "model": "dall-e-3",
 						  "n": 1,
 						  "quality": "standard",

@@ -81,6 +81,7 @@ public enum BaseResponseStatus {
 	AI_CLIENT_ERROR(false, 3207, "AI 클라이언트 오류가 발생하였습니다."),
 	AI_SERVER_ERROR(false, 3208, "AI 서버 오류가 발생하였습니다."),
 	BLOCKING_ERROR(false, 3228, "블로킹에 실패하였습니다."),
+	NULL_PROMPT_ERROR(false, 3230, "프롬프트가 비어있습니다."),
 
 	// background - local
 	INVALID_IMAGE_FORMAT(false, 3220, "지원하지 않는 확장자입니다."),
