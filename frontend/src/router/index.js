@@ -84,6 +84,7 @@ const router = createRouter({
         {
             path: '/booth/:boothId',
             component: () => import('@/views/booth/BoothShootView.vue'),
+            redirect: { name: 'background' },
             children: [
                 {
                     path: 'bg',
