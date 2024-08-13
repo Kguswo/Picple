@@ -31,15 +31,18 @@ export const initializeLocalStream = async (myVideo) => {
         canvasElement.width = videoElement.videoWidth || 640;
         canvasElement.height = videoElement.videoHeight || 480;
 
-        await initializeBackgroundRemoval(videoElement, canvasElement);
+        const backgroundRemoval = new VideoBackgroundRemoval();
+        await backgroundRemoval.initialize();
+        backgroundRemoval.startProcessing(videoElement, canvasElement);
 
         const processedStream = canvasElement.captureStream(30);
         if (myVideo.value) {
             myVideo.value.srcObject = processedStream;
+            await myVideo.value.play();
         }
 
         console.log('로컬 스트림 초기화 및 배경 제거 완료');
-        return processedStream;
+        return { stream: processedStream, backgroundRemoval };
     } catch (error) {
         console.error('로컬 스트림 초기화 중 오류 발생:', error);
         throw error;
@@ -55,7 +58,7 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
         const { token } = sessionInfo;
 
         console.log('1. 로컬 스트림 초기화 시작');
-        const localStream = await initializeLocalStream(myVideo);
+        const { stream: localStream, backgroundRemoval } = await initializeLocalStream(myVideo);
         console.log('1. 로컬 스트림 초기화 완료');
 
         console.log('2. OpenVidu 객체 초기화 시작');
@@ -91,23 +94,31 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
         session.value.on('streamCreated', async ({ stream }) => {
             console.log('5-1. streamCreated 이벤트 처리 시작');
             const subscriber = await session.value.subscribe(stream);
-            subscribers.value.push({ subscriber });
-
+            
             nextTick(async () => {
                 const video = document.getElementById(`video-${subscriber.stream.streamId}`);
                 const canvas = document.getElementById(`canvas-${subscriber.stream.streamId}`);
                 if (video && canvas) {
                     console.log('5-2. 원격 참가자 background 제거 초기화 시작');
-                    await applySegmentation({ stream: subscriber });
+                    const remoteBackgroundRemoval = new VideoBackgroundRemoval();
+                    await remoteBackgroundRemoval.initialize();
+                    remoteBackgroundRemoval.startProcessing(video, canvas);
+
+                    const processedStream = canvas.captureStream(30);
+                    video.srcObject = processedStream;
+                    await video.play();
+
                     console.log('5-2. 원격 참가자 background 제거 초기화 완료');
                 }
             });
+            
+            subscribers.value.push({ subscriber, backgroundRemoval: null });
             console.log('5-1. streamCreated 이벤트 처리 완료');
         });
 
         session.value.on('streamDestroyed', ({ stream }) => {
             console.log('5-3. streamDestroyed 이벤트 처리 시작');
-            const index = subscribers.value.findIndex((sub) => sub.stream.streamId === stream.streamId);
+            const index = subscribers.value.findIndex((sub) => sub.subscriber.stream.streamId === stream.streamId);
             if (index >= 0) {
                 subscribers.value.splice(index, 1);
             }
@@ -121,8 +132,8 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
 
         console.log('7. 퍼블리셔 옵션 설정 시작');
         const publisherOptions = {
-            audioSource: undefined,
-            videoSource: undefined,
+            audioSource: localStream.getAudioTracks()[0],
+            videoSource: localStream.getVideoTracks()[0],
             publishAudio: true,
             publishVideo: true,
             resolution: '640x480',
@@ -140,20 +151,6 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
         await session.value.publish(publisher.value);
         console.log('9. 퍼블리셔 발행 완료');
 
-        console.log('10. WebGL 지원 확인 및 세그멘테이션 적용 시작');
-        try {
-            if (!checkWebGLSupport()) {
-                console.warn('WebGL이 지원되지 않습니다. 배경 제거 기능을 사용할 수 없습니다.');
-                return;
-            }
-
-            await applySegmentation(publisher);
-            console.log('10. 세그멘테이션 적용 완료');
-        } catch (error) {
-            console.error('세그멘테이션 적용 중 오류 발생:', error);
-            showErrorToUser('세그멘테이션 기능을 적용하는 데 문제가 발생했습니다. 새로고침 후 다시 시도해주세요.');
-        }
-
     } catch (error) {
         console.error('세션 참가 중 오류 발생:', error);
         if (error.name === 'DEVICE_ACCESS_DENIED') {
@@ -161,48 +158,6 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
         } else {
             showErrorToUser(`오류 발생: ${error.message}`);
         }
-    }
-};
-
-export const applySegmentation = async (streamRef) => {
-    try {
-        const actualStreamRef = streamRef.value || streamRef;
-        if (!actualStreamRef || !actualStreamRef.stream) {
-            throw new Error('스트림 참조가 유효하지 않습니다.');
-        }
-
-        const mediaStream = actualStreamRef.stream.getMediaStream();
-
-        if (!mediaStream) {
-            throw new Error('미디어 스트림을 가져올 수 없습니다.');
-        }
-
-        const videoElement = document.createElement('video');
-        videoElement.srcObject = mediaStream;
-        videoElement.muted = true;
-        videoElement.playsInline = true;
-        await videoElement.play();  // 비디오 재생 시작
-
-        const canvasElement = document.createElement('canvas');
-        
-        // initializeBackgroundRemoval 함수를 호출하고 결과를 저장
-        const backgroundRemoval = await initializeBackgroundRemoval(videoElement, canvasElement);
-
-        // 처리된 스트림 캡처
-        const processedStream = canvasElement.captureStream(30);
-        const processedVideoTrack = processedStream.getVideoTracks()[0];
-        
-        // 원본 스트림의 비디오 트랙 교체
-        if (mediaStream.getVideoTracks().length > 0) {
-            mediaStream.removeTrack(mediaStream.getVideoTracks()[0]);
-        }
-        mediaStream.addTrack(processedVideoTrack);
-
-        return backgroundRemoval;  // 생성된 BackgroundRemoval 인스턴스 반환
-
-    } catch (error) {
-        console.error('세그멘테이션 적용 중 오류 발생:', error);
-        throw error;
     }
 };
 
