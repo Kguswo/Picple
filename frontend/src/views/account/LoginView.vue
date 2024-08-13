@@ -11,6 +11,7 @@ import { loginApi } from '@/api/userApi';
 import { useFormStore } from '@/stores/formStore';
 import { storeToRefs } from 'pinia';
 import { alertResult } from '@/api/baseApi';
+import { throttle } from '@/assets/js/util';
 
 const userStore = useUserStore();
 const formStore = useFormStore();
@@ -21,8 +22,9 @@ formStore.initForm([email, password], [emailField, passwordField]);
 email.value.value = VueCookie.get('saveId');
 
 const isChecked = VueCookie.get('saveId') ? ref(true) : ref(false);
+const lastCall = ref(0);
 
-const login = async () => {
+const onClickLogin = () => {
 	emailField.value.message = validateEmailPattern(email.value.value);
 	passwordField.value.message = validatePasswordPattern(password.value.value);
 	if (formStore.focusInputField(emailField)) {
@@ -32,15 +34,17 @@ const login = async () => {
 	if (formStore.focusInputField(passwordField)) {
 		return;
 	}
+	throttle(lastCall, login, 5000)();
+};
 
-	setCookie('saveId', email.value.value, '1d', isChecked.value);
-
+const login = async () => {
 	const { data } = await loginApi(email.value.value, password.value.value);
 	if (!data.isSuccess) {
 		await alertResult(false, '아이디 또는 비밀번호가 일치하지 않습니다.');
 		router.go(0);
 		return;
 	}
+	setCookie('saveId', email.value.value, '1d', isChecked.value);
 	userStore.setUserInfo(data.result);
 	router.push({ name: 'main' });
 };
@@ -87,7 +91,7 @@ const navigateTo = (name) => {
 
 			<FormButtonComp
 				size="big"
-				@click="login"
+				@click="onClickLogin"
 				>로그인</FormButtonComp
 			>
 

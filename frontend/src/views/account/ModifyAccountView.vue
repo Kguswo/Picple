@@ -9,6 +9,8 @@ import { storeToRefs } from 'pinia';
 import { deleteAccountApi, modifyAccountApi } from '@/api/userApi';
 import { useFormStore } from '@/stores/formStore';
 import { alertCheckBox, alertResult } from '@/api/baseApi';
+import { ref } from 'vue';
+import { throttle } from '@/assets/js/util';
 
 const router = useRouter();
 const userStore = useUserStore();
@@ -19,16 +21,20 @@ const { nickname, nicknameField } = storeToRefs(formStore);
 formStore.initForm([nickname], [nicknameField]);
 nickname.value.value = userNickname.value;
 
-const modifyAccount = async () => {
+const lastCall = ref(0);
+
+const onClickModify = () => {
 	nicknameField.value.message = validateNicknamePattern(nickname.value.value);
 	if (nickname.value.value === userNickname.value) {
 		nicknameField.value.message = setFormMessage('기존 닉네임과 동일합니다.', true);
 	}
-
 	if (formStore.focusInputField(nicknameField)) {
 		return;
 	}
+	throttle(lastCall, modifyAccount, 2000)();
+};
 
+const modifyAccount = async () => {
 	const { data } = await modifyAccountApi(nickname.value.value);
 	if (!data.isSuccess) {
 		await alertResult(false, '닉네임 변경에 실패하였습니다.');
@@ -99,7 +105,7 @@ const deleteAccount = async () => {
 
 			<FormButtonComp
 				size="big"
-				@click="modifyAccount"
+				@click="onClickModify"
 				>저장</FormButtonComp
 			>
 
