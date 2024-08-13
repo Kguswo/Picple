@@ -37,6 +37,7 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
                 { urls: 'stun:stun.l.google.com:19302' },
                 { urls: 'turn:i11a503.p.ssafy.io:3478', username: 'picplessafy', credential: 'ssafya503!picple' }
             ],
+            iceTransportPolicy: 'all'
         });
 
         session.value = OV.initSession();
