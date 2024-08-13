@@ -3,6 +3,7 @@ import WhiteBoardComp from '@/components/common/WhiteBoardComp.vue';
 import BoothBack from '@/components/booth/BoothBackComp.vue';
 import ChatModal from '@/components/chat/ChatModal.vue';
 
+import InitializationService from '@/assets/js/showView/InitializationService';
 import PhotoService from '@/assets/js/showView/PhotoService';
 import WebSocketService from '@/services/WebSocketService';
 
@@ -21,6 +22,11 @@ const props = defineProps({
 	sessionId: String,
 });
 
+const isVideoOn = ref(false);
+const isMicroOn = ref(false);
+const isMirrored = ref(false);
+const videoElement = ref(null);
+const canvasElement = ref(null);
 const isChatOpen = ref(false);
 const session = ref(null);
 const publisher = ref(null);
@@ -117,10 +123,10 @@ const toggleMirror = () => {
 };
 
 const toggleCamera = () => {
-	isvideoOn.value = !isvideoOn.value;
+	isVideoOn.value = !isVideoOn.value;
 	if (InitializationService.videoElement) {
 		InitializationService.videoElement.srcObject.getVideoTracks().forEach((track) => {
-			track.enabled = isvideoOn.value;
+			track.enabled = isVideoOn.value;
 		});
 	}
 };
@@ -232,7 +238,7 @@ const { remainPicCnt, images } = PhotoService;
 								@click="toggleCamera"
 							>
 								<img
-									:src="isvideoOn ? videoOn : videoOff"
+									:src="isVideoOn ? videoOn : videoOff"
 									alt="Toggle Camera"
 								/>
 							</button>
