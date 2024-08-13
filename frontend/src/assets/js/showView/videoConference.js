@@ -1,6 +1,5 @@
 import { OpenVidu } from 'openvidu-browser';
 import { nextTick } from 'vue';
-import VideoBackgroundRemoval from './VideoBackgroundRemoval';
 
 const OPENVIDU_SERVER_URL = import.meta.env.VITE_API_OPENVIDU_SERVER;
 const OPENVIDU_SERVER_SECRET = import.meta.env.VITE_OPENVIDU_SERVER_SECRET;
@@ -41,6 +40,7 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
                 },
             ],
             iceTransportPolicy: 'all',
+            forceMediaReconnectionAfterNetworkDrop: true,
         });
 
         session.value = OV.initSession();

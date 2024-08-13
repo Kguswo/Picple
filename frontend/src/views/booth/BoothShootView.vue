@@ -6,7 +6,7 @@ import ChatModal from '@/components/chat/ChatModal.vue';
 import PhotoService from '@/assets/js/showView/PhotoService';
 import WebSocketService from '@/services/WebSocketService';
 
-import { ref, onMounted, onUnmounted, computed, provide } from 'vue';
+import { ref, onMounted, onUnmounted, computed, provide,nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useBoothStore } from '@/stores/boothStore';
 import { useUserStore } from '@/stores/userStore';
@@ -129,16 +129,20 @@ onMounted(async() => {
     await joinExistingSession(session, publisher, subscribers, myVideo, sessionId, boothStore);
 
     session.value.on('streamCreated', async ({ stream }) => {
-        const subscriber = await session.value.subscribe(stream);
-        subscribers.value.push({ subscriber });
+        try {
+            const subscriber = await session.value.subscribe(stream);
+            subscribers.value.push({ subscriber });
 
-        nextTick(async () => {
-            try {
-                await applySegmentation({ stream: subscriber });
-            } catch (error) {
-                console.error('Subscriber 배경 제거 적용 중 오류:', error);
-            }
-        });
+            nextTick(async () => {
+                try {
+                    await applySegmentation({ stream: subscriber });
+                } catch (error) {
+                    console.error('Subscriber 배경 제거 적용 중 오류:', error);
+                }
+            });
+        } catch (error) {
+            console.error('스트림 구독 중 오류 발생:', error);
+        }
     });
     
     WebSocketService.setBoothStore(boothStore);
