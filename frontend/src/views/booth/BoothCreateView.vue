@@ -211,7 +211,7 @@ onMounted(async () => {
 
     // 로딩 화면 표시 시간 계산
     const elapsedTime = Date.now() - startTime;
-    const remainingTime = Math.max(1000 - elapsedTime, 0);
+    const remainingTime = Math.max(2000 - elapsedTime, 0);
 
     setTimeout(() => {
         isLoading.value = false;
@@ -453,6 +453,7 @@ const toggleMicro = () => {
     justify-content: center;
     align-items: center;
     z-index: 9999;
+    filter: hue-rotate(110deg) saturate(40%) brightness(250%) contrast(80%);
 }
 
 .loading-overlay img {

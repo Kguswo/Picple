@@ -110,6 +110,12 @@ const router = createRouter({
             meta: { authRequired: true },
         },
         {
+            path: '/boothVideoTest/:boothId',
+            name: 'boothVideoTest',
+            component: () => import('@/views/booth/BoothVideoTestView.vue'),
+            meta: { authRequired: true },
+        },
+        {
             path: '/selectTemp',
             name: 'selectTemp',
             component: () => import('@/views/booth/BoothTemplateView.vue'),
