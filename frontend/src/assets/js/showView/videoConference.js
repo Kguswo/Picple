@@ -14,6 +14,31 @@ const showErrorToUser = (message) => {
     console.error(message);
 };
 
+function getVideoElement(obj) {
+    if (obj.videoReference) return obj.videoReference;
+    if (obj.video) return obj.video;
+    if (obj.videos && obj.videos.length > 0) return obj.videos[0].video;
+    if (obj.element) return obj.element.querySelector('video');
+    return null;
+}
+
+async function waitForVideoElement(obj, maxAttempts = 10, interval = 500) {
+    return new Promise((resolve, reject) => {
+        let attempts = 0;
+        const checkVideo = () => {
+            const videoElement = getVideoElement(obj);
+            if (videoElement) {
+                resolve(videoElement);
+            } else if (++attempts >= maxAttempts) {
+                reject(new Error('비디오 요소를 찾을 수 없습니다.'));
+            } else {
+                setTimeout(checkVideo, interval);
+            }
+        };
+        checkVideo();
+    });
+}
+
 export const joinExistingSession = async (session, publisher, subscribers, myVideo, sessionId, boothStore) => {
     const backgroundRemoval = new VideoBackgroundRemoval();
     await backgroundRemoval.initialize();
@@ -48,6 +73,7 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
             turnCreditRestoreTime: 120000, // 2분
             maxTries: 3,
             reconnectionPeriod: 5000, // 5초
+
         });
 
         session.value = OV.initSession();
@@ -56,20 +82,12 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
             const subscriber = await session.value.subscribe(stream);
             subscribers.value.push({ subscriber });
 
-            // Subscriber의 비디오 요소 가져오기
-            let subscriberVideoElement = null;
-            if (subscriber && subscriber.videos && subscriber.videos.length > 0) {
-                subscriberVideoElement = subscriber.videos[0].video;
-            } else if (subscriber && subscriber.videoElement) {
-                subscriberVideoElement = subscriber.videoElement;
-            }
-
-            if (subscriberVideoElement) {
-                // subscriber에 대한 배경 제거 적용
+            try {
+                const subscriberVideoElement = await waitForVideoElement(subscriber);
                 const processedSubscriberStream = await backgroundRemoval.createProcessedStream(subscriberVideoElement);
                 subscriberVideoElement.srcObject = processedSubscriberStream;
-            } else {
-                console.warn('Subscriber 비디오 요소를 찾을 수 없습니다.');
+            } catch (error) {
+                console.warn('Subscriber 비디오 처리 중 오류:', error);
             }
         });
 
@@ -95,17 +113,9 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
 
         publisher.value = await OV.initPublisherAsync(undefined, publisherOptions);
         console.log("Publisher initialized:", publisher.value);
-        
-        // Publisher의 비디오 요소 가져오기
-        let publisherVideoElement = null;
-        if (publisher.value && publisher.value.videos && publisher.value.videos.length > 0) {
-            publisherVideoElement = publisher.value.videos[0].video;
-        } else if (publisher.value && publisher.value.videoElement) {
-            publisherVideoElement = publisher.value.videoElement;
-        }
 
-        if (publisherVideoElement) {
-            // 배경 제거 적용
+        try {
+            const publisherVideoElement = await waitForVideoElement(publisher.value);
             const processedStream = await backgroundRemoval.createProcessedStream(publisherVideoElement);
             const videoTrack = processedStream.getVideoTracks()[0];
             
@@ -113,8 +123,8 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
                 publisher.value.stream.removeTrack(publisher.value.stream.getVideoTracks()[0]);
             }
             publisher.value.stream.addTrack(videoTrack);
-        } else {
-            console.warn('Publisher 비디오 요소를 찾을 수 없습니다.');
+        } catch (error) {
+            console.warn('Publisher 비디오 처리 중 오류:', error);
         }
 
         await session.value.publish(publisher.value);
@@ -134,6 +144,6 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
         } else {
             showErrorToUser(`오류 발생: ${error.message}`);
         }
-        throw error; 
+        throw error;
     }
 };
