@@ -97,6 +97,7 @@ public enum BaseResponseStatus {
 	LEAVE_BOOTH_SUCCESSFULLY(true, 3254, "부스에서 떠났습니다."),
 	FAILED_TO_LEAVE_BOOTH(false, 3255, "부스 떠나기에 실패하였습니다."),
 	BOOTH_NOT_FOUND(false, 3256, "부스를 찾을 수 없습니다."),
+	BOOTH_INFORMATION_ERROR(false, 3257, "부스 정보를 가져올 수 없습니다."),
 
 	// websocket
 	WEBSOCKET_CONNECTION_ERROR(false, 3280, "WebSocket 연결 중 오류가 발생하였습니다."),

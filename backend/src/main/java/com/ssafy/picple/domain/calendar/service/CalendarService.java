@@ -10,13 +10,14 @@ import com.ssafy.picple.domain.calendar.dto.CalendarDto;
 public interface CalendarService {
 
 	// 캘린더 날짜(년월일)별 사진 개수 조회
-	Long getPhotoCounts(Long userId, LocalDate createdAt);
+	Long getPhotoCounts(Long userId, LocalDate createdAt) throws BaseException;
 
 	// 캘린더 달력(년월)별 사진 개수 조회
-	List<Long> getMonthlyPhotoCounts(Long userId, LocalDate monthlyStartDate, LocalDate monthlyEndDate);
+	List<Long> getMonthlyPhotoCounts(Long userId, LocalDate monthlyStartDate, LocalDate monthlyEndDate) throws
+			BaseException;
 
 	// 캘린더 일별 정보 조회
-	List<CalendarDto> getDailyCalendars(Long userId, LocalDate createdAt);
+	List<CalendarDto> getDailyCalendars(Long userId, LocalDate createdAt) throws BaseException;
 
 	// 캘린더 선택 사진별 설명 작성
 	void updateContent(Long calendarId, Long userId, String content) throws BaseException;

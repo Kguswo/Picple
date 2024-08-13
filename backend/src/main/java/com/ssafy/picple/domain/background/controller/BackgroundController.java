@@ -34,12 +34,10 @@ public class BackgroundController {
 	// 기본 배경 사진들을 가져옴
 	@GetMapping
 	public BaseResponse<List<BackgroundResponseDto>> getDefaultBackgrounds() throws BaseException {
-		try {
-			List<BackgroundResponseDto> result = backgroundService.getDefaultBackgrounds();
-			return new BaseResponse<>(result);
-		} catch (Exception e) {
-			throw new BaseException(DATABASE_ERROR);
-		}
+
+		List<BackgroundResponseDto> result = backgroundService.getDefaultBackgrounds();
+
+		return new BaseResponse<>(result);
 	}
 
 	// 사용자가 등록한 배경 사진을 가져옴
@@ -47,13 +45,11 @@ public class BackgroundController {
 	public BaseResponse<List<BackgroundResponseDto>> getUserBackgrounds(
 			HttpServletRequest request)
 			throws BaseException {
-		try {
-			Long userId = (Long)request.getAttribute("userId");
-			List<BackgroundResponseDto> result = backgroundService.getUserBackgrounds(userId);
-			return new BaseResponse<>(result);
-		} catch (Exception e) {
-			throw new BaseException(GET_USER_EMPTY);
-		}
+
+		Long userId = (Long)request.getAttribute("userId");
+		List<BackgroundResponseDto> result = backgroundService.getUserBackgrounds(userId);
+
+		return new BaseResponse<>(result);
 	}
 
 	// 생성형 AI를 통해 배경 사진을 만듦
@@ -89,13 +85,8 @@ public class BackgroundController {
 			throw new BaseException(INVALID_USER_JWT);
 		}
 
-		try {
-			Long userId = (Long)request.getAttribute("userId");
-			backgroundService.deleteBackground(backgroundId, userId);
-			return new BaseResponse<>(SUCCESS);
-		} catch (Exception e) {
-			throw new BaseException(DELETE_BACKGROUND_ERROR);
-		}
-
+		Long userId = (Long)request.getAttribute("userId");
+		backgroundService.deleteBackground(backgroundId, userId);
+		return new BaseResponse<>(SUCCESS);
 	}
 }

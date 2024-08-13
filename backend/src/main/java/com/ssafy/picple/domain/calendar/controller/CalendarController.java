@@ -42,17 +42,15 @@ public class CalendarController {
 	 */
 	@GetMapping("/counts")
 	public BaseResponse<Long> getPhotoCounts(HttpServletRequest request,
-			@RequestParam("createdAt") String createdAt) {
-		try {
-			Long userId = (Long)request.getAttribute("userId");
-			// 문자열 파싱 후 -> LocalDate
-			LocalDate date = LocalDate.parse(createdAt, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+			@RequestParam("createdAt") String createdAt) throws BaseException {
 
-			Long count = calendarService.getPhotoCounts(userId, date);
-			return new BaseResponse<>(count);
-		} catch (Exception e) {
-			return new BaseResponse<>(DATABASE_ERROR);
-		}
+		Long userId = (Long)request.getAttribute("userId");
+
+		// 문자열 파싱 후 -> LocalDate
+		LocalDate date = LocalDate.parse(createdAt, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+		Long count = calendarService.getPhotoCounts(userId, date);
+
+		return new BaseResponse<>(count);
 	}
 
 	/**
@@ -66,7 +64,7 @@ public class CalendarController {
 	@GetMapping("/monthly-counts")
 	public BaseResponse<List<Long>> getMonthlyPhotoCounts(HttpServletRequest request,
 			@RequestParam("monthlyStartDate") String monthlyStartDate,
-			@RequestParam("monthlyEndDate") String monthlyEndDate) {
+			@RequestParam("monthlyEndDate") String monthlyEndDate) throws BaseException {
 		Long userId = (Long)request.getAttribute("userId");
 		// 문자열 파싱 후 -> LocalDate
 		LocalDate startDate = LocalDate.parse(monthlyStartDate, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -87,12 +85,13 @@ public class CalendarController {
 	 */
 	@GetMapping("/daily")
 	public BaseResponse<List<CalendarDto>> getDailyCalendars(HttpServletRequest request,
-			@RequestParam("createdAt") String createdAt) {
+			@RequestParam("createdAt") String createdAt) throws BaseException {
 
 		Long userId = (Long)request.getAttribute("userId");
 		// 문자열 파싱 -> LocalDate
 		LocalDate date = LocalDate.parse(createdAt, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 		List<CalendarDto> calendars = calendarService.getDailyCalendars(userId, date);
+
 		return new BaseResponse<>(calendars);
 
 	}
@@ -112,6 +111,7 @@ public class CalendarController {
 
 		Long userId = (Long)request.getAttribute("userId");
 		calendarService.updateContent(calendarId, userId, content);
+
 		return new BaseResponse<>(SUCCESS);
 
 	}
@@ -130,6 +130,7 @@ public class CalendarController {
 
 		Long userId = (Long)request.getAttribute("userId");
 		calendarService.sharePhoto(calendarId, userId);
+
 		return new BaseResponse<>(SUCCESS);
 
 	}
@@ -145,13 +146,11 @@ public class CalendarController {
 	@PostMapping("/download/{calendarId}")
 	@Transactional
 	public BaseResponse<BaseResponseStatus> downloadCalendar(HttpServletRequest request,
-			@PathVariable Long calendarId) throws BaseException {
+			@PathVariable Long calendarId) throws BaseException, FileNotFoundException {
+
 		Long userId = (Long)request.getAttribute("userId");
-		try {
-			calendarService.downloadPhoto(calendarId, userId);
-		} catch (FileNotFoundException e) {
-			throw new BaseException(FILE_NOT_FOUND_ERROR);
-		}
+		calendarService.downloadPhoto(calendarId, userId);
+
 		return new BaseResponse<>(SUCCESS);
 	}
 
@@ -166,8 +165,10 @@ public class CalendarController {
 	@GetMapping("/photo")
 	public BaseResponse<String> getPhotos(HttpServletRequest request,
 			@RequestParam("calendarId") Long calendarId) throws BaseException {
+
 		Long userId = (Long)request.getAttribute("userId");
 		String photoUrl = calendarService.getPhotoUrlByCalendarId(calendarId, userId);
+
 		return new BaseResponse<>(photoUrl);
 	}
 
@@ -185,6 +186,7 @@ public class CalendarController {
 
 		Long userId = (Long)request.getAttribute("userId");
 		calendarService.deleteCalendar(calendarId, userId);
+
 		return new BaseResponse<>(SUCCESS);
 
 	}
