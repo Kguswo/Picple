@@ -11,7 +11,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { useBoothStore } from '@/stores/boothStore';
 import { useUserStore } from '@/stores/userStore';
 import { joinExistingSession, applySegmentation  } from '@/assets/js/showView/videoConference';
-import VideoBackgroundRemoval from '@/assets/js/showView/BackgroundRemoval';
+import VideoBackgroundRemoval from '@/assets/js/showView/VideoBackgroundRemoval';
 
 import videoOn from '@/assets/icon/video_on.png';
 import videoOff from '@/assets/icon/video_off.png';

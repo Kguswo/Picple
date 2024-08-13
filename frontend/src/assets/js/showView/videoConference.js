@@ -1,5 +1,4 @@
 import { OpenVidu } from 'openvidu-browser';
-import VideoBackgroundRemoval from '@/assets/js/showView/BackgroundRemoval';
 
 const OPENVIDU_SERVER_URL = import.meta.env.VITE_API_OPENVIDU_SERVER;
 const OPENVIDU_SERVER_SECRET = import.meta.env.VITE_OPENVIDU_SERVER_SECRET;
