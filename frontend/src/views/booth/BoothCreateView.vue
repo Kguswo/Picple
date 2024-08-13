@@ -277,60 +277,62 @@ const toggleMicro = () => {
                     closeBtn
                 </button>
             </div>
+
+            <div v-show="isvideoOn">
+                <video
+                    ref="videoElement"
+                    autoplay
+                ></video>
+            </div>
+            <div
+                v-if="!isvideoOn"
+                class="video-off"
+            >
+                카메라가 꺼져있습니다!
+            </div>
+
             <BoothBack class="booth-create">
-                <div class="create-content">
-                    <div class="mycam-box">
-                        <div v-show="isvideoOn">
-                            <video
-                                ref="videoElement"
-                                autoplay
-                            ></video>
-                        </div>
-                        <div v-if="!isvideoOn">카메라가 꺼져있습니다!</div>
+                <div class="create-btn">
+                    <div class="left-btn">
+                        <button
+                            class="circle-btn"
+                            @click="toggleMicro"
+                        >
+                            <img
+                                :src="isMicroOn ? microOn : microOff"
+                                alt="M"
+                            />
+                        </button>
+                        <button
+                            class="circle-btn"
+                            @click="toggleCamera"
+                        >
+                            <img
+                                :src="isvideoOn ? videoOn : videoOff"
+                                alt="C"
+                            />
+                        </button>
+
+                        <button
+                            class="ract-btn"
+                            @click="toggleMirror"
+                        >
+                            반전
+                        </button>
                     </div>
-
-                    <div class="create-btn">
-                        <div class="left-btn">
-                            <button
-                                class="circle-btn"
-                                @click="toggleMicro"
-                            >
-                                <img
-                                    :src="isMicroOn ? microOn : microOff"
-                                    alt="M"
-                                />
-                            </button>
-                            <button
-                                class="circle-btn"
-                                @click="toggleCamera"
-                            >
-                                <img
-                                    :src="isvideoOn ? videoOn : videoOff"
-                                    alt="C"
-                                />
-                            </button>
-
-                            <button
-                                class="ract-btn"
-                                @click="toggleMirror"
-                            >
-                                반전
-                            </button>
-                        </div>
-                        <div class="right-btn">
-                            <button
-                                class="ract-btn"
-                                @click="handleCreateBooth"
-                            >
-                                생성
-                            </button>
-                            <button
-                                class="ract-btn"
-                                @click="navigateTo('main')"
-                            >
-                                취소
-                            </button>
-                        </div>
+                    <div class="right-btn">
+                        <button
+                            class="ract-btn"
+                            @click="handleCreateBooth"
+                        >
+                            생성
+                        </button>
+                        <button
+                            class="ract-btn"
+                            @click="navigateTo('main')"
+                        >
+                            취소
+                        </button>
                     </div>
                 </div>
             </BoothBack>
@@ -348,34 +350,21 @@ const toggleMicro = () => {
     height: 100%;
 }
 
-.create-content {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-evenly;
-    align-items: center;
-    height: 100%;
-    width: 100%;
-}
-
-.mycam-box {
-    margin-top: 15px;
-    height: 80%;
-    width: 90%;
-    min-height: 350px;
-    min-width: 700px;
-    background-color: rgb(255, 255, 255);
-    border-radius: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-}
-
 .create-btn {
-    height: 10%;
     width: 90%;
     display: flex;
     justify-content: space-between;
+    align-items: center;
+}
+
+.booth-camera-box {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
 }
 
 .circle-btn {
@@ -397,7 +386,7 @@ const toggleMicro = () => {
     border: none;
     border-radius: 20px;
     width: 75px;
-    height: 50px;
+    height: 40px;
     margin: 5px;
     padding: 5px;
 
@@ -435,5 +424,26 @@ const toggleMicro = () => {
     height: 9vw;
     max-width: 200px;
     max-height: 180px;
+}
+
+video {
+    transform: scaleX(-1);
+    object-fit: cover;
+    width: 100%;
+    height: 100%;
+    border-radius: 20px;
+}
+
+#app > div > div > div > div > div:nth-child(2) {
+    width: 90%;
+    height: 75%;
+}
+
+.video-off {
+    width: 90%;
+    height: 75%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 </style>

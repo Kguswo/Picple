@@ -29,12 +29,6 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
 
         session.value = OV.initSession();
 
-        // 현재 사용자의 닉네임을 가져옵니다.
-        const userNickname = useUserNickname().value;
-
-        // 세션 연결 시 닉네임을 포함시킵니다.
-        await session.value.connect(token, JSON.stringify({ username: userNickname }));
-
         session.value.on('streamCreated', async ({ stream }) => {
             const subscriber = await session.value.subscribe(stream);
             subscribers.value.push({ subscriber });
