@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue';
+import { onBeforeUnmount, onMounted, ref } from 'vue';
 import WhiteBoardComp from '@/components/common/WhiteBoardComp.vue';
 import BoothBack from '@/components/booth/BoothBackComp.vue';
 import TemplateComp from '@/components/template/TemplateComp.vue';
@@ -7,22 +7,44 @@ import { usePhotoStore } from '@/stores/photoStore';
 import { storeToRefs } from 'pinia';
 import { alertChoose, alertConfirm, alertResult } from '@/api/baseApi';
 import { savePhotoApi } from '@/api/photoApi';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
+import { useBoothStore } from '@/stores/boothStore';
 
+const route = useRoute();
 const router = useRouter();
 const photoStore = usePhotoStore();
+const boothStore = useBoothStore();
 const { photoList, templateList, draggedPhoto, templateColor, backgroundColor, otherColor } = storeToRefs(photoStore);
 const selectedTemplate = ref(null);
 const templateDiv = ref(null);
+const isLeaveSite = ref(null);
+
+const sessionId = boothStore.getSessionInfo().sessionId;
+
+onMounted(() => {
+	window.addEventListener('beforeunload', handleUnload);
+});
+
+onBeforeUnmount(() => {
+	window.removeEventListener('beforeunload', handleUnload);
+});
+
+function handleUnload(e) {
+	if (isLeaveSite.value) {
+		return;
+	}
+	e.preventDefault();
+	e.returnValue = '';
+}
 
 const selectTemplate = (item) => {
 	selectedTemplate.value = item;
 };
 
-const onDragStart = (event, photo, index) => {
+const onDragStart = (event, src, index) => {
 	if (selectedTemplate.value) {
 		draggedPhoto.value = {
-			src: photo,
+			src,
 			index,
 		};
 		event.dataTransfer.effectAllowed = 'move';
@@ -54,6 +76,7 @@ const screenshot = async () => {
 			'홈으로 이동',
 			'캘린더로 이동',
 		);
+		isLeaveSite.value = true;
 		if (result.isConfirmed) {
 			router.replace({ name: 'main' });
 			return;
@@ -105,17 +128,17 @@ const screenshot = async () => {
 						</div>
 						<div class="select-photo-box">
 							<div
-								v-for="(photo, index) in photoList"
+								v-for="(photo, index) in photoList[sessionId]"
 								:key="index"
 								class="photo-div"
 							>
 								{{ index + 1 }}
 								<img
-									:src="photo"
+									:src="photo.src"
 									class="photo"
 									alt="사진"
 									draggable="true"
-									@dragstart="(event) => onDragStart(event, photo, index)"
+									@dragstart="(event) => onDragStart(event, photo.src, index)"
 								/>
 							</div>
 						</div>
