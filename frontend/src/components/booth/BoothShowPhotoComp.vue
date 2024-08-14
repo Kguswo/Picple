@@ -1,44 +1,46 @@
 <script setup>
 import { ref, defineProps, defineEmits, onMounted, inject, watch } from 'vue';
 import { usePhotoStore } from '@/stores/photoStore';
+import { useBoothStore } from '@/stores/boothStore';
 import { useRoute } from 'vue-router';
 
+const boothStore = useBoothStore();
 const photoStore = usePhotoStore();
 const route = useRoute();
 const boothActions = inject('boothActions');
 
 const props = defineProps({
-    boothId: String,
+	boothId: String,
 });
 
 const emit = defineEmits(['update']);
 
-const sessionId = route.params.sessionId;
+const sessionId = boothStore.getSessionInfo().sessionId;
 const images = ref(photoStore.getPhotosBySession(sessionId) || []);
 
 watch(
-    () => photoStore.getPhotosBySession(sessionId),
-    (newImages) => {
-        images.value = newImages || [];
-    },
-    { immediate: true },
+	() => photoStore.getPhotosBySession(sessionId),
+	(newImages) => {
+		images.value = newImages || [];
+	},
+	{ immediate: true },
 );
 
 onMounted(() => {
-    console.log('BoothShowPhoto 호출됨');
+	console.log('BoothShowPhoto 호출됨');
 });
 
 const showModal = ref(false);
 const imgUrl = ref('');
 
 const showImage = (img) => {
-    showModal.value = true;
-    imgUrl.value = img.src; // `src`로 수정
+	showModal.value = true;
+	imgUrl.value = img.src; // `src`로 수정
 };
 
 const closeModal = () => {
-    showModal.value = false;
-    imgUrl.value = '';
+	showModal.value = false;
+	imgUrl.value = '';
 };
 </script>
 

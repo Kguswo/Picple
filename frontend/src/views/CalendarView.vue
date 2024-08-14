@@ -163,6 +163,14 @@ const formatDatePopOver = (date) => {
 	border-radius: 20px;
 }
 
+.form-input,
+.button-group button,
+.close,
+.thumnail img,
+.heart {
+	cursor: url('@/assets/img/app/hoverCursorIcon.png') 5 5, pointer !important;
+}
+
 :deep(.my-calendar .vc-weekday-1) {
 	color: #6366f1;
 }
@@ -202,23 +210,17 @@ const formatDatePopOver = (date) => {
 :deep(div.vc-header.is-lg > div > button) {
 	background-color: #fffef7;
 	font-size: 25px;
+	cursor: url('@/assets/img/app/hoverCursorIcon.png') 5 5, pointer !important;
 }
 
-:deep(button.vc-arrow.vc-prev.vc-focus) {
-	background-color: #fffef7;
-	width: 40px;
-}
-
-:deep(button.vc-arrow.vc-prev.vc-focus > svg) {
-	width: 40px;
-	height: 40px;
-}
-
+:deep(button.vc-arrow.vc-prev.vc-focus),
 :deep(button.vc-arrow.vc-next.vc-focus) {
 	background-color: #fffef7;
 	width: 40px;
+	cursor: url('@/assets/img/app/hoverCursorIcon.png') 5 5, pointer !important;
 }
 
+:deep(button.vc-arrow.vc-prev.vc-focus > svg),
 :deep(button.vc-arrow.vc-next.vc-focus > svg) {
 	width: 40px;
 	height: 40px;
@@ -277,6 +279,7 @@ const formatDatePopOver = (date) => {
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	cursor: url('@/assets/img/app/hoverCursorIcon.png') 5 5, pointer !important;
 }
 
 :deep(.vc-light) {
