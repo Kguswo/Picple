@@ -19,7 +19,7 @@ async function waitForVideoElement(videoElement, maxAttempts = 60, interval = 50
         let attempts = 0;
         const checkVideo = () => {
             attempts++;
-            if (videoElement.videoWidth > 0 && videoElement.videoHeight > 0) {
+            if (videoElement.readyState >= 2 && videoElement.videoWidth > 0 && videoElement.videoHeight > 0) {
                 console.log('Video loaded:', videoElement.videoWidth, videoElement.videoHeight);
                 resolve(videoElement);
             } else if (attempts >= maxAttempts) {
@@ -73,15 +73,20 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
             subscribers.value.push({ subscriber });
 
             nextTick(async () => {
-                const video = document.getElementById(`video-${subscriber.stream.streamId}`);
-                console.log('Subscriber video element:', video);
-                if (video) {
+                const videoElement = document.getElementById(`video-${subscriber.stream.streamId}`);
+                console.log('Subscriber video element:', videoElement);
+                if (videoElement) {
+                    // 먼저 원본 비디오 표시
+                    videoElement.srcObject = subscriber.stream.getMediaStream();
+                    videoElement.play();
+
                     try {
-                        await waitForVideoElement(video);
-                        console.log('Video element is ready:', video.videoWidth, video.videoHeight);
-                        await applySegmentation({ stream: subscriber });
+                        await waitForVideoElement(videoElement);
+                        console.log('Video element is ready:', videoElement.videoWidth, videoElement.videoHeight);
+                        await applySegmentation({ stream: subscriber, videoElement });
                     } catch (error) {
                         console.error('Subscriber 비디오 처리 중 오류:', error);
+                        // 오류 발생 시 원본 비디오를 계속 표시
                     }
                 } else {
                     console.error('Subscriber 비디오 요소를 찾을 수 없습니다.');
@@ -115,7 +120,6 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
         console.log('Publisher initialized:', publisher.value);
 
         await session.value.publish(publisher.value);
-        console.log('Publisher published');
 
         if (myVideo.value && publisher.value.stream && publisher.value.stream.getMediaStream()) {
             myVideo.value.srcObject = publisher.value.stream.getMediaStream();
