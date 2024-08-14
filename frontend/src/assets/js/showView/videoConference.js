@@ -70,13 +70,14 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
                 audioEnabled: true,
             });
             console.log('Subscribed to stream:', subscriber);
+            console.log('Subscriber video track:', subscriber.stream.getVideoTracks()[0]);
             subscribers.value.push({ subscriber });
 
             nextTick(async () => {
                 const videoElement = document.getElementById(`video-${subscriber.stream.streamId}`);
                 console.log('Subscriber video element:', videoElement);
                 if (videoElement) {
-                    // 먼저 원본 비디오 표시
+                    console.log('원본 비디오 표시');
                     videoElement.srcObject = subscriber.stream.getMediaStream();
                     videoElement.play();
 

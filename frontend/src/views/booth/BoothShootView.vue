@@ -6,7 +6,7 @@ import ChatModal from '@/components/chat/ChatModal.vue';
 import PhotoService from '@/assets/js/showView/PhotoService';
 import WebSocketService from '@/services/WebSocketService';
 
-import { ref, onMounted, onUnmounted, computed, provide,nextTick } from 'vue';
+import { ref, watch, onMounted, onUnmounted, computed, provide,nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useBoothStore } from '@/stores/boothStore';
 import { useUserStore } from '@/stores/userStore';
@@ -125,6 +125,19 @@ const toggleMicro = () => {
 };
 
 // boothshoot
+
+watch(subscribers, (newSubscribers) => {
+  console.log('Subscribers updated:', newSubscribers);
+  nextTick(() => {
+    newSubscribers.forEach(sub => {
+      const videoElement = document.getElementById(`video-${sub.subscriber.stream.streamId}`);
+      if (videoElement && !videoElement.srcObject) {
+        videoElement.srcObject = sub.subscriber.stream.getMediaStream();
+        videoElement.play().catch(e => console.error('Subscriber video play error:', e));
+      }
+    });
+  });
+}, { deep: true });
 
 // 수정 코드 (BackgroundRemoval사용하는 코드)
 onMounted(async () => {
@@ -291,6 +304,8 @@ const { remainPicCnt, images } = PhotoService;
 /* 개별 스트림 컨테이너 스타일 */
 .stream-container {
     width: 320px;
+    height: 240px;
+    overflow: hidden;
 }
 
 /* 비디오 요소 스타일 */
@@ -335,6 +350,9 @@ canvas {
 }
 
 .mirrored-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
     transform: scaleX(-1); /* 비디오를 수평으로 반전시킴 */
 }
 </style>
