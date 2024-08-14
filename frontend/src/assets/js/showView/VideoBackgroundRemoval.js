@@ -1,61 +1,60 @@
 export default class VideoBackgroundRemoval {
     constructor() {
-        this.selfieSegmentation = null;
-        this.isProcessing = false;
+        this.selfieSegmentation = new window.SelfieSegmentation({
+            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file}`,
+        });
+
+        this.selfieSegmentation.setOptions({
+            modelSelection: 1,
+        });
+
+        this.selfieSegmentation.onResults(this.onResults.bind(this));
+
         this.ctx = null;
     }
 
     async initialize() {
-        try {
-            this.selfieSegmentation = new window.SelfieSegmentation({
-                locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file}`,
-            });
-
-            await this.selfieSegmentation.setOptions({ modelSelection: 1 });
-            await this.selfieSegmentation.initialize();
-        } catch (error) {
-            console.error('VideoBackgroundRemoval 초기화 중 오류:', error);
-            throw error;
-        }
+        await this.selfieSegmentation.initialize();
     }
 
     initCanvas(canvas) {
         this.ctx = canvas.getContext('2d');
         if (!this.ctx) {
-            throw new Error('2D 컨텍스트를 초기화할 수 없습니다.');
+            console.error('2D 컨텍스트를 초기화할 수 없습니다.');
+            return;
         }
     }
 
-    async processFrame(videoElement, canvas) {
-        if (this.isProcessing) return;
-        this.isProcessing = true;
+    onResults(results) {
+        if (!this.ctx) return;
 
-        try {
-            await this.selfieSegmentation.send({ image: videoElement });
-            this.selfieSegmentation.onResults((results) => {
-                this.ctx.clearRect(0, 0, canvas.width, canvas.height);
-                this.ctx.drawImage(results.segmentationMask, 0, 0, canvas.width, canvas.height);
-                this.ctx.globalCompositeOperation = 'source-in';
-                this.ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
-                this.ctx.globalCompositeOperation = 'source-over';
-            });
-        } catch (error) {
-            console.error('세그멘테이션 처리 중 오류:', error);
-        } finally {
-            this.isProcessing = false;
-        }
+        this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+        this.ctx.drawImage(results.segmentationMask, 0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
 
-        requestAnimationFrame(() => this.processFrame(videoElement, canvas));
+        this.ctx.globalCompositeOperation = 'source-in';
+        this.ctx.drawImage(results.image, 0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+
+        this.ctx.globalCompositeOperation = 'source-over';
     }
 
-    async createProcessedStream(videoElement) {
-        const canvas = document.createElement('canvas');
-        canvas.width = videoElement.videoWidth || 640;
-        canvas.height = videoElement.videoHeight || 480;
-        this.initCanvas(canvas);
+    async processVideo(videoElement, canvasElement) {
+        if (!videoElement || !canvasElement) return;
 
-        this.processFrame(videoElement, canvas);
+        if (videoElement.videoWidth === 0 || videoElement.videoHeight === 0) {
+            console.error('비디오 크기가 0입니다.');
+            return;
+        }
 
-        return canvas.captureStream(30);
+        canvasElement.width = videoElement.videoWidth;
+        canvasElement.height = videoElement.videoHeight;
+
+        await this.selfieSegmentation.send({ image: videoElement });
+
+        requestAnimationFrame(() => this.processVideo(videoElement, canvasElement));
+    }
+
+    startProcessing(videoElement, canvasElement) {
+        this.initCanvas(canvasElement);
+        this.processVideo(videoElement, canvasElement);
     }
 }
