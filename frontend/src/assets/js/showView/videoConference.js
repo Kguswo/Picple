@@ -80,17 +80,30 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
                         const actualStream = subscriber.stream.valueOf();
                         console.log('Actual stream:', actualStream);
 
-                        if (actualStream && actualStream.mediaStream) {
-                            videoElement.srcObject = actualStream.mediaStream;
-                            console.log('Media stream assigned to video element:', actualStream.mediaStream);
+                        if (actualStream && (actualStream.getMediaStream || actualStream.mediaStream)) {
+                            const mediaStream = actualStream.getMediaStream
+                                ? actualStream.getMediaStream()
+                                : actualStream.mediaStream;
+                            videoElement.srcObject = mediaStream;
+                            console.log('Media stream assigned to video element:', mediaStream);
 
-                            await videoElement.play();
+                            await new Promise((resolve) => {
+                                videoElement.onloadedmetadata = () => {
+                                    videoElement
+                                        .play()
+                                        .then(resolve)
+                                        .catch((error) => {
+                                            console.error('Video play failed:', error);
+                                            resolve(); // 에러가 발생해도 Promise를 resolve
+                                        });
+                                };
+                            });
+
                             console.log('Subscriber video playback started');
 
                             // 배경 제거 적용 (선택적)
                             if (checkWebGLSupport()) {
                                 try {
-                                    await waitForVideoElement(videoElement);
                                     await applySegmentation({
                                         stream: actualStream,
                                         videoElement,
@@ -100,7 +113,7 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
                                 }
                             }
                         } else {
-                            console.error('MediaStream is null or undefined');
+                            console.error('MediaStream을 찾을 수 없습니다.');
                         }
                     } catch (error) {
                         console.error('Subscriber video processing failed:', error);
@@ -230,8 +243,6 @@ export const applySegmentation = async (streamRef) => {
                     mediaStream.removeTrack(mediaStream.getVideoTracks()[0]);
                 }
                 mediaStream.addTrack(videoTrack);
-
-                console.log('Segmentation applied and track replaced');
             } catch (error) {
                 console.error('세그멘테이션 처리 중 오류:', error);
             } finally {
