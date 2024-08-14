@@ -49,19 +49,25 @@ export async function initializePublisherVideo(publisher, videoElement) {
 }
 
 export async function initializeSubscriberVideo(subscriber, videoElement) {
-    const mediaStream = subscriber.stream.getMediaStream();
-    videoElement.srcObject = mediaStream;
-    await videoElement.play();
-    console.log('Subscriber video playback started');
-
-    if (checkWebGLSupport()) {
+    const maxRetries = 3;
+    for (let i = 0; i < maxRetries; i++) {
         try {
-            await applySegmentation(subscriber);
-            console.log('Segmentation applied to subscriber');
+            const mediaStream = subscriber.stream.getMediaStream();
+            videoElement.srcObject = mediaStream;
+            await videoElement.play();
+            console.log('Subscriber video playback started');
+
+            if (checkWebGLSupport()) {
+                await applySegmentation(subscriber);
+                console.log('Segmentation applied to subscriber');
+            }
+            return; // 성공적으로 초기화되면 함수 종료
         } catch (error) {
-            console.error('Subscriber 비디오 처리 중 오류:', error);
+            console.warn(`Attempt ${i + 1} failed:`, error);
+            await new Promise((resolve) => setTimeout(resolve, 1000)); // 1초 대기 후 재시도
         }
     }
+    console.error('Failed to initialize subscriber video after multiple attempts');
 }
 
 export const joinExistingSession = async (session, publisher, subscribers, myVideo, sessionId, boothStore) => {
@@ -102,20 +108,7 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
                 audioEnabled: true,
             });
             console.log('Subscribed to stream:', subscriber);
-            subscribers.value.push({ subscriber });
-
-            nextTick(async () => {
-                const videoElement = document.getElementById(`video-${subscriber.stream.streamId}`);
-                if (videoElement) {
-                    try {
-                        await initializeSubscriberVideo(subscriber, videoElement);
-                    } catch (error) {
-                        console.error('Subscriber video initialization failed:', error);
-                    }
-                } else {
-                    console.error('Subscriber 비디오 요소를 찾을 수 없습니다.');
-                }
-            });
+            subscribers.value.push(subscriber); // subscriber 객체 전체를 추가
         });
 
         session.value.on('streamDestroyed', ({ stream }) => {

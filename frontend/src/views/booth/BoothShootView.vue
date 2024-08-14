@@ -155,17 +155,16 @@ onMounted(async () => {
   }
 });
 
-watch(subscribers, (newSubscribers) => {
+watch(subscribers, async (newSubscribers) => {
   console.log('Subscribers updated:', newSubscribers);
-  nextTick(async () => {
-    for (const sub of newSubscribers) {
-      const videoElement = document.getElementById(`video-${sub.subscriber.stream.streamId}`);
-      if (videoElement && !videoElement.srcObject) {
-        try {
-          await initializeSubscriberVideo(sub.subscriber, videoElement);
-        } catch (error) {
-          console.error('Subscriber video initialization failed:', error);
-        }
+  await nextTick();
+  newSubscribers.forEach(async (sub) => {
+    const videoElement = document.getElementById(`video-${sub.stream.streamId}`);
+    if (videoElement) {
+      try {
+        await initializeSubscriberVideo(sub, videoElement);
+      } catch (error) {
+        console.error('Subscriber video initialization failed:', error);
       }
     }
   });
@@ -205,11 +204,11 @@ const { remainPicCnt, images } = PhotoService;
                             </div>
 
                             <!-- 원격 참가자 비디오 스트림 -->
-                            <div v-for="sub in subscribers" :key="sub.subscriber.stream.streamId" class="stream-container">
+                            <div v-for="sub in subscribers" :key="sub.stream.streamId" class="stream-container">
                                 <h3>Remote</h3>
                                 <video
-                                    :id="`video-${sub.subscriber.stream.streamId}`"
-                                    :ref="`video-${sub.subscriber.stream.streamId}`"
+                                    :id="`video-${sub.stream.streamId}`"
+                                    :ref="`video-${sub.stream.streamId}`"
                                     autoplay
                                     playsinline
                                     class="mirrored-video"
