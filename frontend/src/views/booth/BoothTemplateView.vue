@@ -1,5 +1,5 @@
 <script setup>
-import { onBeforeUnmount, onMounted, ref } from 'vue';
+import { onBeforeUnmount, onMounted, onUnmounted, ref } from 'vue';
 import WhiteBoardComp from '@/components/common/WhiteBoardComp.vue';
 import BoothBack from '@/components/booth/BoothBackComp.vue';
 import TemplateComp from '@/components/template/TemplateComp.vue';
@@ -7,14 +7,15 @@ import { usePhotoStore } from '@/stores/photoStore';
 import { storeToRefs } from 'pinia';
 import { alertChoose, alertConfirm, alertResult } from '@/api/baseApi';
 import { savePhotoApi } from '@/api/photoApi';
-import { useRoute, useRouter } from 'vue-router';
+import { useRouter } from 'vue-router';
 import { useBoothStore } from '@/stores/boothStore';
+import WebSocketService from '@/services/WebSocketService';
 
-const route = useRoute();
 const router = useRouter();
 const photoStore = usePhotoStore();
 const boothStore = useBoothStore();
 const { photoList, templateList, draggedPhoto, templateColor, backgroundColor, otherColor } = storeToRefs(photoStore);
+const { session } = storeToRefs(boothStore);
 const selectedTemplate = ref(null);
 const templateDiv = ref(null);
 const isLeaveSite = ref(null);
@@ -27,6 +28,10 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
 	window.removeEventListener('beforeunload', handleUnload);
+});
+
+onUnmounted(() => {
+	endSession();
 });
 
 function handleUnload(e) {
@@ -84,6 +89,14 @@ const screenshot = async () => {
 		router.replace({ name: 'calendarView' });
 		return;
 	}
+};
+
+const endSession = () => {
+	if (session.value) {
+		session.value.disconnect();
+		session.value = null;
+	}
+	WebSocketService.close();
 };
 </script>
 

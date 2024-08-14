@@ -6,7 +6,7 @@ import ChatModal from '@/components/chat/ChatModal.vue';
 import PhotoService from '@/assets/js/showView/PhotoService';
 import WebSocketService from '@/services/WebSocketService';
 
-import { ref, onMounted, onUnmounted, computed, provide } from 'vue';
+import { ref, onMounted, computed, provide } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useBoothStore } from '@/stores/boothStore';
 import { useUserStore } from '@/stores/userStore';
@@ -23,25 +23,23 @@ const isMirrored = ref(false);
 const videoElement = ref(null);
 const canvasElement = ref(null);
 const isChatOpen = ref(false);
-const session = ref(null);
 const publisher = ref(null);
 const subscribers = ref([]);
 const myVideo = ref(null);
+
+const route = useRoute();
+const router = useRouter();
 
 const boothStore = useBoothStore();
 const userStore = useUserStore();
 
 const username = userStore.userNickname;
 
-const route = useRoute();
-const router = useRouter();
 const sessionId = boothStore.getSessionInfo().sessionId;
 
 const toggleChat = () => {
 	isChatOpen.value = !isChatOpen.value;
 };
-
-// boothshoot
 
 const navigateTo = (path) => {
 	router.push({ name: path });
@@ -100,7 +98,7 @@ const exitphoto = async () => {
 	console.log('exitphoto 결과:', shouldExit);
 	if (shouldExit) {
 		console.log('라우터 이동 시작');
-		router.push('/selectTemp');
+		router.replace({ name: 'selectTemp' });
 	} else {
 		console.log('라우터 이동 취소');
 	}
@@ -119,38 +117,6 @@ const toggleMirror = () => {
 		myVideo.value.style.transform = transform;
 	}
 };
-
-// 세션 종료 및 초기화
-const endSession = () => {
-	console.log('세션 종료 및 초기화');
-	if (session.value) {
-		session.value.disconnect();
-		session.value = null;
-	}
-	WebSocketService.close();
-};
-
-// boothshoot
-
-// 카메라와 마이크의 초기 상태 설정
-onMounted(() => {
-	joinExistingSession(session, publisher, subscribers, myVideo, sessionId, boothStore).then(() => {
-		if (publisher.value) {
-			isVideoOn.value = publisher.value.stream.videoActive;
-			isMicroOn.value = publisher.value.stream.audioActive;
-			updateVideoDisplay();
-		}
-	});
-
-	WebSocketService.setBoothStore(boothStore);
-	WebSocketService.on('background_info', (message) => {
-		boothStore.setBgImage(message.backgroundImage);
-	});
-});
-
-onUnmounted(() => {
-	endSession(); // 컴포넌트가 언마운트될 때 세션 종료
-});
 
 const toggleCamera = () => {
 	isVideoOn.value = !isVideoOn.value;
@@ -181,6 +147,21 @@ const updateVideoDisplay = () => {
 };
 
 const { remainPicCnt, images } = PhotoService;
+
+onMounted(() => {
+	joinExistingSession(publisher, subscribers, myVideo, boothStore).then(() => {
+		if (publisher.value) {
+			isVideoOn.value = publisher.value.stream.videoActive;
+			isMicroOn.value = publisher.value.stream.audioActive;
+			updateVideoDisplay();
+		}
+	});
+
+	WebSocketService.setBoothStore(boothStore);
+	WebSocketService.on('background_info', (message) => {
+		boothStore.setBgImage(message.backgroundImage);
+	});
+});
 </script>
 
 <template>
@@ -191,10 +172,7 @@ const { remainPicCnt, images } = PhotoService;
 				<div class="close-btn">
 					<button
 						class="close"
-						@click="
-							endSession();
-							navigateTo('main');
-						"
+						@click="navigateTo('main')"
 					>
 						나가기
 					</button>
@@ -292,10 +270,7 @@ const { remainPicCnt, images } = PhotoService;
 							<div class="right-btn">
 								<button
 									class="ract-btn"
-									@click="
-										endSession();
-										exitphoto();
-									"
+									@click="exitphoto()"
 								>
 									템플릿 선택
 								</button>
