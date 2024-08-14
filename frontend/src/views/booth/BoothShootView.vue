@@ -120,21 +120,9 @@ const toggleMirror = () => {
 	}
 };
 
-// 세션 종료 및 초기화
-const endSession = () => {
-	console.log('세션 종료 및 초기화');
-	if (session.value) {
-		session.value.disconnect();
-		session.value = null;
-	}
-	WebSocketService.close();
-};
-
-// boothshoot
-
 // 카메라와 마이크의 초기 상태 설정
 onMounted(() => {
-	joinExistingSession(session, publisher, subscribers, myVideo, sessionId, boothStore).then(() => {
+	joinExistingSession(session, publisher, subscribers, myVideo, boothStore).then(() => {
 		if (publisher.value) {
 			isVideoOn.value = publisher.value.stream.videoActive;
 			isMicroOn.value = publisher.value.stream.audioActive;
@@ -146,10 +134,6 @@ onMounted(() => {
 	WebSocketService.on('background_info', (message) => {
 		boothStore.setBgImage(message.backgroundImage);
 	});
-});
-
-onUnmounted(() => {
-	endSession(); // 컴포넌트가 언마운트될 때 세션 종료
 });
 
 const toggleCamera = () => {
@@ -191,10 +175,7 @@ const { remainPicCnt, images } = PhotoService;
 				<div class="close-btn">
 					<button
 						class="close"
-						@click="
-							endSession();
-							navigateTo('main');
-						"
+						@click="navigateTo('main')"
 					>
 						나가기
 					</button>
@@ -292,10 +273,7 @@ const { remainPicCnt, images } = PhotoService;
 							<div class="right-btn">
 								<button
 									class="ract-btn"
-									@click="
-										endSession();
-										exitphoto();
-									"
+									@click="exitphoto()"
 								>
 									템플릿 선택
 								</button>
