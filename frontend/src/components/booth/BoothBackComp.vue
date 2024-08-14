@@ -86,12 +86,5 @@
 
 	height: 100%;
 	width: 100%;
-<<<<<<< HEAD
-=======
-}
-
-.booth-template-back .booth-background {
-	display: block;
->>>>>>> 6915fd32b5b63fa701120206f74afcfb9e935b69
 }
 </style>
