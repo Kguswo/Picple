@@ -10,7 +10,7 @@ import { ref, watch, onMounted, onUnmounted, computed, provide,nextTick } from '
 import { useRoute, useRouter } from 'vue-router';
 import { useBoothStore } from '@/stores/boothStore';
 import { useUserStore } from '@/stores/userStore';
-import { joinExistingSession, applySegmentation  } from '@/assets/js/showView/videoConference';
+import { joinExistingSession, applySegmentation,initializePublisherVideo,initializeSubscriberVideo  } from '@/assets/js/showView/videoConference';
 import VideoBackgroundRemoval from '@/assets/js/showView/VideoBackgroundRemoval';
 
 import videoOn from '@/assets/icon/video_on.png';
