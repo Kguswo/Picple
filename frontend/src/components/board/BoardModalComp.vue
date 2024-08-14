@@ -138,4 +138,37 @@ const formatDate = (dateString) => {
 .button-delete {
 	background-color: none;
 }
+
+.dropdown {
+	position: relative;
+	z-index: 10;
+	cursor: url('@/assets/img/app/hoverCursorIcon.png') 5 5, pointer !important;
+}
+
+.dropdown-contnet {
+	position: absolute;
+	right: 0;
+	background-color: #f9f9f9;
+	min-width: 160px;
+	box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+	z-index: 11;
+	display: none;
+	cursor: url('@/assets/img/app/hoverCursorIcon.png') 5 5, pointer !important;
+}
+
+.dropdown-icon {
+	cursor: url('@/assets/img/app/hoverCursorIcon.png') 5 5, pointer !important;
+}
+
+.dropdown-content button {
+	cursor: url('@/assets/img/app/hoverCursorIcon.png') 5 5, pointer !important;
+}
+
+.dropdown-show {
+	display: block;
+}
+
+.close {
+	cursor: url('@/assets/img/app/hoverCursorIcon.png') 5 5, pointer !important;
+}
 </style>
