@@ -1,6 +1,6 @@
 export default class VideoBackgroundRemoval {
     constructor() {
-      this.worker = new Worker(new URL('@/assets/js/showView/backgroundRemovalWorker.js', import.meta.url));
+      this.worker = new Worker(new URL('@/assets/js/showView/BackgroundRemovalWorker.js', import.meta.url));
       this.workerReady = false;
       this.worker.onmessage = (e) => {
         if (e.data.type === 'ready') {
