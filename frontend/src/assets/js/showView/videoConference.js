@@ -74,49 +74,11 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
 
             nextTick(async () => {
                 const videoElement = document.getElementById(`video-${subscriber.stream.streamId}`);
-                console.log('Subscriber video element:', videoElement);
                 if (videoElement) {
                     try {
-                        const actualStream = subscriber.stream.valueOf();
-                        console.log('Actual stream:', actualStream);
-
-                        if (actualStream && (actualStream.getMediaStream || actualStream.mediaStream)) {
-                            const mediaStream = actualStream.getMediaStream
-                                ? actualStream.getMediaStream()
-                                : actualStream.mediaStream;
-                            videoElement.srcObject = mediaStream;
-                            console.log('Media stream assigned to video element:', mediaStream);
-
-                            await new Promise((resolve) => {
-                                videoElement.onloadedmetadata = () => {
-                                    videoElement
-                                        .play()
-                                        .then(resolve)
-                                        .catch((error) => {
-                                            console.error('Video play failed:', error);
-                                            resolve(); // 에러가 발생해도 Promise를 resolve
-                                        });
-                                };
-                            });
-
-                            console.log('Subscriber video playback started');
-
-                            // 배경 제거 적용 (선택적)
-                            if (checkWebGLSupport()) {
-                                try {
-                                    await applySegmentation({
-                                        stream: actualStream,
-                                        videoElement,
-                                    });
-                                } catch (error) {
-                                    console.error('Subscriber 비디오 처리 중 오류:', error);
-                                }
-                            }
-                        } else {
-                            console.error('MediaStream을 찾을 수 없습니다.');
-                        }
+                        await initializeSubscriberVideo(subscriber, videoElement);
                     } catch (error) {
-                        console.error('Subscriber video processing failed:', error);
+                        console.error('Subscriber video initialization failed:', error);
                     }
                 } else {
                     console.error('Subscriber 비디오 요소를 찾을 수 없습니다.');
@@ -152,8 +114,7 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
         await session.value.publish(publisher.value);
 
         if (myVideo.value && publisher.value.stream && publisher.value.stream.getMediaStream()) {
-            myVideo.value.srcObject = publisher.value.stream.getMediaStream();
-            console.log('Local video stream set');
+            await initializePublisherVideo(publisher.value, myVideo.value);
         }
 
         if (!checkWebGLSupport()) {
@@ -165,13 +126,41 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
         console.log('Segmentation applied to publisher');
     } catch (error) {
         console.error('세션 참가 중 오류 발생:', error);
-        if (error.name === 'DEVICE_ACCESS_DENIED') {
-            showErrorToUser('카메라 또는 마이크 접근이 거부되었습니다. 브라우저 설정에서 권한을 확인해주세요.');
-        } else {
-            showErrorToUser(`오류 발생: ${error.message}`);
-        }
+        showErrorToUser(`오류 발생: ${error.message}`);
     }
 };
+
+async function initializePublisherVideo(publisher, videoElement) {
+    const mediaStream = publisher.stream.getMediaStream();
+    videoElement.srcObject = mediaStream;
+    await videoElement.play();
+    console.log('Publisher video playback started');
+
+    if (checkWebGLSupport()) {
+        try {
+            await applySegmentation(publisher);
+            console.log('Segmentation applied to publisher');
+        } catch (error) {
+            console.error('Publisher 비디오 처리 중 오류:', error);
+        }
+    }
+}
+
+async function initializeSubscriberVideo(subscriber, videoElement) {
+    const mediaStream = subscriber.stream.getMediaStream();
+    videoElement.srcObject = mediaStream;
+    await videoElement.play();
+    console.log('Subscriber video playback started');
+
+    if (checkWebGLSupport()) {
+        try {
+            await applySegmentation(subscriber);
+            console.log('Segmentation applied to subscriber');
+        } catch (error) {
+            console.error('Subscriber 비디오 처리 중 오류:', error);
+        }
+    }
+}
 
 export const applySegmentation = async (streamRef) => {
     let isProcessing = false;
@@ -243,6 +232,13 @@ export const applySegmentation = async (streamRef) => {
                     mediaStream.removeTrack(mediaStream.getVideoTracks()[0]);
                 }
                 mediaStream.addTrack(videoTrack);
+
+                // 스트림 업데이트를 알림
+                if (streamRef.stream && typeof streamRef.stream.updateMediaStream === 'function') {
+                    streamRef.stream.updateMediaStream(mediaStream);
+                }
+
+                console.log('Segmentation applied and track replaced');
             } catch (error) {
                 console.error('세그멘테이션 처리 중 오류:', error);
             } finally {

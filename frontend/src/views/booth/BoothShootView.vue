@@ -126,42 +126,50 @@ const toggleMicro = () => {
 
 // boothshoot
 
+onMounted(async () => {
+  try {
+    await joinExistingSession(session, publisher, subscribers, myVideo, sessionId, boothStore);
+
+    WebSocketService.setBoothStore(boothStore);
+    WebSocketService.on('background_info', (message) => {
+      boothStore.setBgImage(message.backgroundImage);
+    });
+
+    // 게시자 및 구독자 비디오 요소 초기화
+    if (publisher.value && publisher.value.stream) {
+      const publisherVideo = myVideo.value;
+      await initializePublisherVideo(publisher.value, publisherVideo);
+    }
+
+    // WebRTC 연결 상태 모니터링
+    if (publisher.value && publisher.value.stream && publisher.value.stream.webRtcPeer) {
+      publisher.value.stream.webRtcPeer.pc.addEventListener('iceconnectionstatechange', () => {
+        console.log('Publisher ICE connection state:', publisher.value.stream.webRtcPeer.pc.iceConnectionState);
+      });
+      publisher.value.stream.webRtcPeer.pc.addEventListener('connectionstatechange', () => {
+        console.log('Publisher Connection state:', publisher.value.stream.webRtcPeer.pc.connectionState);
+      });
+    }
+  } catch (error) {
+    console.error("Error during session join:", error);
+  }
+});
+
 watch(subscribers, (newSubscribers) => {
   console.log('Subscribers updated:', newSubscribers);
-  nextTick(() => {
-    newSubscribers.forEach(sub => {
+  nextTick(async () => {
+    for (const sub of newSubscribers) {
       const videoElement = document.getElementById(`video-${sub.subscriber.stream.streamId}`);
       if (videoElement && !videoElement.srcObject) {
-        videoElement.srcObject = sub.subscriber.stream.getMediaStream();
-        videoElement.play().catch(e => console.error('Subscriber video play error:', e));
+        try {
+          await initializeSubscriberVideo(sub.subscriber, videoElement);
+        } catch (error) {
+          console.error('Subscriber video initialization failed:', error);
+        }
       }
-    });
+    }
   });
 }, { deep: true });
-
-// 수정 코드 (BackgroundRemoval사용하는 코드)
-onMounted(async () => {
-    try {
-        await joinExistingSession(session, publisher, subscribers, myVideo, sessionId, boothStore);
-
-        WebSocketService.setBoothStore(boothStore);
-        WebSocketService.on('background_info', (message) => {
-            boothStore.setBgImage(message.backgroundImage);
-        });
-
-        // WebRTC 연결 상태 모니터링 추가
-        if (publisher.value && publisher.value.stream && publisher.value.stream.webRtcPeer) {
-            publisher.value.stream.webRtcPeer.pc.addEventListener('iceconnectionstatechange', () => {
-                console.log('Publisher ICE connection state:', publisher.value.stream.webRtcPeer.pc.iceConnectionState);
-            });
-            publisher.value.stream.webRtcPeer.pc.addEventListener('connectionstatechange', () => {
-                console.log('Publisher Connection state:', publisher.value.stream.webRtcPeer.pc.connectionState);
-            });
-        }
-    } catch (error) {
-        console.error("Error during session join:", error);
-    }
-});
 onUnmounted(() => {});
 
 const { remainPicCnt, images } = PhotoService;
