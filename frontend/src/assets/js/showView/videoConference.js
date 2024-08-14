@@ -32,6 +32,22 @@ async function waitForVideoElement(videoElement, maxAttempts = 60, interval = 50
     });
 }
 
+export async function initializePublisherVideo(publisher, videoElement) {
+    const mediaStream = publisher.stream.getMediaStream();
+    videoElement.srcObject = mediaStream;
+    await videoElement.play();
+    console.log('Publisher video playback started');
+
+    if (checkWebGLSupport()) {
+        try {
+            await applySegmentation(publisher);
+            console.log('Segmentation applied to publisher');
+        } catch (error) {
+            console.error('Publisher 비디오 처리 중 오류:', error);
+        }
+    }
+}
+
 export async function initializeSubscriberVideo(subscriber, videoElement) {
     const maxRetries = 5;
     for (let i = 0; i < maxRetries; i++) {
@@ -50,26 +66,6 @@ export async function initializeSubscriberVideo(subscriber, videoElement) {
         }
     }
     throw new Error('Failed to initialize subscriber video after multiple attempts');
-}
-
-export async function initializeSubscriberVideo(subscriber, videoElement) {
-    const maxRetries = 3;
-    for (let i = 0; i < maxRetries; i++) {
-        try {
-            const mediaStream = subscriber.stream.getMediaStream();
-            videoElement.srcObject = mediaStream;
-            await videoElement.play();
-
-            if (checkWebGLSupport()) {
-                await applySegmentation(subscriber);
-            }
-            return;
-        } catch (error) {
-            console.warn(`Attempt ${i + 1} failed:`, error);
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-        }
-    }
-    console.error('Failed to initialize subscriber video after multiple attempts');
 }
 
 export const joinExistingSession = async (session, publisher, subscribers, myVideo, sessionId, boothStore) => {
