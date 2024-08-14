@@ -32,20 +32,24 @@ async function waitForVideoElement(videoElement, maxAttempts = 60, interval = 50
     });
 }
 
-export async function initializePublisherVideo(publisher, videoElement) {
-    const mediaStream = publisher.stream.getMediaStream();
-    videoElement.srcObject = mediaStream;
-    await videoElement.play();
-    console.log('Publisher video playback started');
-
-    if (checkWebGLSupport()) {
+export async function initializeSubscriberVideo(subscriber, videoElement) {
+    const maxRetries = 5;
+    for (let i = 0; i < maxRetries; i++) {
         try {
-            await applySegmentation(publisher);
-            console.log('Segmentation applied to publisher');
+            const mediaStream = subscriber.stream.getMediaStream();
+            if (!mediaStream) {
+                throw new Error('MediaStream is null or undefined');
+            }
+            videoElement.srcObject = mediaStream;
+            await videoElement.play();
+            console.log('Subscriber video playback started');
+            return; // 성공적으로 초기화되면 함수 종료
         } catch (error) {
-            console.error('Publisher 비디오 처리 중 오류:', error);
+            console.warn(`Attempt ${i + 1} failed:`, error);
+            await new Promise((resolve) => setTimeout(resolve, 2000)); // 2초 대기 후 재시도
         }
     }
+    throw new Error('Failed to initialize subscriber video after multiple attempts');
 }
 
 export async function initializeSubscriberVideo(subscriber, videoElement) {
@@ -55,16 +59,14 @@ export async function initializeSubscriberVideo(subscriber, videoElement) {
             const mediaStream = subscriber.stream.getMediaStream();
             videoElement.srcObject = mediaStream;
             await videoElement.play();
-            console.log('Subscriber video playback started');
 
             if (checkWebGLSupport()) {
                 await applySegmentation(subscriber);
-                console.log('Segmentation applied to subscriber');
             }
-            return; // 성공적으로 초기화되면 함수 종료
+            return;
         } catch (error) {
             console.warn(`Attempt ${i + 1} failed:`, error);
-            await new Promise((resolve) => setTimeout(resolve, 1000)); // 1초 대기 후 재시도
+            await new Promise((resolve) => setTimeout(resolve, 1000));
         }
     }
     console.error('Failed to initialize subscriber video after multiple attempts');
@@ -97,6 +99,15 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
             ],
             iceTransportPolicy: 'all',
             forceMediaReconnectionAfterNetworkDrop: true,
+            publisherSpeakingEventsOptions: {
+                interval: 100,
+                threshold: -50,
+            },
+            videoSimulcast: false,
+            videoSendInitialDelay: 0,
+            videoDimensions: '640x480',
+            minVideoBitrate: 300,
+            maxVideoBitrate: 1000,
         });
 
         session.value = OV.initSession();

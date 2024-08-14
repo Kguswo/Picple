@@ -158,16 +158,16 @@ onMounted(async () => {
 watch(subscribers, async (newSubscribers) => {
   console.log('Subscribers updated:', newSubscribers);
   await nextTick();
-  newSubscribers.forEach(async (sub) => {
+  for (const sub of newSubscribers) {
     const videoElement = document.getElementById(`video-${sub.stream.streamId}`);
-    if (videoElement) {
+    if (videoElement && !videoElement.srcObject) {
       try {
         await initializeSubscriberVideo(sub, videoElement);
       } catch (error) {
         console.error('Subscriber video initialization failed:', error);
       }
     }
-  });
+  }
 }, { deep: true });
 onUnmounted(() => {});
 
@@ -205,7 +205,7 @@ const { remainPicCnt, images } = PhotoService;
 
                             <!-- 원격 참가자 비디오 스트림 -->
                             <div v-for="sub in subscribers" :key="sub.stream.streamId" class="stream-container">
-                                <h3>Remote</h3>
+                                <h3>Remote ({{ sub.stream.connection.data }})</h3>
                                 <video
                                     :id="`video-${sub.stream.streamId}`"
                                     :ref="`video-${sub.stream.streamId}`"
