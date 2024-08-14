@@ -130,7 +130,7 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
     }
 };
 
-async function initializePublisherVideo(publisher, videoElement) {
+export async function initializePublisherVideo(publisher, videoElement) {
     const mediaStream = publisher.stream.getMediaStream();
     videoElement.srcObject = mediaStream;
     await videoElement.play();
@@ -146,7 +146,7 @@ async function initializePublisherVideo(publisher, videoElement) {
     }
 }
 
-async function initializeSubscriberVideo(subscriber, videoElement) {
+export async function initializeSubscriberVideo(subscriber, videoElement) {
     const mediaStream = subscriber.stream.getMediaStream();
     videoElement.srcObject = mediaStream;
     await videoElement.play();
