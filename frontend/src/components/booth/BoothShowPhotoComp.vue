@@ -45,148 +45,164 @@ const closeModal = () => {
 </script>
 
 <template>
-	<div class="select-text-box"></div>
-	<div class="background-box">
-		<div class="background-box-scroll">
-			<img
-				class="thumbnail"
-				v-for="(img, idx) in images"
-				:key="idx"
-				:src="img.src"
-				@click="showImage(img)"
-				alt="myPhoto"
-			/>
-		</div>
-	</div>
+    <div class="background-box">
+        <div class="background-box-scroll">
+            <img
+                class="thumbnail"
+                v-for="(img, idx) in images"
+                :key="idx"
+                :src="img.src"
+                @click="showImage(img)"
+                alt="myPhoto"
+            />
+        </div>
+    </div>
 
-	<div
-		class="modal"
-		v-if="showModal"
-	>
-		<div class="modal-content">
-			<div class="close-box">
-				<span
-					class="close"
-					@click="closeModal"
-					>&times;</span
-				>
-			</div>
-			<div class="modal-img">
-				<img
-					:src="imgUrl"
-					alt=""
-				/>
-			</div>
-		</div>
-	</div>
+    <div
+        class="modal-backdrop"
+        v-if="showModal"
+        @click="closeModal"
+    >
+        <div
+            class="modal-content"
+            @click.stop
+        >
+            <div class="modal-img">
+                <img
+                    :src="imgUrl"
+                    alt="Photo"
+                />
+            </div>
+            <div class="modal-footer">
+                <button
+                    class="action-button"
+                    @click="closeModal"
+                >
+                    닫기
+                </button>
+            </div>
+        </div>
+    </div>
 </template>
 
 <style scoped>
-/* 기존 스타일 그대로 유지 */
-.select-text-box {
-	display: flex;
-	height: 10%;
-	width: 90%;
-	flex-direction: column;
-	align-items: center;
-	justify-content: space-evenly;
-
-	.select-btn-type {
-		display: flex;
-	}
-}
+/* 배경 박스 */
 .background-box {
-	height: 85%;
-	width: 90%;
-	overflow: hidden;
-
-	.background-box-scroll {
-		overflow-y: auto;
-		height: 100%;
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-
-		.thumbnail {
-			width: auto; /* 썸네일 이미지 크기 */
-			height: 150px; /* 썸네일 이미지 크기 */
-			margin: 0 5px; /* 이미지 간격 */
-			cursor: pointer; /* 클릭 커서 변경 */
-			border: 2px solid transparent; /* 기본 테두리 설정 */
-			transition: border 0.3s; /* 테두리 전환 효과 */
-
-			&:hover {
-				border: 2px solid red;
-			}
-		}
-		&::-webkit-scrollbar {
-			display: none;
-		}
-	}
+    height: 95%;
+    width: 100%;
+    overflow: hidden;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
-.modal {
-	display: block;
-	position: fixed;
-	z-index: 1;
-	left: 0;
-	top: 15%;
-	width: 100%;
-	height: 100%;
-	overflow: auto;
-	background-color: rgba(0, 0, 0, 0.4);
+/* 배경 박스 스크롤 */
+.background-box-scroll {
+    overflow-y: auto;
+    overflow-x: hidden;
+    height: 95%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    width: 100%;
+}
+
+.thumbnail {
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+    cursor: pointer;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    transition: border 0.3s, transform 0.3s;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.thumbnail:hover {
+    border: 2px solid white;
+    transform: scale(1.05);
+}
+
+/* 어두운 배경 */
+.modal-backdrop {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.6);
+    overflow: hidden;
 }
 
 .modal-content {
-	background-color: #fefefe;
-	margin: 10vh auto;
-	padding: 20px;
-	border: 1px solid #888;
-	width: 40%;
-	max-width: 60%;
-	height: 60%;
-	max-height: 80vh;
-	overflow-y: auto;
-	border-radius: 10px;
-}
-.close-box {
-	padding-top: 0px;
-	padding-bottom: 0px;
-	height: 8%;
-}
-.close {
-	color: #aaa;
-	float: right;
-	font-size: 28px;
-	line-height: 28px;
-	font-weight: bold;
-	height: 28px;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+    padding: 20px;
+    position: relative;
+    max-width: 550px;
+    width: 80%;
+    max-height: 80vh;
+    overflow-y: auto;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transform: translateY(-50px); /* 시작 위치를 약간 위로 설정 */
+    opacity: 0; /* 시작 시 투명하게 */
+    animation: slideInModal 0.5s ease-out forwards; /* 모달 애니메이션 */
 }
 
-.close:hover,
-.close:focus {
-	color: black;
-	text-decoration: none;
-	cursor: pointer;
+@keyframes slideInModal {
+    0% {
+        transform: translateY(-50px);
+        opacity: 0;
+    }
+    100% {
+        transform: translateY(0);
+        opacity: 1;
+    }
 }
+
 .modal-img {
-	height: 90%;
-	display: flex;
-	align-items: center;
-	text-align: center;
-	justify-content: center;
-	flex-wrap: wrap;
-	img {
-		height: 90%;
-		width: 95%;
-	}
+    flex-grow: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px 5px 10px 5px;
+}
 
-	.modal-text {
-		height: 10%;
-		width: 90%;
-		display: flex;
-		justify-content: space-between;
-		text-align: center;
-	}
+.modal-img img {
+    max-width: 100%;
+    max-height: 50vh;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.modal-footer {
+    margin-top: 15px;
+}
+
+.action-button {
+    background-color: #76c7c0;
+    border: none;
+    border-radius: 25px;
+    color: white;
+    padding: 10px 40px;
+    font-size: 16px;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(118, 199, 192, 0.4);
+    transition: background-color 0.3s ease, transform 0.3s ease;
+    width: 100%;
+}
+
+.action-button:hover {
+    background-color: #5da39a;
+    transform: translateY(-2px);
 }
 </style>

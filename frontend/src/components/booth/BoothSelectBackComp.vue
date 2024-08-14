@@ -130,57 +130,78 @@ const handleCloseModal = () => {
 </template>
 
 <style scoped>
+/* 전체 컨테이너의 너비 */
+.select-text-box,
+.background-box,
+.background-box-scroll,
+.thumbnail {
+    width: 100%; /* 모든 요소의 너비를 동일하게 맞춤 */
+}
+
+/* 화살표 및 제목의 너비 조정 */
 .select-text-box {
     display: flex;
-    height: 10%;
-    width: 90%;
-    flex-direction: column;
+    height: 5%;
+    margin-top: 5%;
     align-items: center;
     justify-content: space-evenly;
-
-    .select-btn-type {
-        display: flex;
-    }
 }
-.background-box {
-    height: 85%;
-    width: 90%;
-    overflow: hidden;
 
-    .background-box-scroll {
-        overflow-y: auto;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-
-        .thumbnail {
-            width: auto; /* 썸네일 이미지 크기 */
-            height: 150px; /* 썸네일 이미지 크기 */
-            margin: 0 5px; /* 이미지 간격 */
-            cursor: pointer; /* 클릭 커서 변경 */
-            border: 2px solid transparent; /* 기본 테두리 설정 */
-            transition: border 0.3s; /* 테두리 전환 효과 */
-
-            &:hover {
-                border: 2px solid red;
-            }
-        }
-        &::-webkit-scrollbar {
-            display: none; /*스크롤 바 제거 */
-        }
-    }
+.select-btn-type {
+    display: flex;
+    gap: 10px; /* 버튼들 사이의 간격을 줄임 */
+    width: 100%; /* 버튼의 너비를 동일하게 맞춤 */
+    justify-content: center;
 }
+
+/* AI 생성 버튼의 글자 무게를 줄임 */
 .ract-btn {
+    background-color: #f5a623; /* 노란색 배경 */
     border: none;
     border-radius: 10px;
-    width: 75px;
-    height: 30px;
-    margin: 5px;
+    width: 45%; /* 버튼의 너비를 100%로 설정하여 일관성 유지 */
+    height: 35px;
+    margin: 0; /* 버튼들 사이의 간격 조정 */
     padding: 5px;
+    color: #fff; /* 흰색 텍스트 */
+    font-weight: normal; /* 글자 무게를 정상으로 설정 */
+    transition: background-color 0.3s;
+}
 
-    &:hover {
-        background-color: rgb(136, 136, 136);
-    }
+.ract-btn:hover {
+    background-color: #e0941f; /* 어두운 노란색으로 강조 */
+}
+
+.background-box {
+    height: 85%;
+    width: 100%; /* 너비를 100%로 설정하여 일관성 유지 */
+    overflow: hidden;
+}
+
+.background-box-scroll {
+    overflow-y: auto;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px; /* 이미지 간격 */
+    padding: 10px; /* 전체 패딩 추가 */
+    width: 100%; /* 너비를 100%로 설정하여 일관성 유지 */
+}
+
+/* 썸네일 이미지 스타일 조정 */
+.thumbnail {
+    width: 100%; /* 너비를 100%로 설정하여 다른 요소와 일관성 유지 */
+    height: auto; /* 높이는 자동 조정 */
+    object-fit: cover; /* 이미지가 고정된 크기에 맞게 비율 유지하면서 잘리도록 설정 */
+    cursor: pointer;
+    border: 2px solid #ccc; /* 회색 테두리 */
+    border-radius: 8px;
+    transition: border 0.3s, transform 0.3s;
+}
+
+.thumbnail:hover {
+    border: 2px solid #ffffff; /* 노란색 테두리로 강조 */
+    transform: scale(1.05); /* 확대 효과 */
 }
 </style>

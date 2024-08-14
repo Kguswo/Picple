@@ -1,18 +1,19 @@
 .select-text-box {
     display: flex;
-    height: 85%;
+    height: 95%;
     width: 90%;
     flex-direction: column;
     align-items: center;
 }
 
 .select-box-top {
-    height: 15%;
+    height: 10%;
     width: 85%;
-
     display: flex;
     justify-content: space-between;
     align-items: center;
+    margin-top: 5%;
+
     button {
         background: transparent;
         border: none;
@@ -25,6 +26,7 @@
         }
     }
 }
+
 .booth-content {
     display: flex;
     flex-direction: column;
