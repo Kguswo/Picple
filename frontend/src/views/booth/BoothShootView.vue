@@ -171,6 +171,10 @@ watch(subscribers, async (newSubscribers) => {
 }, { deep: true });
 onUnmounted(() => {});
 
+function showNotification(message) {
+    console.log("배경에러: ",message);
+}
+
 const { remainPicCnt, images } = PhotoService;
 </script>
 
