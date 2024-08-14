@@ -33,6 +33,38 @@ async function waitForVideoElement(videoElement, maxAttempts = 60, interval = 50
 }
 
 export const joinExistingSession = async (session, publisher, subscribers, myVideo, sessionId, boothStore) => {
+    async function initializePublisherVideo(publisher, videoElement) {
+        const mediaStream = publisher.stream.getMediaStream();
+        videoElement.srcObject = mediaStream;
+        await videoElement.play();
+        console.log('Publisher video playback started');
+
+        if (checkWebGLSupport()) {
+            try {
+                await applySegmentation(publisher);
+                console.log('Segmentation applied to publisher');
+            } catch (error) {
+                console.error('Publisher 비디오 처리 중 오류:', error);
+            }
+        }
+    }
+
+    async function initializeSubscriberVideo(subscriber, videoElement) {
+        const mediaStream = subscriber.stream.getMediaStream();
+        videoElement.srcObject = mediaStream;
+        await videoElement.play();
+        console.log('Subscriber video playback started');
+
+        if (checkWebGLSupport()) {
+            try {
+                await applySegmentation(subscriber);
+                console.log('Segmentation applied to subscriber');
+            } catch (error) {
+                console.error('Subscriber 비디오 처리 중 오류:', error);
+            }
+        }
+    }
+
     try {
         const sessionInfo = boothStore.getSessionInfo();
         if (!sessionInfo || !sessionInfo.sessionId || !sessionInfo.token) {
@@ -129,38 +161,6 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
         showErrorToUser(`오류 발생: ${error.message}`);
     }
 };
-
-export async function initializePublisherVideo(publisher, videoElement) {
-    const mediaStream = publisher.stream.getMediaStream();
-    videoElement.srcObject = mediaStream;
-    await videoElement.play();
-    console.log('Publisher video playback started');
-
-    if (checkWebGLSupport()) {
-        try {
-            await applySegmentation(publisher);
-            console.log('Segmentation applied to publisher');
-        } catch (error) {
-            console.error('Publisher 비디오 처리 중 오류:', error);
-        }
-    }
-}
-
-export async function initializeSubscriberVideo(subscriber, videoElement) {
-    const mediaStream = subscriber.stream.getMediaStream();
-    videoElement.srcObject = mediaStream;
-    await videoElement.play();
-    console.log('Subscriber video playback started');
-
-    if (checkWebGLSupport()) {
-        try {
-            await applySegmentation(subscriber);
-            console.log('Segmentation applied to subscriber');
-        } catch (error) {
-            console.error('Subscriber 비디오 처리 중 오류:', error);
-        }
-    }
-}
 
 export const applySegmentation = async (streamRef) => {
     let isProcessing = false;
