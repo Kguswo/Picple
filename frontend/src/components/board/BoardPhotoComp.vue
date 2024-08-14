@@ -184,9 +184,9 @@ const closeModal = () => {
 }
 
 .heart {
-	cursor: pointer;
+	cursor: url('@/assets/img/app/hoverCursorIcon.png') 5 5, pointer !important;
 	path {
-		cursor: pointer;
+		cursor: url('@/assets/img/app/hoverCursorIcon.png') 5 5, pointer !important;
 	}
 	&:hover {
 		fill: rgba(255, 0, 0, 0.3);
@@ -197,5 +197,34 @@ const closeModal = () => {
 		transform: translateY(-5px);
 		transition: transform 0.3s ease;
 	}
+}
+
+.dropdown {
+	position: relative;
+	z-index: 10;
+	cursor: url('@/assets/img/app/hoverCursorIcon.png') 5 5, pointer !important;
+}
+
+.dropdown-contnet {
+	position: absolute;
+	right: 0;
+	background-color: #f9f9f9;
+	min-width: 160px;
+	box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+	z-index: 11;
+	display: none;
+	cursor: url('@/assets/img/app/hoverCursorIcon.png') 5 5, pointer !important;
+}
+
+.dropdown-icon {
+	cursor: url('@/assets/img/app/hoverCursorIcon.png') 5 5, pointer !important;
+}
+
+.dropdown-content button {
+	cursor: url('@/assets/img/app/hoverCursorIcon.png') 5 5, pointer !important;
+}
+
+.dropdown-show {
+	display: block;
 }
 </style>

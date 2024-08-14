@@ -119,4 +119,24 @@ const modify = async () => {
 	</FormComp>
 </template>
 
-<style scoped></style>
+<style scoped>
+.form-button-big.form-button-cancel {
+	cursor: url('@/assets/img/app/hoverCursorIcon.png') 5 5, pointer !important;
+}
+
+:deep(.form-button) {
+	cursor: url('@/assets/img/app/hoverCursorIcon.png') 5 5, pointer !important;
+}
+
+:deep(.form-input) {
+	cursor: url('@/assets/img/app/hoverCursorIcon.png') 5 5, text !important;
+}
+
+.form-button-small {
+	cursor: url('@/assets/img/app/hoverCursorIcon.png') 5 5, pointer !important;
+}
+
+:deep(.form-button-none) {
+	cursor: url('@/assets/img/app/hoverCursorIcon.png') 5 5, pointer !important;
+}
+</style>

@@ -121,11 +121,15 @@ const applySegmentation = (streamRef) => {
         const videoTrack = videoStream.getVideoTracks()[0];
         const originalStream = actualStreamRef.stream.getMediaStream();
 
-        if (originalStream.getVideoTracks().length > 0) {
+        if (originalStream && originalStream.getVideoTracks().length > 0) {
             originalStream.removeTrack(originalStream.getVideoTracks()[0]);
         }
 
-        originalStream.addTrack(videoTrack);
+        if (originalStream) {
+            originalStream.addTrack(videoTrack);
+        } else {
+            console.error('originalStream is undefined or null');
+        }
     };
 
     selfieSegmentation.onResults(onResults);
