@@ -49,6 +49,7 @@ export async function initializePublisherVideo(publisher, videoElement) {
 }
 
 export async function initializeSubscriberVideo(subscriber, videoElement) {
+    console.log('==========================subscriber=================== ', 'background-color: blue;');
     const maxRetries = 5;
     for (let i = 0; i < maxRetries; i++) {
         try {
@@ -59,16 +60,13 @@ export async function initializeSubscriberVideo(subscriber, videoElement) {
             videoElement.srcObject = mediaStream;
             await videoElement.play();
 
-            // 배경 처리를 비동기적으로 적용
             if (checkWebGLSupport()) {
                 applySegmentation(subscriber, videoElement).catch((error) => {
                     console.warn('Background segmentation failed:', error);
-                    // 배경 처리 실패 시 사용자에게 알림
                     showNotification('배경 제거 기능을 적용할 수 없습니다. 기본 비디오로 표시됩니다.');
                 });
             }
-
-            return; // 성공적으로 초기화되면 함수 종료
+            return;
         } catch (error) {
             console.warn(`Attempt ${i + 1} failed:`, error);
             await new Promise((resolve) => setTimeout(resolve, 2000)); // 2초 대기 후 재시도
@@ -78,6 +76,8 @@ export async function initializeSubscriberVideo(subscriber, videoElement) {
 }
 
 export const joinExistingSession = async (session, publisher, subscribers, myVideo, sessionId, boothStore) => {
+    console.log('in joinExistingSession publisher:   ', publisher);
+    console.log('in joinExistingSession subscribers:   ', subscribers);
     try {
         const sessionInfo = boothStore.getSessionInfo();
         if (!sessionInfo || !sessionInfo.sessionId || !sessionInfo.token) {
@@ -118,13 +118,11 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
         session.value = OV.initSession();
 
         session.value.on('streamCreated', async ({ stream }) => {
-            console.log('New stream created:', stream);
             const subscriber = await session.value.subscribe(stream, {
                 videoEnabled: true,
                 audioEnabled: true,
             });
             console.log('Subscribed to stream:', subscriber);
-            subscribers.value.push(subscriber); // subscriber 객체 전체를 추가
         });
 
         session.value.on('streamDestroyed', ({ stream }) => {
@@ -136,7 +134,6 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
         });
 
         await session.value.connect(token);
-        console.log('Connected to session');
 
         const publisherOptions = {
             audioSource: undefined,
@@ -171,121 +168,49 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
     }
 };
 
-// export const applySegmentation = async (streamRef) => {
-//     let isProcessing = false;
-//     let selfieSegmentation;
-//     let camera;
-
-//     try {
-//         console.log('Applying segmentation to:', streamRef);
-//         const actualStreamRef = streamRef.value || streamRef;
-//         if (!actualStreamRef || !actualStreamRef.stream) {
-//             throw new Error('스트림 참조가 유효하지 않습니다.');
-//         }
-
-//         let mediaStream;
-//         if (actualStreamRef.stream.getMediaStream) {
-//             mediaStream = actualStreamRef.stream.getMediaStream();
-//         } else if (actualStreamRef.stream.mediaStream) {
-//             mediaStream = actualStreamRef.stream.mediaStream;
-//         } else if (actualStreamRef.stream.streamManager && actualStreamRef.stream.streamManager.stream) {
-//             mediaStream = actualStreamRef.stream.streamManager.stream.getMediaStream();
-//         } else {
-//             throw new Error('미디어 스트림을 가져올 수 없습니다.');
-//         }
-
-//         if (!mediaStream) {
-//             throw new Error('미디어 스트림이 null 또는 undefined입니다.');
-//         }
-//         console.log('Media stream obtained:', mediaStream);
-
-//         const videoElement = document.createElement('video');
-//         videoElement.srcObject = mediaStream;
-//         videoElement.muted = true;
-//         videoElement.playsInline = true;
-
-//         await new Promise((resolve) => {
-//             videoElement.onloadedmetadata = () => {
-//                 videoElement.play().then(resolve);
-//             };
-//         });
-
-//         const canvasElement = document.createElement('canvas');
-//         canvasElement.width = videoElement.videoWidth;
-//         canvasElement.height = videoElement.videoHeight;
-//         const canvasCtx = canvasElement.getContext('2d');
-
-//         selfieSegmentation = new window.SelfieSegmentation({
-//             locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file}`,
-//         });
-
-//         await selfieSegmentation.setOptions({ modelSelection: 1 });
-//         await selfieSegmentation.initialize();
-//         console.log('Selfie segmentation initialized');
-
-//         selfieSegmentation.onResults((results) => {
-//             if (isProcessing) return;
-//             isProcessing = true;
-
-//             try {
-//                 canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-//                 canvasCtx.drawImage(results.segmentationMask, 0, 0, canvasElement.width, canvasElement.height);
-//                 canvasCtx.globalCompositeOperation = 'source-in';
-//                 canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
-//                 canvasCtx.globalCompositeOperation = 'source-over';
-
-//                 const videoStream = canvasElement.captureStream(30);
-//                 const videoTrack = videoStream.getVideoTracks()[0];
-
-//                 if (mediaStream.getVideoTracks().length > 0) {
-//                     mediaStream.removeTrack(mediaStream.getVideoTracks()[0]);
-//                 }
-//                 mediaStream.addTrack(videoTrack);
-
-//                 // 스트림 업데이트를 알림
-//                 if (streamRef.stream && typeof streamRef.stream.updateMediaStream === 'function') {
-//                     streamRef.stream.updateMediaStream(mediaStream);
-//                 }
-//             } catch (error) {
-//                 console.error('세그멘테이션 처리 중 오류:', error);
-//             } finally {
-//                 isProcessing = false;
-//             }
-//         });
-
-//         camera = new window.Camera(videoElement, {
-//             onFrame: async () => {
-//                 if (!isProcessing) {
-//                     await selfieSegmentation.send({ image: videoElement });
-//                 }
-//             },
-//             width: videoElement.videoWidth,
-//             height: videoElement.videoHeight,
-//         });
-
-//         await camera.start();
-//         console.log('Camera started for segmentation');
-//     } catch (error) {
-//         console.error('세그멘테이션 적용 중 오류 발생:', error);
-//         throw error;
-//     }
-// };
-export const applySegmentation = async (streamRef, videoElement) => {
+export const applySegmentation = async (streamRef) => {
     let isProcessing = false;
     let selfieSegmentation;
     let camera;
 
     try {
-        console.log('Applying segmentation to:', streamRef);
+        // console.log('Applying segmentation to:', streamRef);
         const actualStreamRef = streamRef.value || streamRef;
         if (!actualStreamRef || !actualStreamRef.stream) {
             throw new Error('스트림 참조가 유효하지 않습니다.');
         }
 
-        let mediaStream = actualStreamRef.stream.getMediaStream();
+        let mediaStream;
+        if (actualStreamRef.stream.getMediaStream) {
+            mediaStream = actualStreamRef.stream.getMediaStream();
+        } else if (actualStreamRef.stream.mediaStream) {
+            mediaStream = actualStreamRef.stream.mediaStream;
+        } else if (actualStreamRef.stream.streamManager && actualStreamRef.stream.streamManager.stream) {
+            mediaStream = actualStreamRef.stream.streamManager.stream.getMediaStream();
+        } else {
+            throw new Error('미디어 스트림을 가져올 수 없습니다.');
+        }
+
         if (!mediaStream) {
             throw new Error('미디어 스트림이 null 또는 undefined입니다.');
         }
+        // console.log('Media stream obtained:', mediaStream);
+
+        const videoElement = document.createElement('video');
+        videoElement.srcObject = mediaStream;
+        videoElement.muted = true;
+        videoElement.playsInline = true;
+
+        await new Promise((resolve) => {
+            videoElement.onloadedmetadata = () => {
+                videoElement.play().then(resolve);
+            };
+        });
+
+        const canvasElement = document.createElement('canvas');
+        canvasElement.width = videoElement.videoWidth;
+        canvasElement.height = videoElement.videoHeight;
+        const canvasCtx = canvasElement.getContext('2d');
 
         selfieSegmentation = new window.SelfieSegmentation({
             locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file}`,
@@ -293,11 +218,7 @@ export const applySegmentation = async (streamRef, videoElement) => {
 
         await selfieSegmentation.setOptions({ modelSelection: 1 });
         await selfieSegmentation.initialize();
-
-        const canvasElement = document.createElement('canvas');
-        canvasElement.width = videoElement.videoWidth || 640;
-        canvasElement.height = videoElement.videoHeight || 480;
-        const canvasCtx = canvasElement.getContext('2d');
+        // console.log('Selfie segmentation initialized');
 
         selfieSegmentation.onResults((results) => {
             if (isProcessing) return;
@@ -308,11 +229,20 @@ export const applySegmentation = async (streamRef, videoElement) => {
                 canvasCtx.drawImage(results.segmentationMask, 0, 0, canvasElement.width, canvasElement.height);
                 canvasCtx.globalCompositeOperation = 'source-in';
                 canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+                canvasCtx.globalCompositeOperation = 'source-over';
 
-                const imageData = canvasCtx.getImageData(0, 0, canvasElement.width, canvasElement.height);
-                canvasCtx.putImageData(imageData, 0, 0);
+                const videoStream = canvasElement.captureStream(30);
+                const videoTrack = videoStream.getVideoTracks()[0];
 
-                videoElement.srcObject = canvasElement.captureStream(30);
+                if (mediaStream.getVideoTracks().length > 0) {
+                    mediaStream.removeTrack(mediaStream.getVideoTracks()[0]);
+                }
+                mediaStream.addTrack(videoTrack);
+
+                // 스트림 업데이트를 알림
+                if (streamRef.stream && typeof streamRef.stream.updateMediaStream === 'function') {
+                    streamRef.stream.updateMediaStream(mediaStream);
+                }
             } catch (error) {
                 console.error('세그멘테이션 처리 중 오류:', error);
             } finally {
@@ -326,8 +256,8 @@ export const applySegmentation = async (streamRef, videoElement) => {
                     await selfieSegmentation.send({ image: videoElement });
                 }
             },
-            width: videoElement.videoWidth || 640,
-            height: videoElement.videoHeight || 480,
+            width: videoElement.videoWidth,
+            height: videoElement.videoHeight,
         });
 
         await camera.start();
