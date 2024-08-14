@@ -114,7 +114,7 @@ const screenshot = async () => {
 			</div>
 
 			<div class="booth-content-main">
-				<BoothBack class="booth-camera-box">
+				<BoothBack class="booth-camera-box booth-template-back">
 					<TemplateComp
 						v-if="selectedTemplate"
 						:template="selectedTemplate"
