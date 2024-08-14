@@ -8,6 +8,7 @@ import {
 	calendarShareApi,
 } from '@/api/calendarApi';
 import { alertConfirm, alertResult } from '@/api/baseApi';
+import ZoomableImage from '@/components/zoomableImage/ZoomableImage.vue';
 
 const props = defineProps({
 	selectedDate: String,
@@ -239,10 +240,10 @@ const closeModal = () => {
 						/>
 					</button>
 					<div class="modal-img">
-						<img
+						<ZoomableImage
 							:src="currentPhoto.photoUrl"
-							alt="사진"
-							class="modal-img"
+							:alt="'Photo ' + (currentIndex + 1)"
+							class="zoomable-image"
 						/>
 						<form
 							class="description-container"
@@ -493,5 +494,38 @@ const closeModal = () => {
 .dropdown-icon,
 .dropdown-content button {
 	cursor: url('@/assets/img/app/hoverCursorIcon.png') 5 5, pointer !important;
+}
+
+.zoomable-image {
+	position: relative;
+	width: 100%;
+	height: 100%;
+	overflow: hidden;
+}
+
+.zoomable-image > img {
+	cursor: url('@/assets/img/app/hoverCursorIcon.png') 5 5, pointer !important;
+}
+
+.zoomable-image.fullscreen {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100vw;
+	height: 100vh;
+	background-color: rgba(0, 0, 0, 0.9);
+	z-index: 1000;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	overflow: visible;
+}
+
+.zoomable-image img {
+	max-width: 100%;
+	max-height: 100%;
+	object-fit: contain;
+	user-select: none;
+	cursor: url('@/assets/img/app/hoverCursorIcon.png') 5 5, pointer !important; /* 커서 스타일 강제 적용 */
 }
 </style>
