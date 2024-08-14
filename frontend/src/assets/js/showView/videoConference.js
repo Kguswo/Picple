@@ -48,21 +48,25 @@ export async function initializePublisherVideo(publisher, videoElement) {
     }
 }
 
-export const initializeSubscriberVideo = async (subscriber, videoElement) => {
-    if (!subscriber || !videoElement) return;
-
-    const mediaStream = subscriber.stream.getMediaStream();
-    if (!mediaStream) {
-        throw new Error('MediaStream is null or undefined');
+export async function initializeSubscriberVideo(subscriber, videoElement) {
+    const maxRetries = 5;
+    for (let i = 0; i < maxRetries; i++) {
+        try {
+            const mediaStream = subscriber.stream.getMediaStream();
+            if (!mediaStream) {
+                throw new Error('MediaStream is null or undefined');
+            }
+            videoElement.srcObject = mediaStream;
+            await videoElement.play();
+            console.log('Subscriber video playback started');
+            return; // 성공적으로 초기화되면 함수 종료
+        } catch (error) {
+            console.warn(`Attempt ${i + 1} failed:`, error);
+            await new Promise((resolve) => setTimeout(resolve, 2000)); // 2초 대기 후 재시도
+        }
     }
-
-    videoElement.srcObject = mediaStream;
-    try {
-        await videoElement.play();
-    } catch (error) {
-        console.error('Failed to play subscriber video:', error);
-    }
-};
+    throw new Error('Failed to initialize subscriber video after multiple attempts');
+}
 
 export const joinExistingSession = async (session, publisher, subscribers, myVideo, sessionId, boothStore) => {
     try {
@@ -73,21 +77,57 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
         const { token } = sessionInfo;
 
         const OV = new OpenVidu();
+        OV.enableProdMode(false);
+        OV.setAdvancedConfiguration({
+            logLevel: 'DEBUG',
+            noStreamPlayingEventExceptionTimeout: 8000,
+            iceServers: [
+                { urls: 'stun:stun.l.google.com:19302' },
+                {
+                    urls: [
+                        'turn:i11a503.p.ssafy.io:3478',
+                        'turn:i11a503.p.ssafy.io:3478?transport=tcp',
+                        'turns:i11a503.p.ssafy.io:3479',
+                    ],
+                    username: 'picplessafy',
+                    credential: 'ssafya503@picple',
+                },
+            ],
+            iceTransportPolicy: 'all',
+            forceMediaReconnectionAfterNetworkDrop: true,
+            publisherSpeakingEventsOptions: {
+                interval: 100,
+                threshold: -50,
+            },
+            videoSimulcast: false,
+            videoSendInitialDelay: 0,
+            videoDimensions: '640x480',
+            minVideoBitrate: 300,
+            maxVideoBitrate: 1000,
+        });
+
         session.value = OV.initSession();
 
         session.value.on('streamCreated', async ({ stream }) => {
-            const subscriber = await session.value.subscribe(stream, undefined);
-            subscribers.value.push(subscriber);
+            console.log('New stream created:', stream);
+            const subscriber = await session.value.subscribe(stream, {
+                videoEnabled: true,
+                audioEnabled: true,
+            });
+            console.log('Subscribed to stream:', subscriber);
+            subscribers.value.push(subscriber); // subscriber 객체 전체를 추가
         });
 
         session.value.on('streamDestroyed', ({ stream }) => {
-            const index = subscribers.value.findIndex((sub) => sub.stream.streamId === stream.streamId);
+            console.log('Stream destroyed:', stream);
+            const index = subscribers.value.findIndex((sub) => sub.subscriber.stream.streamId === stream.streamId);
             if (index >= 0) {
                 subscribers.value.splice(index, 1);
             }
         });
 
         await session.value.connect(token);
+        console.log('Connected to session');
 
         const publisherOptions = {
             audioSource: undefined,
@@ -101,15 +141,24 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
         };
 
         publisher.value = await OV.initPublisherAsync(undefined, publisherOptions);
+        console.log('Publisher initialized:', publisher.value);
+
         await session.value.publish(publisher.value);
 
         if (myVideo.value && publisher.value.stream && publisher.value.stream.getMediaStream()) {
-            myVideo.value.srcObject = publisher.value.stream.getMediaStream();
-            await myVideo.value.play();
+            await initializePublisherVideo(publisher.value, myVideo.value);
         }
+
+        if (!checkWebGLSupport()) {
+            console.warn('WebGL이 지원되지 않습니다. 배경 제거 기능을 사용할 수 없습니다.');
+            return;
+        }
+
+        await applySegmentation(publisher);
+        console.log('Segmentation applied to publisher');
     } catch (error) {
         console.error('세션 참가 중 오류 발생:', error);
-        throw error;
+        showErrorToUser(`오류 발생: ${error.message}`);
     }
 };
 
@@ -119,7 +168,7 @@ export const applySegmentation = async (streamRef) => {
     let camera;
 
     try {
-        // console.log('Applying segmentation to:', streamRef);
+        console.log('Applying segmentation to:', streamRef);
         const actualStreamRef = streamRef.value || streamRef;
         if (!actualStreamRef || !actualStreamRef.stream) {
             throw new Error('스트림 참조가 유효하지 않습니다.');
@@ -139,7 +188,7 @@ export const applySegmentation = async (streamRef) => {
         if (!mediaStream) {
             throw new Error('미디어 스트림이 null 또는 undefined입니다.');
         }
-        // console.log('Media stream obtained:', mediaStream);
+        console.log('Media stream obtained:', mediaStream);
 
         const videoElement = document.createElement('video');
         videoElement.srcObject = mediaStream;
@@ -163,7 +212,7 @@ export const applySegmentation = async (streamRef) => {
 
         await selfieSegmentation.setOptions({ modelSelection: 1 });
         await selfieSegmentation.initialize();
-        // console.log('Selfie segmentation initialized');
+        console.log('Selfie segmentation initialized');
 
         selfieSegmentation.onResults((results) => {
             if (isProcessing) return;
