@@ -60,11 +60,19 @@ export async function initializeSubscriberVideo(subscriber, videoElement) {
             await videoElement.play();
             console.log('Subscriber video playback started');
 
+            // 비디오 메타데이터가 로드될 때까지 기다립니다.
+            await new Promise((resolve) => {
+                if (videoElement.readyState >= 2) {
+                    resolve();
+                } else {
+                    videoElement.onloadedmetadata = () => resolve();
+                }
+            });
+
             // 배경 처리를 비동기적으로 적용
             if (checkWebGLSupport()) {
                 applySegmentation(subscriber, videoElement).catch((error) => {
                     console.warn('Background segmentation failed:', error);
-                    // 배경 처리 실패 시 사용자에게 알림
                     showNotification('배경 제거 기능을 적용할 수 없습니다. 기본 비디오로 표시됩니다.');
                 });
             }
@@ -289,6 +297,15 @@ export const applySegmentation = async (streamRef, videoElement) => {
             throw new Error('미디어 스트림이 null 또는 undefined입니다.');
         }
 
+        // 비디오 메타데이터가 로드될 때까지 기다립니다.
+        await new Promise((resolve) => {
+            if (videoElement.readyState >= 2) {
+                resolve();
+            } else {
+                videoElement.onloadedmetadata = () => resolve();
+            }
+        });
+
         selfieSegmentation = new window.SelfieSegmentation({
             locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file}`,
         });
@@ -297,8 +314,8 @@ export const applySegmentation = async (streamRef, videoElement) => {
         await selfieSegmentation.initialize();
 
         const canvasElement = document.createElement('canvas');
-        canvasElement.width = videoElement.videoWidth;
-        canvasElement.height = videoElement.videoHeight;
+        canvasElement.width = videoElement.videoWidth || 640; // 기본값 설정
+        canvasElement.height = videoElement.videoHeight || 480; // 기본값 설정
         const canvasCtx = canvasElement.getContext('2d');
 
         selfieSegmentation.onResults((results) => {
@@ -328,8 +345,8 @@ export const applySegmentation = async (streamRef, videoElement) => {
                     await selfieSegmentation.send({ image: videoElement });
                 }
             },
-            width: videoElement.videoWidth,
-            height: videoElement.videoHeight,
+            width: videoElement.videoWidth || 640,
+            height: videoElement.videoHeight || 480,
         });
 
         await camera.start();
