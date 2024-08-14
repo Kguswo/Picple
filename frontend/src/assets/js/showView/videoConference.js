@@ -14,22 +14,21 @@ const showErrorToUser = (message) => {
     console.error(message);
 };
 
-async function waitForVideoElement(videoElement, maxAttempts = 20, interval = 500) {
+async function waitForVideoElement(videoElement, maxAttempts = 60, interval = 500) {
     return new Promise((resolve, reject) => {
-        if (videoElement.videoWidth > 0 && videoElement.videoHeight > 0) {
-            console.log('Video already loaded:', videoElement.videoWidth, videoElement.videoHeight);
-            resolve(videoElement);
-        } else {
-            console.log('Waiting for video to load...');
-            videoElement.addEventListener('loadedmetadata', () => {
-                console.log('Video metadata loaded:', videoElement.videoWidth, videoElement.videoHeight);
+        let attempts = 0;
+        const checkVideo = () => {
+            attempts++;
+            if (videoElement.videoWidth > 0 && videoElement.videoHeight > 0) {
+                console.log('Video loaded:', videoElement.videoWidth, videoElement.videoHeight);
                 resolve(videoElement);
-            }, { once: true });
-
-            setTimeout(() => {
+            } else if (attempts >= maxAttempts) {
                 reject(new Error('비디오 메타데이터 로딩 타임아웃'));
-            }, maxAttempts * interval);
-        }
+            } else {
+                setTimeout(checkVideo, interval);
+            }
+        };
+        checkVideo();
     });
 }
 
@@ -68,7 +67,7 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
             console.log('New stream created:', stream);
             const subscriber = await session.value.subscribe(stream, {
                 videoEnabled: true,
-                audioEnabled: true
+                audioEnabled: true,
             });
             console.log('Subscribed to stream:', subscriber);
             subscribers.value.push({ subscriber });
@@ -113,14 +112,14 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
         };
 
         publisher.value = await OV.initPublisherAsync(undefined, publisherOptions);
-        console.log("Publisher initialized:", publisher.value);
+        console.log('Publisher initialized:', publisher.value);
 
         await session.value.publish(publisher.value);
-        console.log("Publisher published");
+        console.log('Publisher published');
 
         if (myVideo.value && publisher.value.stream && publisher.value.stream.getMediaStream()) {
             myVideo.value.srcObject = publisher.value.stream.getMediaStream();
-            console.log("Local video stream set");
+            console.log('Local video stream set');
         }
 
         if (!checkWebGLSupport()) {
@@ -129,8 +128,7 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
         }
 
         await applySegmentation(publisher);
-        console.log("Segmentation applied to publisher");
-
+        console.log('Segmentation applied to publisher');
     } catch (error) {
         console.error('세션 참가 중 오류 발생:', error);
         if (error.name === 'DEVICE_ACCESS_DENIED') {
@@ -168,7 +166,6 @@ export const applySegmentation = async (streamRef) => {
         videoElement.playsInline = true;
 
         await waitForVideoElement(videoElement);
-        console.log('Video element ready for segmentation');
 
         const canvasElement = document.createElement('canvas');
         canvasElement.width = videoElement.videoWidth;
@@ -202,7 +199,6 @@ export const applySegmentation = async (streamRef) => {
                     originalStream.removeTrack(originalStream.getVideoTracks()[0]);
                 }
                 originalStream.addTrack(videoTrack);
-                console.log('Segmentation applied and track replaced');
             } catch (error) {
                 console.error('세그멘테이션 처리 중 오류:', error);
             } finally {
@@ -221,7 +217,6 @@ export const applySegmentation = async (streamRef) => {
         });
 
         await camera.start();
-        console.log('Camera started for segmentation');
     } catch (error) {
         console.error('세그멘테이션 적용 중 오류 발생:', error);
         throw error;
