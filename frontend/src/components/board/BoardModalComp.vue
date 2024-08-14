@@ -121,7 +121,7 @@ const formatDate = (dateString) => {
 .modal-img {
 	img {
 		height: 95%;
-		width: 100%;
+		width: auto;
 	}
 }
 
