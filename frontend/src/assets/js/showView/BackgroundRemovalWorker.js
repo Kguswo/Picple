@@ -9,12 +9,11 @@ async function fetchAndCreateBlobUrl(url) {
 self.onmessage = async function(e) {
   if (e.data.type === 'init') {
     try {
-      const scriptUrl = await fetchAndCreateBlobUrl('https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation@0.1.1632777926/selfie_segmentation.js');
+      const scriptUrl = await fetchAndCreateBlobUrl('https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation@0.1.1675465747/selfie_segmentation.js');
       importScripts(scriptUrl);
 
-      selfieSegmentation = new self.SelfieSegmentation({locateFile: async (file) => {
-        const fileUrl = `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file}`;
-        return await fetchAndCreateBlobUrl(fileUrl);
+      selfieSegmentation = new self.SelfieSegmentation({locateFile: (file) => {
+        return `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation@0.1.1675465747/${file}`;
       }});
 
       selfieSegmentation.setOptions({
