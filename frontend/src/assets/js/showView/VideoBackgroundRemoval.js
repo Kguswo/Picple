@@ -4,10 +4,16 @@ export default class VideoBackgroundRemoval {
       this.workerReady = false;
       this.worker.onmessage = (e) => {
         if (e.data.type === 'ready') {
+          console.log('Worker is ready');
           this.workerReady = true;
         } else if (e.data.type === 'segmentation') {
           this.drawSegmentation(e.data.segmentation);
+        } else if (e.data.type === 'error') {
+          console.error('Worker error:', e.data.message);
         }
+      };
+      this.worker.onerror = (error) => {
+        console.error('Worker error:', error);
       };
       this.worker.postMessage({ type: 'init' });
       
@@ -88,7 +94,16 @@ export default class VideoBackgroundRemoval {
       this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST);
       this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
   
-      return true;
+      return new Promise((resolve) => {
+        const checkWorkerReady = () => {
+          if (this.workerReady) {
+            resolve(true);
+          } else {
+            setTimeout(checkWorkerReady, 100);
+          }
+        };
+        checkWorkerReady();
+      });
     }
   
     createShader(type, source) {
@@ -118,7 +133,10 @@ export default class VideoBackgroundRemoval {
     }
   
     processVideo(videoElement, canvasElement) {
-      if (!this.workerReady || !videoElement || !canvasElement) return;
+      if (!this.workerReady || !videoElement || !canvasElement) {
+        console.log('Not ready for processing:', { workerReady: this.workerReady, videoElement, canvasElement });
+        return;
+      }
   
       const tempCanvas = document.createElement('canvas');
       tempCanvas.width = videoElement.videoWidth;
@@ -166,4 +184,4 @@ export default class VideoBackgroundRemoval {
     startProcessing(videoElement, canvasElement) {
       this.processVideo(videoElement, canvasElement);
     }
-  }
+}
