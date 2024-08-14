@@ -76,25 +76,34 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
                 const videoElement = document.getElementById(`video-${subscriber.stream.streamId}`);
                 console.log('Subscriber video element:', videoElement);
                 if (videoElement) {
-                    const mediaStream = subscriber.stream.getMediaStream();
-                    videoElement.srcObject = mediaStream;
-                    console.log('Media stream assigned to video element:', mediaStream);
-
                     try {
-                        await videoElement.play();
-                        console.log('Subscriber video playback started');
-                    } catch (error) {
-                        console.error('Subscriber video playback failed:', error);
-                    }
+                        const actualStream = subscriber.stream.valueOf();
+                        console.log('Actual stream:', actualStream);
 
-                    // 배경 제거 적용 (선택적)
-                    if (checkWebGLSupport()) {
-                        try {
-                            await waitForVideoElement(videoElement);
-                            await applySegmentation({ stream: subscriber, videoElement });
-                        } catch (error) {
-                            console.error('Subscriber 비디오 처리 중 오류:', error);
+                        if (actualStream && actualStream.mediaStream) {
+                            videoElement.srcObject = actualStream.mediaStream;
+                            console.log('Media stream assigned to video element:', actualStream.mediaStream);
+
+                            await videoElement.play();
+                            console.log('Subscriber video playback started');
+
+                            // 배경 제거 적용 (선택적)
+                            if (checkWebGLSupport()) {
+                                try {
+                                    await waitForVideoElement(videoElement);
+                                    await applySegmentation({
+                                        stream: actualStream,
+                                        videoElement,
+                                    });
+                                } catch (error) {
+                                    console.error('Subscriber 비디오 처리 중 오류:', error);
+                                }
+                            }
+                        } else {
+                            console.error('MediaStream is null or undefined');
                         }
+                    } catch (error) {
+                        console.error('Subscriber video processing failed:', error);
                     }
                 } else {
                     console.error('Subscriber 비디오 요소를 찾을 수 없습니다.');
@@ -163,12 +172,19 @@ export const applySegmentation = async (streamRef) => {
             throw new Error('스트림 참조가 유효하지 않습니다.');
         }
 
-        const mediaStream = actualStreamRef.stream.getMediaStream
-            ? actualStreamRef.stream.getMediaStream()
-            : actualStreamRef.stream.streamManager.stream.getMediaStream();
+        let mediaStream;
+        if (actualStreamRef.stream.getMediaStream) {
+            mediaStream = actualStreamRef.stream.getMediaStream();
+        } else if (actualStreamRef.stream.mediaStream) {
+            mediaStream = actualStreamRef.stream.mediaStream;
+        } else if (actualStreamRef.stream.streamManager && actualStreamRef.stream.streamManager.stream) {
+            mediaStream = actualStreamRef.stream.streamManager.stream.getMediaStream();
+        } else {
+            throw new Error('미디어 스트림을 가져올 수 없습니다.');
+        }
 
         if (!mediaStream) {
-            throw new Error('미디어 스트림을 가져올 수 없습니다.');
+            throw new Error('미디어 스트림이 null 또는 undefined입니다.');
         }
         console.log('Media stream obtained:', mediaStream);
 
@@ -177,7 +193,11 @@ export const applySegmentation = async (streamRef) => {
         videoElement.muted = true;
         videoElement.playsInline = true;
 
-        await waitForVideoElement(videoElement);
+        await new Promise((resolve) => {
+            videoElement.onloadedmetadata = () => {
+                videoElement.play().then(resolve);
+            };
+        });
 
         const canvasElement = document.createElement('canvas');
         canvasElement.width = videoElement.videoWidth;
@@ -205,12 +225,13 @@ export const applySegmentation = async (streamRef) => {
 
                 const videoStream = canvasElement.captureStream(30);
                 const videoTrack = videoStream.getVideoTracks()[0];
-                const originalStream = actualStreamRef.stream.getMediaStream();
 
-                if (originalStream.getVideoTracks().length > 0) {
-                    originalStream.removeTrack(originalStream.getVideoTracks()[0]);
+                if (mediaStream.getVideoTracks().length > 0) {
+                    mediaStream.removeTrack(mediaStream.getVideoTracks()[0]);
                 }
-                originalStream.addTrack(videoTrack);
+                mediaStream.addTrack(videoTrack);
+
+                console.log('Segmentation applied and track replaced');
             } catch (error) {
                 console.error('세그멘테이션 처리 중 오류:', error);
             } finally {
@@ -229,6 +250,7 @@ export const applySegmentation = async (streamRef) => {
         });
 
         await camera.start();
+        console.log('Camera started for segmentation');
     } catch (error) {
         console.error('세그멘테이션 적용 중 오류 발생:', error);
         throw error;
