@@ -38,6 +38,7 @@ const logout = async () => {
 					src="@/assets/img/mainView/picpleLogo.png"
 					alt=""
 					@click="navigateTo('main')"
+					class="custom-cursor"
 				/>
 			</div>
 			<div class="right">
@@ -50,7 +51,7 @@ const logout = async () => {
 						<button
 							type="button"
 							@click="navigateTo('modifyAccount')"
-							class="navbar-button"
+							class="navbar-button custom-cursor"
 						>
 							정보 수정
 						</button>
@@ -58,7 +59,7 @@ const logout = async () => {
 						<button
 							type="button"
 							@click="logout"
-							class="navbar-button"
+							class="navbar-button custom-cursor"
 						>
 							로그아웃
 						</button>
@@ -68,7 +69,7 @@ const logout = async () => {
 					<button
 						type="button"
 						@click="navigateTo('login')"
-						class="navbar-button"
+						class="navbar-button custom-cursor"
 					>
 						로그인
 					</button>
@@ -80,4 +81,10 @@ const logout = async () => {
 
 <style scoped>
 @import '@/assets/css/header.css';
+
+.left .custom-cursor,
+.right .custom-cursor,
+.right .dropdown > span {
+	cursor: url('@/assets/img/app/hoverCursorIcon.png') 5 5, pointer !important;
+}
 </style>

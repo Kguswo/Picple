@@ -397,7 +397,7 @@ const closeModal = () => {
 
 .modal-img {
 	max-width: 100%;
-	max-height: calc(100% - 60px); /* 설명 입력 폼의 높이를 고려 */
+	max-height: calc(100% - 60px);
 	object-fit: contain;
 	z-index: 1;
 }
@@ -416,17 +416,18 @@ const closeModal = () => {
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	background-color: rgba(255, 255, 255, 0.8); /* 선택적: 반투명 배경 */
+	background-color: rgba(255, 255, 255, 0.8);
 }
 
 .loading-image {
-	width: 200px; /* 또는 원하는 크기로 조정 */
+	width: 200px;
 	height: 200px;
 }
 
 .dropdown {
 	position: relative;
 	z-index: 10;
+	cursor: url('@/assets/img/app/hoverCursorIcon.png') 5 5, pointer !important;
 }
 
 .dropdown-contnet {
@@ -435,11 +436,62 @@ const closeModal = () => {
 	background-color: #f9f9f9;
 	min-width: 160px;
 	box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
-	z-index: 11; /* dropdown-content의 z-index를 더 높게 설정 */
+	z-index: 11;
 	display: none;
+	cursor: url('@/assets/img/app/hoverCursorIcon.png') 5 5, pointer !important;
+}
+
+.dropdown-icon {
+	cursor: url('@/assets/img/app/hoverCursorIcon.png') 5 5, pointer !important;
+}
+
+.dropdown-content button {
+	cursor: url('@/assets/img/app/hoverCursorIcon.png') 5 5, pointer !important;
 }
 
 .dropdown-show {
 	display: block;
+}
+
+.nav-button {
+	width: 10%;
+	background: none;
+	border: none;
+	cursor: url('@/assets/img/app/hoverCursorIcon.png') 5 5, pointer !important;
+}
+
+.nav-button img {
+	height: 40px;
+	cursor: url('@/assets/img/app/hoverCursorIcon.png') 5 5, pointer !important;
+}
+
+.form-button-small {
+	position: absolute;
+	right: 1%;
+	border: none;
+	border-radius: 5px;
+	padding: 5px 10px;
+	font-size: 15px;
+	background-color: #62abd9;
+	color: white;
+	cursor: url('@/assets/img/app/hoverCursorIcon.png') 5 5, pointer !important;
+}
+
+.form-button-small:disabled {
+	background-color: #cccccc;
+	cursor: not-allowed;
+}
+
+.close {
+	cursor: url('@/assets/img/app/hoverCursorIcon.png') 5 5, pointer !important;
+}
+
+.dropdown {
+	cursor: url('@/assets/img/app/hoverCursorIcon.png') 5 5, pointer !important;
+}
+
+.dropdown-icon,
+.dropdown-content button {
+	cursor: url('@/assets/img/app/hoverCursorIcon.png') 5 5, pointer !important;
 }
 </style>
