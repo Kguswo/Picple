@@ -11,14 +11,17 @@ async function loadTFLite(url) {
 self.onmessage = async function(e) {
   if (e.data.type === 'init') {
     try {
-      selfieSegmentation = new self.SelfieSegmentation({locateFile: async (file) => {
-        if (file.endsWith('.tflite')) {
-          const tfliteUrl = `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation@0.1.1675465747/${file}`;
-          const tfliteData = await loadTFLite(tfliteUrl);
-          return URL.createObjectURL(new Blob([tfliteData.buffer], {type: 'application/octet-stream'}));
+      selfieSegmentation = new self.SelfieSegmentation({
+        locateFile: async (file) => {
+          if (file.endsWith('.tflite')) {
+            const tfliteUrl = `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation@0.1.1675465747/${file}`;
+            const tfliteData = await loadTFLite(tfliteUrl);
+            return URL.createObjectURL(new Blob([tfliteData.buffer], {type: 'application/octet-stream'}));
+          }
+          // Ensure the URL returned is correct
+          return `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation@0.1.1675465747/${file}`;
         }
-        return `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation@0.1.1675465747/${file}`;
-      }});
+      });
 
       selfieSegmentation.setOptions({
         modelSelection: 1,
