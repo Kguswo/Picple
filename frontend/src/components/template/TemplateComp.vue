@@ -2,17 +2,26 @@
 import { usePhotoStore } from '@/stores/photoStore';
 import { storeToRefs } from 'pinia';
 import { computed, ref } from 'vue';
+import html2canvas from 'html2canvas';
+import { alertResult } from '@/api/baseApi';
 
 const props = defineProps({
 	template: Object,
 });
 
-const photoStore = usePhotoStore();
-const { draggedPhoto, templateColor } = storeToRefs(photoStore);
-const droppedPhotos = ref([]);
+const emit = defineEmits(['screenshot']);
 
-const backgroundColor = computed(() => (templateColor.value ? 'white' : 'black'));
-const otherColor = computed(() => (templateColor.value ? 'black' : 'white'));
+const photoStore = usePhotoStore();
+const { draggedPhoto, backgroundColor, otherColor } = storeToRefs(photoStore);
+const droppedPhotos = ref([]);
+const templateDiv = ref(null);
+
+const photoWidth = 300;
+const photoHeight = 200;
+const interval = 20;
+const logoHeight = 40;
+const templateWidth = computed(() => props.template.col * (photoWidth + interval));
+const templateHeight = computed(() => props.template.row * (photoHeight + interval) + logoHeight);
 
 const onDrop = (event, index) => {
 	event.preventDefault();
@@ -21,12 +30,48 @@ const onDrop = (event, index) => {
 		draggedPhoto.value = null;
 	}
 };
+
+const screenshot = async () => {
+	try {
+		const canvas = await html2canvas(templateDiv.value, { useCORS: true });
+		const dataUrl = canvas.toDataURL('image/png');
+		const blob = dataURLtoBlob(dataUrl);
+
+		const formData = new FormData();
+		formData.append('file', blob, 'image.png');
+		return formData;
+	} catch (error) {
+		alertResult(false, '사진 저장 중 오류가 발생하였습니다.');
+	}
+};
+
+const dataURLtoBlob = (dataURL) => {
+	const [header, data] = dataURL.split(',');
+	const mimeString = header.split(':')[1].split(';')[0];
+	const byteString = atob(data);
+	const ab = new ArrayBuffer(byteString.length);
+	const ia = new Uint8Array(ab);
+	for (let i = 0; i < byteString.length; i++) {
+		ia[i] = byteString.charCodeAt(i);
+	}
+	return new Blob([ab], { type: mimeString });
+};
+
+defineExpose({
+	screenshot,
+});
 </script>
 
 <template>
 	<div
 		class="template-container"
-		:style="{ width: template.width, height: template.height, backgroundColor }"
+		:style="{
+			width: `${templateWidth}px`,
+			height: `${templateHeight}px`,
+			backgroundColor,
+			border: `1px solid gray`,
+		}"
+		ref="templateDiv"
 	>
 		<div
 			class="template-inner"
@@ -37,7 +82,7 @@ const onDrop = (event, index) => {
 			<div
 				v-for="index in template.row * template.col"
 				class="template-div"
-				:style="{ border: `1px solid ${otherColor}` }"
+				:style="{ border: `1px solid ${otherColor}`, width: `${photoWidth}px`, height: `${photoHeight}px` }"
 				@drop="onDrop($event, index)"
 				@dragover.prevent
 			>
@@ -69,6 +114,8 @@ const onDrop = (event, index) => {
 .template-container {
 	display: flex;
 	flex-direction: column;
+	height: 100%;
+	margin: 0 auto;
 }
 
 .template-inner {
@@ -78,8 +125,6 @@ const onDrop = (event, index) => {
 }
 
 .template-div {
-	width: 200px;
-	height: 120px;
 	display: flex;
 	justify-content: center;
 	align-items: center;

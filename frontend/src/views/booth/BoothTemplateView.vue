@@ -5,10 +5,15 @@ import BoothBack from '@/components/booth/BoothBackComp.vue';
 import TemplateComp from '@/components/template/TemplateComp.vue';
 import { usePhotoStore } from '@/stores/photoStore';
 import { storeToRefs } from 'pinia';
+import { alertChoose, alertConfirm, alertResult } from '@/api/baseApi';
+import { savePhotoApi } from '@/api/photoApi';
+import { useRouter } from 'vue-router';
 
+const router = useRouter();
 const photoStore = usePhotoStore();
-const { photoList, templateList, draggedPhoto, templateColor } = storeToRefs(photoStore);
+const { photoList, templateList, draggedPhoto, templateColor, backgroundColor, otherColor } = storeToRefs(photoStore);
 const selectedTemplate = ref(null);
+const templateDiv = ref(null);
 
 const selectTemplate = (item) => {
 	selectedTemplate.value = item;
@@ -27,20 +32,62 @@ const onDragStart = (event, photo, index) => {
 const changeColor = () => {
 	templateColor.value = !templateColor.value;
 };
+
+const screenshot = async () => {
+	if (!selectedTemplate.value) {
+		alertResult(false, '템플릿을 선택하지 않았습니다.');
+		return;
+	}
+	const { value: accept } = await alertConfirm(
+		'사진 촬영을 완료하시겠습니까?\n확인 버튼을 누르면 사진 부스가 종료됩니다.',
+	);
+	if (accept) {
+		const formData = await templateDiv.value.screenshot();
+		const { data } = await savePhotoApi(formData);
+		if (!data.isSuccess) {
+			await alertResult(false, '사진 만들기에 실패하였습니다.');
+			return;
+		}
+		const result = await alertChoose(
+			'사진 촬영이 완료되었습니다!',
+			'원하는 버튼을 선택하세요.',
+			'홈으로 이동',
+			'캘린더로 이동',
+		);
+		if (result.isConfirmed) {
+			router.replace({ name: 'main' });
+			return;
+		}
+		router.replace({ name: 'calendarView' });
+		return;
+	}
+};
 </script>
 
 <template>
 	<WhiteBoardComp class="whiteboard-area-booth">
 		<div class="booth-content">
 			<div class="template-list">
+				<span>템플릿 선택</span>
 				<div
 					v-for="(item, index) in templateList"
 					:key="index"
 					class="template-text"
 				>
-					<button @click="selectTemplate(item)">{{ item.row }} x {{ item.col }}</button>
+					<button
+						@click="selectTemplate(item)"
+						:class="{ 'selected-template-button': selectedTemplate === item }"
+					>
+						{{ item.row }} x {{ item.col }}
+					</button>
 				</div>
-				<button @click="changeColor">{{ templateColor ? '검정색' : '흰색' }}</button>
+				<button
+					@click="changeColor"
+					class="color-button"
+					:style="{ backgroundColor: otherColor, color: backgroundColor }"
+				>
+					{{ templateColor ? '검정색' : '흰색' }}
+				</button>
 			</div>
 
 			<div class="booth-content-main">
@@ -48,6 +95,7 @@ const changeColor = () => {
 					<TemplateComp
 						v-if="selectedTemplate"
 						:template="selectedTemplate"
+						ref="templateDiv"
 					/>
 				</BoothBack>
 				<BoothBack class="booth-select-box">
@@ -74,6 +122,9 @@ const changeColor = () => {
 					</div>
 				</BoothBack>
 			</div>
+			<div class="booth-complete">
+				<button @click="screenshot">사진 완성하기</button>
+			</div>
 		</div>
 	</WhiteBoardComp>
 </template>
@@ -82,11 +133,42 @@ const changeColor = () => {
 .booth-content {
 	display: flex;
 	flex-direction: column;
-	justify-content: space-evenly;
 	align-items: center;
 	width: 100%;
 	height: 100%;
 }
+
+.template-list {
+	width: 75%;
+	display: flex;
+	justify-content: space-around;
+	margin: 20px 0;
+
+	span {
+		margin: auto 0;
+	}
+
+	button {
+		width: 68px;
+		height: 40px;
+		padding: 5px 10px;
+		font-size: 15px;
+		border-radius: 3px;
+	}
+}
+
+.template-text {
+	button {
+		background-color: transparent;
+		border: 2px solid black;
+	}
+
+	.selected-template-button {
+		background-color: #62abd9;
+		color: white;
+	}
+}
+
 .booth-content-main {
 	display: flex;
 	flex-wrap: wrap;
@@ -95,16 +177,20 @@ const changeColor = () => {
 	width: 100%;
 	height: 100%;
 	max-height: 99%;
-	overflow: auto;
-	overflow-x: hidden;
+	overflow: hidden;
 }
 
 .booth-camera-box {
 	width: 75%;
+	height: 100%;
+	max-height: 100%;
+	overflow: auto;
 }
 
 .booth-select-box {
 	width: 20%;
+	height: 100%;
+	overflow: auto;
 }
 
 .select-box {
@@ -113,7 +199,6 @@ const changeColor = () => {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	overflow: hidden;
 }
 
 .select-text-box {
@@ -140,18 +225,15 @@ const changeColor = () => {
 	height: 100px;
 }
 
-.template-list {
-	width: 75%;
-	display: flex;
-	justify-content: space-around;
-}
+.booth-complete {
+	margin: 20px 0;
 
-.template-text {
 	button {
-		width: 50px;
-		height: 30px;
-		border: 2px solid black;
-		border-radius: 5px;
+		width: 130px;
+		height: 40px;
+		padding: 5px 10px;
+		font-size: 15px;
+		border-radius: 3px;
 	}
 }
 </style>

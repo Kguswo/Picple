@@ -88,3 +88,13 @@ export const alertCheckBox = async (title, inputPlaceholder, inputValidator) => 
 		},
 	});
 };
+
+export const alertChoose = async (title, text, confirmButtonText, cancelButtonText) => {
+	return await Swal.fire({
+		title,
+		text,
+		showCancelButton: true,
+		confirmButtonText,
+		cancelButtonText,
+	});
+};

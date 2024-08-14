@@ -1,4 +1,4 @@
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { defineStore } from 'pinia';
 
 export const usePhotoStore = defineStore('photo', () => {
@@ -13,16 +13,19 @@ export const usePhotoStore = defineStore('photo', () => {
 	]);
 
 	const templateList = ref([
-		{ row: 1, col: 1, width: '220px', height: '180px' },
-		{ row: 2, col: 1, width: '220px', height: '320px' },
-		{ row: 3, col: 1, width: '220px', height: '440px' },
-		{ row: 4, col: 1, width: '220px', height: '560px' },
-		{ row: 2, col: 2, width: '440px', height: '320px' },
+		{ row: 1, col: 1 },
+		{ row: 2, col: 1 },
+		{ row: 3, col: 1 },
+		{ row: 4, col: 1 },
+		{ row: 2, col: 2 },
 	]);
 
 	const draggedPhoto = ref(null);
 
 	const templateColor = ref(true);
+
+	const backgroundColor = computed(() => (templateColor.value ? 'white' : 'black'));
+	const otherColor = computed(() => (templateColor.value ? 'black' : 'white'));
 
 	const setPhotoList = (photos) => {
 		photoList.value = photos;
@@ -37,6 +40,8 @@ export const usePhotoStore = defineStore('photo', () => {
 		templateList,
 		draggedPhoto,
 		templateColor,
+		backgroundColor,
+		otherColor,
 		setPhotoList,
 		clearPhotoList,
 	};
