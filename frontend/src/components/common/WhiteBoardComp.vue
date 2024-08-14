@@ -31,6 +31,14 @@
     min-width: 880px;
 }
 
+.whiteboard-area-shoot-booth {
+    width: 70%;
+    height: 90%;
+    min-height: 545px;
+
+    min-width: 880px;
+}
+
 .background {
     width: 100%;
     height: 100%;
