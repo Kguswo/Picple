@@ -1,11 +1,11 @@
 <script setup></script>
 
 <template>
-    <div>
-        <div class="booth-background">
-            <slot></slot>
-        </div>
-    </div>
+	<div>
+		<div class="booth-background">
+			<slot></slot>
+		</div>
+	</div>
 </template>
 
 <style scoped>
@@ -28,27 +28,27 @@
     width: 20%;
     height: 95%;
 
-    border-radius: 20px;
+	border-radius: 20px;
 }
 .booth-camera-box {
     width: 75%;
     height: 95%;
 
-    border-radius: 20px;
+	border-radius: 20px;
 }
 
 .booth-temp-box {
-    background-color: rgba(124, 124, 124, 0.232);
-    width: 62%;
-    height: 90%;
-    border-radius: 20px;
+	background-color: rgba(124, 124, 124, 0.232);
+	width: 62%;
+	height: 90%;
+	border-radius: 20px;
 }
 
 .booth-img-box {
-    background-color: rgba(124, 124, 124, 0.232);
-    width: 28%;
-    height: 90%;
-    border-radius: 20px;
+	background-color: rgba(124, 124, 124, 0.232);
+	width: 28%;
+	height: 90%;
+	border-radius: 20px;
 }
 
 .booth-background {
