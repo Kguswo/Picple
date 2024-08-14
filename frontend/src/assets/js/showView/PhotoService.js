@@ -1,6 +1,6 @@
-import { ref } from 'vue';
 import { useBoothStore } from '@/stores/boothStore';
 import { usePhotoStore } from '@/stores/photoStore';
+import { ref } from 'vue';
 import Swal from 'sweetalert2';
 
 class PhotoService {
@@ -14,7 +14,7 @@ class PhotoService {
     }
 
     // 사진 촬영 시작
-    async takePhoto() {
+    async takePhoto(sessionId) {
         console.log('사진 찍기 시작');
         const img = new Image();
         img.crossOrigin = 'Anonymous';
@@ -23,7 +23,7 @@ class PhotoService {
         this.countdown.value = 3;
 
         img.onload = async () => {
-            await this.startCountdown();
+            await this.startCountdown(sessionId);
         };
 
         img.onerror = async (error) => {
@@ -33,12 +33,12 @@ class PhotoService {
                 text: '배경 없이 촬영을 진행합니다.',
                 icon: 'warning',
             });
-            await this.startCountdown();
+            await this.startCountdown(sessionId);
         };
     }
 
     // 카운트다운 시작
-    startCountdown() {
+    startCountdown(sessionId) {
         console.log('카운트다운 시작');
         return new Promise((resolve) => {
             const countdownInterval = setInterval(() => {
@@ -46,7 +46,7 @@ class PhotoService {
                 if (this.countdown.value <= 0) {
                     clearInterval(countdownInterval);
                     Swal.close();
-                    this.capturePhoto();
+                    this.capturePhoto(sessionId);
                     resolve();
                 } else {
                     Swal.update({
@@ -54,8 +54,9 @@ class PhotoService {
                     });
 
                     if (this.countdown.value === 1) {
-                        if (document.querySelector('video')) {
-                            document.querySelector('video').pause();
+                        const video = document.querySelector('video');
+                        if (video) {
+                            video.pause();
                         }
                     }
                 }
@@ -72,13 +73,23 @@ class PhotoService {
     }
 
     // 사진 캡처
-    async capturePhoto() {
+    async capturePhoto(sessionId) {
         console.log('사진 캡처 시작');
         this.cameraaudio.play();
 
-        const videoContainer = document.querySelector('.video-container');
-        const canvas = document.querySelector('canvas');
+        const videoElement = document.querySelector('video');
+
+        if (!videoElement) {
+            console.error('비디오 엘리먼트를 찾을 수 없습니다.');
+            return;
+        }
+
         const captureAreaElement = document.querySelector('.photo-zone');
+
+        if (!captureAreaElement) {
+            console.error('captureAreaElement를 찾을 수 없습니다.');
+            return;
+        }
 
         const tempCanvas = document.createElement('canvas');
         const tempCtx = tempCanvas.getContext('2d');
@@ -86,6 +97,7 @@ class PhotoService {
         tempCanvas.height = captureAreaElement.clientHeight;
 
         try {
+            // 배경 이미지 로드 및 그리기
             const bgImg = new Image();
             bgImg.crossOrigin = 'anonymous';
             bgImg.src = this.boothStore.bgImage;
@@ -95,56 +107,70 @@ class PhotoService {
             });
             tempCtx.drawImage(bgImg, 0, 0, tempCanvas.width, tempCanvas.height);
 
-            const containerRect = videoContainer.getBoundingClientRect();
-            const captureAreaRect = captureAreaElement.getBoundingClientRect();
-            const scale = videoContainer.style.transform.match(/scale\((.*?)\)/)[1];
-            const rotation = videoContainer.style.transform.match(/rotate\((.*?)deg\)/)[1];
+            // 비디오 요소의 크기와 위치
+            const videoRect = videoElement.getBoundingClientRect();
+            const captureRect = captureAreaElement.getBoundingClientRect();
 
-            tempCtx.save();
+            // Transform을 고려하여 비디오 요소를 캔버스에 그리기
+            tempCtx.save(); // 이전 상태 저장
+
+            // 비디오 요소의 중앙을 기준으로 변환
             tempCtx.translate(
-                containerRect.left - captureAreaRect.left + containerRect.width / 2,
-                containerRect.top - captureAreaRect.top + containerRect.height / 2,
+                videoRect.left - captureRect.left + videoRect.width / 2,
+                videoRect.top - captureRect.top + videoRect.height / 2,
             );
-            tempCtx.rotate((rotation * Math.PI) / 180);
-            tempCtx.scale(scale, scale);
 
-            // 반전 효과 적용
-            const mirrorFactor = document.querySelector('video').style.transform.includes('scaleX(-1)') ? -1 : 1;
-            tempCtx.scale(mirrorFactor, 1);
-            tempCtx.translate((-canvas.width / 2) * mirrorFactor, -canvas.height / 2);
+            // 비디오 요소의 transform 스타일 적용 (반전된 상태 포함)
+            const computedStyle = window.getComputedStyle(videoElement);
+            const transform = computedStyle.transform;
+            if (transform !== 'none') {
+                const matrix = transform
+                    .match(/matrix\((.+)\)/)[1]
+                    .split(',')
+                    .map(parseFloat);
+                tempCtx.transform(...matrix);
+            }
 
-            tempCtx.drawImage(canvas, 0, 0);
-            tempCtx.restore();
+            // 비디오 요소를 캔버스에 그리기
+            tempCtx.drawImage(
+                videoElement,
+                -videoRect.width / 2, // 중앙 기준으로 그리기
+                -videoRect.height / 2, // 중앙 기준으로 그리기
+                videoRect.width,
+                videoRect.height,
+            );
 
+            tempCtx.restore(); // 변환 상태 복원
+
+            // 캡쳐된 이미지 저장
             const imageData = tempCanvas.toDataURL('image/png');
-            this.boothStore.addImage({ src: imageData, visible: true });
+            this.photoStore.addPhoto(sessionId, { src: imageData, visible: true });
 
-            this.remainPicCnt.value = 10 - this.images.value.length;
+            // 남은 사진 수 갱신
+            this.remainPicCnt.value = 10 - this.photoStore.getPhotosBySession(sessionId).length;
 
-            if (this.images.value.length === 10) {
+            if (this.photoStore.getPhotosBySession(sessionId).length === 10) {
                 const { value: result } = await Swal.fire({
                     title: '사진 촬영 종료',
                     text: '10장을 모두 촬영하여 프레임 선택창으로 이동합니다!',
                     icon: 'success',
                 });
                 if (result) {
-                    await this.exitphoto();
+                    await this.exitphoto(sessionId);
                 }
             }
         } catch (error) {
             console.error('이미지 캡쳐 에러 발생: ', error);
         } finally {
-            if (document.querySelector('video')) {
-                document.querySelector('video').play();
-            }
+            videoElement.play(); // 비디오 재생 재개
         }
     }
 
     // 촬영 종료
-    async exitphoto() {
+    async exitphoto(sessionId) {
         console.log('exitphoto 함수 호출');
         console.log('촬영종료');
-        console.log('저장할 이미지 리스트:', this.images.value);
+        console.log('저장할 이미지 리스트:', this.photoStore.getPhotosBySession(sessionId));
 
         const { value: result } = await Swal.fire({
             title: '촬영 끝내기',
@@ -158,8 +184,7 @@ class PhotoService {
         console.log('Swal result:', result);
 
         if (result) {
-            this.photoStore.setPhotoList(this.images.value);
-            console.log('Pinia store에 저장된 이미지 리스트:', this.photoStore.photoList);
+            // 추가적으로 필요한 작업이 있다면 여기에 작성
             return true; // 라우터 네비게이션을 위해 true 반환
         } else {
             Swal.fire('취소', '촬영을 계속합니다!', 'error');

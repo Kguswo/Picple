@@ -3,7 +3,6 @@ import WhiteBoardComp from '@/components/common/WhiteBoardComp.vue';
 import BoothBack from '@/components/booth/BoothBackComp.vue';
 import ChatModal from '@/components/chat/ChatModal.vue';
 
-import InitializationService from '@/assets/js/showView/InitializationService';
 import PhotoService from '@/assets/js/showView/PhotoService';
 import WebSocketService from '@/services/WebSocketService';
 
@@ -120,30 +119,32 @@ const toggleMirror = () => {
     if (canvasElement.value) {
         canvasElement.value.style.transform = transform;
     }
-};
-
-const toggleCamera = () => {
-    isVideoOn.value = !isVideoOn.value;
-    if (InitializationService.videoElement) {
-        InitializationService.videoElement.srcObject.getVideoTracks().forEach((track) => {
-            track.enabled = isVideoOn.value;
-        });
+    if (myVideo.value) {
+        myVideo.value.style.transform = transform;
     }
 };
 
-const toggleMicro = () => {
-    isMicroOn.value = !isMicroOn.value;
-    if (InitializationService.videoElement) {
-        InitializationService.videoElement.srcObject.getAudioTracks().forEach((track) => {
-            track.enabled = isMicroOn.value;
-        });
+// 세션 종료 및 초기화
+const endSession = () => {
+    console.log('세션 종료 및 초기화');
+    if (session.value) {
+        session.value.disconnect();
+        session.value = null;
     }
+    WebSocketService.close();
 };
 
 // boothshoot
 
+// 카메라와 마이크의 초기 상태 설정
 onMounted(() => {
-    joinExistingSession(session, publisher, subscribers, myVideo, sessionId, boothStore);
+    joinExistingSession(session, publisher, subscribers, myVideo, sessionId, boothStore).then(() => {
+        if (publisher.value) {
+            isVideoOn.value = publisher.value.stream.videoActive;
+            isMicroOn.value = publisher.value.stream.audioActive;
+            updateVideoDisplay();
+        }
+    });
 
     WebSocketService.setBoothStore(boothStore);
     WebSocketService.on('background_info', (message) => {
@@ -151,20 +152,53 @@ onMounted(() => {
     });
 });
 
-onUnmounted(() => {});
+onUnmounted(() => {
+    endSession(); // 컴포넌트가 언마운트될 때 세션 종료
+});
+
+const toggleCamera = () => {
+    isVideoOn.value = !isVideoOn.value;
+    if (publisher.value) {
+        publisher.value.publishVideo(isVideoOn.value);
+        console.log(`Camera state: ${isVideoOn.value}`);
+        updateVideoDisplay();
+    } else {
+        console.error('Publisher is not defined.');
+    }
+};
+
+const toggleMicro = () => {
+    isMicroOn.value = !isMicroOn.value;
+    if (publisher.value) {
+        publisher.value.publishAudio(isMicroOn.value);
+        console.log(`Microphone state: ${isMicroOn.value}`);
+    } else {
+        console.error('Publisher is not defined.');
+    }
+};
+
+// 비디오 엘리먼트를 보여주거나 숨기는 함수
+const updateVideoDisplay = () => {
+    if (myVideo.value) {
+        myVideo.value.style.display = isVideoOn.value ? 'block' : 'none';
+    }
+};
 
 const { remainPicCnt, images } = PhotoService;
 </script>
 
 <template>
-    <WhiteBoardComp class="whiteboard-area-booth">
+    <WhiteBoardComp class="whiteboard-area-shoot-booth">
         <div class="booth-content">
             <div class="booth-top-div">
                 <div>남은 사진 수: {{ remainPicCnt }}/10</div>
                 <div class="close-btn">
                     <button
                         class="close"
-                        @click="navigateTo('main')"
+                        @click="
+                            endSession();
+                            navigateTo('main');
+                        "
                     >
                         나가기
                     </button>
@@ -203,7 +237,6 @@ const { remainPicCnt, images } = PhotoService;
                                 :key="sub.subscriber.stream.streamId"
                                 class="stream-container"
                             >
-                                <!-- <h3>{{ sub.username }}</h3> -->
                                 <video
                                     :id="`video-${sub.subscriber.stream.streamId}`"
                                     :width="320"
@@ -222,52 +255,57 @@ const { remainPicCnt, images } = PhotoService;
                             </div>
                         </div>
                     </div>
-                    <div class="create-btn">
-                        <div class="left-btn">
-                            <button
-                                class="circle-btn"
-                                @click="toggleMicro"
-                            >
-                                <img
-                                    :src="isMicroOn ? microOn : microOff"
-                                    alt="M"
-                                />
-                            </button>
-                            <button
-                                class="circle-btn"
-                                @click="toggleCamera"
-                            >
-                                <img
-                                    :src="isVideoOn ? videoOn : videoOff"
-                                    alt="Toggle Camera"
-                                />
-                            </button>
-                            <button
-                                class="ract-btn"
-                                @click="toggleMirror"
-                            >
-                                반전
-                            </button>
-                        </div>
+                    <BoothBack class="booth-shoot">
+                        <div class="create-btn">
+                            <div class="left-btn">
+                                <button
+                                    class="circle-btn"
+                                    @click="toggleMicro"
+                                >
+                                    <img
+                                        :src="isMicroOn ? microOn : microOff"
+                                        alt="M"
+                                    />
+                                </button>
+                                <button
+                                    class="circle-btn"
+                                    @click="toggleCamera"
+                                >
+                                    <img
+                                        :src="isVideoOn ? videoOn : videoOff"
+                                        alt="Toggle Camera"
+                                    />
+                                </button>
+                                <button
+                                    class="ract-btn"
+                                    @click="toggleMirror"
+                                >
+                                    반전
+                                </button>
+                            </div>
 
-                        <button
-                            @click="takePhoto"
-                            class="take-photo"
-                        >
-                            <img
-                                src="@/assets/icon/camera.png"
-                                alt=""
-                            />
-                        </button>
-                        <div class="right-btn">
                             <button
-                                class="ract-btn"
-                                @click="exitphoto"
+                                @click="takePhoto"
+                                class="take-photo"
                             >
-                                템플릿 선택
+                                <img
+                                    src="@/assets/icon/camera.png"
+                                    alt=""
+                                />
                             </button>
+                            <div class="right-btn">
+                                <button
+                                    class="ract-btn"
+                                    @click="
+                                        endSession();
+                                        exitphoto();
+                                    "
+                                >
+                                    템플릿 선택
+                                </button>
+                            </div>
                         </div>
-                    </div>
+                    </BoothBack>
                 </BoothBack>
                 <BoothBack class="booth-select-box">
                     <div class="select-box-top">
