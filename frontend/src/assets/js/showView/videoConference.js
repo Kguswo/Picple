@@ -3,15 +3,17 @@ import { nextTick } from 'vue';
 import VideoBackgroundRemoval from '@/assets/js/showView/VideoBackgroundRemoval';
 import { SelfieSegmentation } from '@mediapipe/selfie_segmentation';
 import { Camera } from '@mediapipe/camera_utils';
+import { storeToRefs } from 'pinia';
 
 const OPENVIDU_SERVER_URL = import.meta.env.VITE_API_OPENVIDU_SERVER;
 const OPENVIDU_SERVER_SECRET = import.meta.env.VITE_OPENVIDU_SERVER_SECRET;
 
 let selfieSegmentation;
 
-export const joinExistingSession = async (session, publisher, subscribers, myVideo, boothStore) => {
+export const joinExistingSession = async (publisher, subscribers, myVideo, boothStore) => {
 	try {
 		const sessionInfo = boothStore.getSessionInfo();
+		const session = storeToRefs(boothStore);
 
 		if (!sessionInfo || !sessionInfo.sessionId || !sessionInfo.token) {
 			throw new Error('세션 정보가 없습니다.');

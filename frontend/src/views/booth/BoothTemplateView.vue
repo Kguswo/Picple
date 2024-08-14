@@ -9,6 +9,7 @@ import { alertChoose, alertConfirm, alertResult } from '@/api/baseApi';
 import { savePhotoApi } from '@/api/photoApi';
 import { useRouter } from 'vue-router';
 import { useBoothStore } from '@/stores/boothStore';
+import WebSocketService from '@/services/WebSocketService';
 
 const router = useRouter();
 const photoStore = usePhotoStore();
