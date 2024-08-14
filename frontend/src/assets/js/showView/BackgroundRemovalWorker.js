@@ -1,15 +1,24 @@
-importScripts('https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation@0.1.1675465747/selfie_segmentation.js');
-
 let selfieSegmentation;
+
+async function loadLibrary() {
+  const response = await fetch('https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation@0.1.1675465747/selfie_segmentation.js');
+  const blob = await response.blob();
+  const url = URL.createObjectURL(blob);
+  importScripts(url);
+  URL.revokeObjectURL(url);
+}
 
 self.onmessage = async function(e) {
   if (e.data.type === 'init') {
     try {
-      console.log('Initializing SelfieSegmentation');
+      await loadLibrary();
+      console.log('MediaPipe library loaded');
+
       selfieSegmentation = new self.SelfieSegmentation({locateFile: (file) => {
-        const url = `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation@0.1.1675465747/${file}`;
-        console.log(`Loading file: ${url}`);
-        return url;
+        if (file.endsWith('.tflite')) {
+          return `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation@0.1.1675465747/${file}`;
+        }
+        return `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation@0.1.1675465747/${file}`;
       }});
 
       selfieSegmentation.setOptions({
