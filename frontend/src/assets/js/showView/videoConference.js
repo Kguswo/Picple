@@ -48,36 +48,23 @@ export async function initializePublisherVideo(publisher, videoElement) {
     }
 }
 
-export async function initializeSubscriberVideo(subscriber, videoElement) {
-    console.log('==========================subscriber=================== ', 'background-color: blue;');
-    const maxRetries = 5;
-    for (let i = 0; i < maxRetries; i++) {
-        try {
-            const mediaStream = subscriber.stream.getMediaStream();
-            if (!mediaStream) {
-                throw new Error('MediaStream is null or undefined');
-            }
-            videoElement.srcObject = mediaStream;
-            await videoElement.play();
+export const initializeSubscriberVideo = async (subscriber, videoElement) => {
+    if (!subscriber || !videoElement) return;
 
-            if (checkWebGLSupport()) {
-                applySegmentation(subscriber, videoElement).catch((error) => {
-                    console.warn('Background segmentation failed:', error);
-                    showNotification('배경 제거 기능을 적용할 수 없습니다. 기본 비디오로 표시됩니다.');
-                });
-            }
-            return;
-        } catch (error) {
-            console.warn(`Attempt ${i + 1} failed:`, error);
-            await new Promise((resolve) => setTimeout(resolve, 2000)); // 2초 대기 후 재시도
-        }
+    const mediaStream = subscriber.stream.getMediaStream();
+    if (!mediaStream) {
+        throw new Error('MediaStream is null or undefined');
     }
-    throw new Error('Failed to initialize subscriber video after multiple attempts');
-}
+
+    videoElement.srcObject = mediaStream;
+    try {
+        await videoElement.play();
+    } catch (error) {
+        console.error('Failed to play subscriber video:', error);
+    }
+};
 
 export const joinExistingSession = async (session, publisher, subscribers, myVideo, sessionId, boothStore) => {
-    console.log('in joinExistingSession publisher:   ', publisher);
-    console.log('in joinExistingSession subscribers:   ', subscribers);
     try {
         const sessionInfo = boothStore.getSessionInfo();
         if (!sessionInfo || !sessionInfo.sessionId || !sessionInfo.token) {
@@ -86,48 +73,15 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
         const { token } = sessionInfo;
 
         const OV = new OpenVidu();
-        OV.enableProdMode(false);
-        OV.setAdvancedConfiguration({
-            logLevel: 'DEBUG',
-            noStreamPlayingEventExceptionTimeout: 8000,
-            iceServers: [
-                { urls: 'stun:stun.l.google.com:19302' },
-                {
-                    urls: [
-                        'turn:i11a503.p.ssafy.io:3478',
-                        'turn:i11a503.p.ssafy.io:3478?transport=tcp',
-                        'turns:i11a503.p.ssafy.io:3479',
-                    ],
-                    username: 'picplessafy',
-                    credential: 'ssafya503@picple',
-                },
-            ],
-            iceTransportPolicy: 'all',
-            forceMediaReconnectionAfterNetworkDrop: true,
-            publisherSpeakingEventsOptions: {
-                interval: 100,
-                threshold: -50,
-            },
-            videoSimulcast: false,
-            videoSendInitialDelay: 0,
-            videoDimensions: '640x480',
-            minVideoBitrate: 300,
-            maxVideoBitrate: 1000,
-        });
-
         session.value = OV.initSession();
 
         session.value.on('streamCreated', async ({ stream }) => {
-            const subscriber = await session.value.subscribe(stream, {
-                videoEnabled: true,
-                audioEnabled: true,
-            });
-            console.log('Subscribed to stream:', subscriber);
+            const subscriber = await session.value.subscribe(stream, undefined);
+            subscribers.value.push(subscriber);
         });
 
         session.value.on('streamDestroyed', ({ stream }) => {
-            console.log('Stream destroyed:', stream);
-            const index = subscribers.value.findIndex((sub) => sub.subscriber.stream.streamId === stream.streamId);
+            const index = subscribers.value.findIndex((sub) => sub.stream.streamId === stream.streamId);
             if (index >= 0) {
                 subscribers.value.splice(index, 1);
             }
@@ -147,24 +101,15 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
         };
 
         publisher.value = await OV.initPublisherAsync(undefined, publisherOptions);
-        console.log('Publisher initialized:', publisher.value);
-
         await session.value.publish(publisher.value);
 
         if (myVideo.value && publisher.value.stream && publisher.value.stream.getMediaStream()) {
-            await initializePublisherVideo(publisher.value, myVideo.value);
+            myVideo.value.srcObject = publisher.value.stream.getMediaStream();
+            await myVideo.value.play();
         }
-
-        if (!checkWebGLSupport()) {
-            console.warn('WebGL이 지원되지 않습니다. 배경 제거 기능을 사용할 수 없습니다.');
-            return;
-        }
-
-        await applySegmentation(publisher);
-        console.log('Segmentation applied to publisher');
     } catch (error) {
         console.error('세션 참가 중 오류 발생:', error);
-        showErrorToUser(`오류 발생: ${error.message}`);
+        throw error;
     }
 };
 
