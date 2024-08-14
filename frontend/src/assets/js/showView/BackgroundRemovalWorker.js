@@ -1,22 +1,21 @@
+importScripts('https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation@0.1.1675465747/selfie_segmentation.js');
+
 let selfieSegmentation;
 
-async function loadLibrary() {
-  const response = await fetch('https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation@0.1.1675465747/selfie_segmentation.js');
-  const blob = await response.blob();
-  const url = URL.createObjectURL(blob);
-  importScripts(url);
-  URL.revokeObjectURL(url);
+async function loadTFLite(url) {
+  const response = await fetch(url);
+  const arrayBuffer = await response.arrayBuffer();
+  return new Uint8Array(arrayBuffer);
 }
 
 self.onmessage = async function(e) {
   if (e.data.type === 'init') {
     try {
-      await loadLibrary();
-      console.log('MediaPipe library loaded');
-
-      selfieSegmentation = new self.SelfieSegmentation({locateFile: (file) => {
+      selfieSegmentation = new self.SelfieSegmentation({locateFile: async (file) => {
         if (file.endsWith('.tflite')) {
-          return `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation@0.1.1675465747/${file}`;
+          const tfliteUrl = `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation@0.1.1675465747/${file}`;
+          const tfliteData = await loadTFLite(tfliteUrl);
+          return URL.createObjectURL(new Blob([tfliteData.buffer], {type: 'application/octet-stream'}));
         }
         return `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation@0.1.1675465747/${file}`;
       }});
@@ -26,7 +25,6 @@ self.onmessage = async function(e) {
       });
 
       await selfieSegmentation.initialize();
-      console.log('SelfieSegmentation initialized successfully');
       self.postMessage({ type: 'ready' });
     } catch (error) {
       console.error('Initialization error:', error);
