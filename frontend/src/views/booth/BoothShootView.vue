@@ -148,6 +148,16 @@ onMounted(async () => {
         WebSocketService.on('background_info', (message) => {
             boothStore.setBgImage(message.backgroundImage);
         });
+
+        // WebRTC 연결 상태 모니터링 추가
+        if (publisher.value && publisher.value.stream && publisher.value.stream.webRtcPeer) {
+            publisher.value.stream.webRtcPeer.pc.addEventListener('iceconnectionstatechange', () => {
+                console.log('Publisher ICE connection state:', publisher.value.stream.webRtcPeer.pc.iceConnectionState);
+            });
+            publisher.value.stream.webRtcPeer.pc.addEventListener('connectionstatechange', () => {
+                console.log('Publisher Connection state:', publisher.value.stream.webRtcPeer.pc.connectionState);
+            });
+        }
     } catch (error) {
         console.error("Error during session join:", error);
     }

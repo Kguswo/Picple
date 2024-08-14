@@ -70,24 +70,31 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
                 audioEnabled: true,
             });
             console.log('Subscribed to stream:', subscriber);
-            console.log('Subscriber video track:', subscriber.stream.getVideoTracks()[0]);
             subscribers.value.push({ subscriber });
 
             nextTick(async () => {
                 const videoElement = document.getElementById(`video-${subscriber.stream.streamId}`);
                 console.log('Subscriber video element:', videoElement);
                 if (videoElement) {
-                    console.log('원본 비디오 표시');
-                    videoElement.srcObject = subscriber.stream.getMediaStream();
-                    videoElement.play();
+                    const mediaStream = subscriber.stream.getMediaStream();
+                    videoElement.srcObject = mediaStream;
+                    console.log('Media stream assigned to video element:', mediaStream);
 
                     try {
-                        await waitForVideoElement(videoElement);
-                        console.log('Video element is ready:', videoElement.videoWidth, videoElement.videoHeight);
-                        await applySegmentation({ stream: subscriber, videoElement });
+                        await videoElement.play();
+                        console.log('Subscriber video playback started');
                     } catch (error) {
-                        console.error('Subscriber 비디오 처리 중 오류:', error);
-                        // 오류 발생 시 원본 비디오를 계속 표시
+                        console.error('Subscriber video playback failed:', error);
+                    }
+
+                    // 배경 제거 적용 (선택적)
+                    if (checkWebGLSupport()) {
+                        try {
+                            await waitForVideoElement(videoElement);
+                            await applySegmentation({ stream: subscriber, videoElement });
+                        } catch (error) {
+                            console.error('Subscriber 비디오 처리 중 오류:', error);
+                        }
                     }
                 } else {
                     console.error('Subscriber 비디오 요소를 찾을 수 없습니다.');
