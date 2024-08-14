@@ -124,22 +124,18 @@ const modify = async () => {
 	cursor: url('@/assets/img/app/hoverCursorIcon.png') 5 5, pointer !important;
 }
 
-/* FormButtonComp에 대한 스타일 (이 컴포넌트 내에서 오버라이드) */
 :deep(.form-button) {
 	cursor: url('@/assets/img/app/hoverCursorIcon.png') 5 5, pointer !important;
 }
 
-/* FormInputComp에 대한 스타일 (이 컴포넌트 내에서 오버라이드) */
 :deep(.form-input) {
 	cursor: url('@/assets/img/app/hoverCursorIcon.png') 5 5, text !important;
 }
 
-/* 비밀번호 변경 버튼에 대한 스타일 */
 .form-button-small {
 	cursor: url('@/assets/img/app/hoverCursorIcon.png') 5 5, pointer !important;
 }
 
-/* 회원탈퇴 버튼에 대한 스타일 */
 :deep(.form-button-none) {
 	cursor: url('@/assets/img/app/hoverCursorIcon.png') 5 5, pointer !important;
 }
