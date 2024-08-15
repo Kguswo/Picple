@@ -1,6 +1,7 @@
 <script setup>
 import { ref } from 'vue';
 import { createAiBackgroundApi } from '@/api/backgroundApi';
+import { alertResult } from '@/api/baseApi';
 
 const emit = defineEmits(['close', 'create']);
 
@@ -13,16 +14,20 @@ const closeModal = () => {
 };
 
 // 프롬프트를 생성하고 서버로 데이터를 전송하는 함수
+const isLoading = ref(false);
 const generatePrompt = async () => {
 	try {
 		// prompt 값 확인
 		console.log('현재 프롬프트 값:', prompt.value);
 
 		// backgroundAIGenerationApi 호출
+		isLoading.value = true;
 		const { data } = await createAiBackgroundApi(prompt.value);
+		await alertResult(true, '배경이 생성되었습니다.');
 		emit('create', data.result);
-		console.log('AI 생성 요청 성공:', response.data);
 		closeModal(); // 모달 닫기
+		isLoading.value = false;
+		console.log('AI 생성 요청 성공:', data.result);
 	} catch (error) {
 		console.error('AI 생성 요청 실패:', error);
 	}
@@ -35,7 +40,19 @@ const generatePrompt = async () => {
 			class="modal-overlay"
 			@click.self="closeModal"
 		>
-			<div class="modal-content">
+			<div
+				v-if="isLoading"
+				class="loading"
+			>
+				<img
+					src="@/assets/icon/모래시계.gif"
+					alt="loading..."
+				/>
+			</div>
+			<div
+				v-else
+				class="modal-content"
+			>
 				<h2>프롬프트 작성</h2>
 				<p>AI 배경 생성을 위한 프롬프트를 작성해 주세요!</p>
 				<p>- 특정 인물에 대한 입력은 올바르게 인식되지 않아요. (ex. 가렌, 호날두 등)</p>
