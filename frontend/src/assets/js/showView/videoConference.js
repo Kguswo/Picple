@@ -8,8 +8,7 @@ const OPENVIDU_SERVER_SECRET = import.meta.env.VITE_OPENVIDU_SERVER_SECRET;
 
 export const joinExistingSession = async (publisher, subscribers, myVideo, boothStore) => {
   try {
-      const session = storeToRefs(boothStore);
-      const sessionInfo = session.getSessionInfo();
+    const { sessionInfo, session } = storeToRefs(boothStore);
 
     if (!sessionInfo || !sessionInfo.sessionId || !sessionInfo.token) {
       throw new Error('세션 정보가 없습니다.');
