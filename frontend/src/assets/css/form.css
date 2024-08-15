@@ -72,7 +72,7 @@
 
 .form-button-big {
     height: 50px;
-    background-color: #84ed92;
+    background-color: #7bd9dc;
     color: white;
     border: none;
     font-size: 18px;
@@ -81,7 +81,7 @@
 }
 
 .form-button-big:hover {
-    background-color: #8ef49c;
+    background-color: #44c7cc;
     transform: scale(1.05);
 }
 

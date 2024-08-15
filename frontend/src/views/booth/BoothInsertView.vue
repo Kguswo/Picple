@@ -382,7 +382,7 @@ onMounted(() => {
 
 .save-button {
 	padding: 10px 20px;
-	background-color: #4caf50;
+	background-color: #7bd9dc;
 	color: white;
 	border: none;
 	border-radius: 5px;
@@ -391,7 +391,7 @@ onMounted(() => {
 }
 
 .save-button:hover {
-	background-color: #45a049;
+	background-color: #44c7cc;
 }
 
 .captured-images {

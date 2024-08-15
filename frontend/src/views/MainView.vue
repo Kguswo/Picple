@@ -31,7 +31,7 @@ const navigateTo = (name) => {
 						<div class="front">
 							<div class="image-in-card">
 								<img
-									src="@/assets/img/mainView/camera.jpg"
+									src="@/assets/img/mainView/pixel-camera.png"
 									alt="..."
 								/>
 							</div>
@@ -54,7 +54,7 @@ const navigateTo = (name) => {
 						<div class="front">
 							<div class="image-in-card">
 								<img
-									src="@/assets/img/mainView/noimage.png"
+									src="@/assets/img/mainView/pixel-friends.jpg"
 									alt="..."
 								/>
 							</div>
@@ -74,7 +74,7 @@ const navigateTo = (name) => {
 						<div class="front">
 							<div class="image-in-card">
 								<img
-									src="@/assets/img/mainView/board.jpg"
+									src="@/assets/img/mainView/pixel-board.png"
 									alt="..."
 								/>
 							</div>
@@ -96,7 +96,7 @@ const navigateTo = (name) => {
 						<div class="front">
 							<div class="image-in-card">
 								<img
-									src="@/assets/img/mainView/calender.jpg"
+									src="@/assets/img/mainView/pixel-calendar.png"
 									alt="..."
 								/>
 							</div>

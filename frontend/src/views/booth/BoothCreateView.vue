@@ -354,7 +354,7 @@ const toggleMicro = () => {
 	justify-content: center;
 	align-items: center;
 	margin: 0 10px;
-	background-color: #b2f2bb;
+	background-color: #7bd9dc;
 	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 	transition: transform 0.2s ease, background-color 0.2s ease;
 }
@@ -366,7 +366,7 @@ const toggleMicro = () => {
 
 .circle-btn:hover {
 	transform: scale(1.1);
-	background-color: #8ef49c;
+	background-color: #5ec9cd  ;
 }
 
 .ract-btn {
@@ -376,7 +376,7 @@ const toggleMicro = () => {
 	height: 40px;
 	margin: 5px;
 	padding: 10px;
-	background-color: #f7a1a1;
+	background-color: #E6A4A4 ;
 	color: white;
 	font-size: 16px;
 
@@ -400,7 +400,7 @@ const toggleMicro = () => {
 	left: 0;
 	width: 100%;
 	height: 100%;
-	background-color: rgba(157, 115, 254, 0.595);
+    background-color: rgba(236, 226, 198, 0.9);
 	display: flex;
 	justify-content: center;
 	align-items: center;
@@ -451,7 +451,7 @@ video {
 	justify-content: center;
 	align-items: center;
 	font-size: 18px;
-	color: #ff6666;
+	color: #e4f38e;
 	font-weight: bold;
 	border-radius: 20px;
 }
@@ -481,6 +481,22 @@ video {
 			border: none;
 			font-size: 22px;
 		}
+
+		.close {
+            background-color: #E6A4A4;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 10px 20px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+		.close:hover {
+            background-color: #f58080;
+            transform: scale(1.05);
+        }
 	}
 }
 </style>
