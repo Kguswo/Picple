@@ -1,13 +1,13 @@
 package com.ssafy.picple.domain.boardlike.service;
 
-import static com.ssafy.picple.config.baseResponse.BaseResponseStatus.*;
+import static com.ssafy.picple.config.baseresponse.BaseResponseStatus.*;
 
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.ssafy.picple.config.baseResponse.BaseException;
+import com.ssafy.picple.config.baseresponse.BaseException;
 import com.ssafy.picple.domain.board.entity.Board;
 import com.ssafy.picple.domain.board.repository.BoardRepository;
 import com.ssafy.picple.domain.boardlike.entity.BoardLike;
@@ -89,6 +89,17 @@ public class BoardLikeServiceImpl implements BoardLikeService {
 			}
 		} else { // 좋아요 여부 존재하지 않을시 취소하지 못하기 때문에
 			throw new BaseException(GET_LIKE_EMPTY);
+		}
+	}
+
+	@Transactional
+	@Override
+	public void toggleLike(Long boardId, Long userId) throws BaseException {
+		boolean isLiked = isPhotoLikedByUser(boardId, userId);
+		if (isLiked) {
+			unlikePhoto(boardId, userId);
+		} else {
+			likePhoto(boardId, userId);
 		}
 	}
 

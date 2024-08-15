@@ -1,6 +1,6 @@
 package com.ssafy.picple.domain.photouser.service;
 
-import com.ssafy.picple.config.baseResponse.BaseException;
+import com.ssafy.picple.config.baseresponse.BaseException;
 import com.ssafy.picple.domain.photouser.dto.request.PhotoUserRequestDto;
 import com.ssafy.picple.domain.photouser.dto.response.PhotoUserResponseDto;
 

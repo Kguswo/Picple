@@ -1,6 +1,6 @@
 package com.ssafy.picple.domain.background.service;
 
-import static com.ssafy.picple.config.baseResponse.BaseResponseStatus.*;
+import static com.ssafy.picple.config.baseresponse.BaseResponseStatus.*;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import com.ssafy.picple.config.baseResponse.BaseException;
+import com.ssafy.picple.config.baseresponse.BaseException;
 
 import reactor.core.publisher.Mono;
 
@@ -39,9 +39,12 @@ public class OpenAIService {
 	 * @throws BaseException 예외 발생 시
 	 */
 	public String[] createAIBackground(String prompt) throws BaseException {
+		if (prompt.replace(" ", "").isEmpty()) {
+			throw new BaseException(NULL_PROMPT_ERROR);
+		}
+
 		try {
 			Mono<String> result = requestImageGeneration(prompt);
-
 			String base64Image = fileUploadService.parseAIBackgroundImage(result);
 			String fileName = fileUploadService.generateFileName("ai", ".png"); // 포맷을 PNG로 가정
 
@@ -66,25 +69,37 @@ public class OpenAIService {
 		if (prompt.isEmpty())
 			throw new BaseException(REQUEST_ERROR);
 
+		String enhancedPrompt = String.format("%s. This is the subject of the picture you want." +
+				"        Draw an 8-bit pixel style picture based on this topic." +
+				"        If there is a request for a specific celebrity or player on the topic, it should not come out." +
+				"        If there are too many objects, it will be distracting, so please draw it so that it won't." +
+				"        Please review if there is any awkwardness and if there is any awkwardness, please draw it again with great effort!", prompt);
+
 		Mono<String> result = this.webClient.post()
 				.uri("/images/generations")
 				.contentType(MediaType.APPLICATION_JSON)
-				.bodyValue("""
-						{
-						  "prompt": "%s. 이를 주제로 한 8비트 스타일 배경 사진을 그려줘!",
-						  "model": "dall-e-3",
-						  "n": 1,
-						  "quality": "standard",
-						  "response_format": "b64_json",
-						  "size": "1024x1024",
-						  "style": "vivid"
-						}
-						""".formatted(prompt))
+				.bodyValue(String.format("""
+            {
+              "prompt": "%s",
+              "model": "dall-e-3",
+              "n": 1,
+              "quality": "standard",
+              "response_format": "b64_json",
+              "size": "1024x1024",
+              "style": "vivid"
+            }
+            """, enhancedPrompt.replace("\"", "\\\"")))
 				.retrieve()
+				.onStatus(HttpStatus.BAD_REQUEST::equals,
+						response -> response.bodyToMono(String.class).map(errorBody -> {
+							System.out.println("Error Body: " + errorBody);
+							return new BaseException(REQUEST_ERROR);
+						}))
 				.onStatus(HttpStatus.INTERNAL_SERVER_ERROR::equals,
-						response -> response.bodyToMono(String.class).map(Exception::new))
-				.onStatus(HttpStatus.UNAUTHORIZED::equals,
-						response -> response.bodyToMono(String.class).map(Exception::new))
+						response -> response.bodyToMono(String.class).map(errorBody -> {
+							System.out.println("Error Body: " + errorBody);
+							return new BaseException(AI_CLIENT_ERROR);
+						}))
 				.bodyToMono(String.class);
 
 		return result;

@@ -1,4 +1,4 @@
-package com.ssafy.picple.AwsS3;
+package com.ssafy.picple.aws;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -17,8 +17,8 @@ import com.amazonaws.services.s3.model.DeleteObjectRequest;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.S3Object;
-import com.ssafy.picple.config.baseResponse.BaseException;
-import com.ssafy.picple.config.baseResponse.BaseResponseStatus;
+import com.ssafy.picple.config.baseresponse.BaseException;
+import com.ssafy.picple.config.baseresponse.BaseResponseStatus;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

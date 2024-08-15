@@ -1,6 +1,6 @@
 package com.ssafy.picple.domain.background.service;
 
-import static com.ssafy.picple.config.baseResponse.BaseResponseStatus.*;
+import static com.ssafy.picple.config.baseresponse.BaseResponseStatus.*;
 
 import java.util.List;
 import java.util.function.Supplier;
@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.ssafy.picple.config.baseResponse.BaseException;
+import com.ssafy.picple.config.baseresponse.BaseException;
 import com.ssafy.picple.domain.background.dto.response.BackgroundResponseDto;
 import com.ssafy.picple.domain.background.entity.Background;
 import com.ssafy.picple.domain.background.repository.BackgroundRepository;
@@ -42,11 +42,18 @@ public class BackgroundServiceImpl implements BackgroundService {
 	// 특정 사용자가 추가한 배경 사진을 DB에서 조회하여 반환
 	@Override
 	public List<BackgroundResponseDto> getUserBackgrounds(Long userId) throws BaseException {
+		Long id = userRepository.findById(userId).get().getId();
+		if (id == null) {
+			throw new BaseException(GET_USER_EMPTY);
+		}
+
 		return getBackgroundsBy(() -> backgroundRepository.findByUserId(userId));
 	}
 
-	// 배경 사진 리스트를 조회하고, BackgroundResponseDto로 변환
-	// getDefaultBackgrounds와 getUserBackgrounds에서 쓰임
+	/*
+	 배경 사진 리스트를 조회하고, BackgroundResponseDto로 변환
+	 getDefaultBackgrounds와 getUserBackgrounds에서 쓰임
+	 */
 	private List<BackgroundResponseDto> getBackgroundsBy(Supplier<List<Background>> backgroundSupplier) throws
 			BaseException {
 		try {
@@ -62,13 +69,13 @@ public class BackgroundServiceImpl implements BackgroundService {
 	// AI를 통해 배경 사진을 생성하여 S3와 DB에 저장
 	@Override
 	@Transactional
-	public void createAIBackground(Long userId, String prompt) throws BaseException {
+	public String createAIBackground(Long userId, String prompt) throws BaseException {
 		try {
 			// 프롬프트를 통해 AI API를 사용하여 사진 생성
 			String[] result = openAIService.createAIBackground(prompt);
-			s3Service.uploadBase64ImageToS3(result[0], result[1]);
+			String url = s3Service.uploadBase64ImageToS3(result[0], result[1]);
 			saveBackgroundToDB(userId, result[0], result[1]);
-
+			return url;
 		} catch (Exception e) {
 			// 예외 처리
 			throw new BaseException(BACKGROUND_UPLOAD_ERROR);
@@ -91,22 +98,26 @@ public class BackgroundServiceImpl implements BackgroundService {
 
 	// 배경 사진의 정보, 사용자와 배경 사진의 관계를 DB에 저장
 	private void saveBackgroundToDB(Long userId, String backgroundUrl, String fileName) throws BaseException {
-		// 데이터베이스에 저장
-		Background background = Background.builder()
-				.backgroundTitle(fileName)
-				.backgroundUrl(backgroundUrl)
-				.build();
-		backgroundRepository.save(background);
+		try {
+			// 데이터베이스에 저장
+			Background background = Background.builder()
+					.backgroundTitle(fileName)
+					.backgroundUrl(backgroundUrl)
+					.build();
+			backgroundRepository.save(background);
 
-		// Background와 User의 관계 저장
-		User user = userRepository.findById(userId)
-				.orElseThrow(() -> new BaseException(NOT_FOUND_USER));
+			// Background와 User의 관계 저장
+			User user = userRepository.findById(userId)
+					.orElseThrow(() -> new BaseException(NOT_FOUND_USER));
 
-		BackgroundUser backgroundUser = BackgroundUser.builder()
-				.background(background)
-				.user(user)
-				.build();
-		backgroundUserRepository.save(backgroundUser);
+			BackgroundUser backgroundUser = BackgroundUser.builder()
+					.background(background)
+					.user(user)
+					.build();
+			backgroundUserRepository.save(backgroundUser);
+	    } catch (Exception e) {
+			throw new BaseException(DATABASE_ERROR);
+		}
 	}
 
 	// 배경 사진을 DB에서 삭제

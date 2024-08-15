@@ -3,6 +3,7 @@ import WhiteBoardComp from '@/components/common/WhiteBoardComp.vue';
 import BoothBack from '@/components/booth/BoothBackComp.vue';
 import ChatModal from '@/components/chat/ChatModal.vue';
 
+import InitializationService from '@/assets/js/showView/InitializationService';
 import PhotoService from '@/assets/js/showView/PhotoService';
 import WebSocketService from '@/services/WebSocketService';
 
@@ -46,11 +47,11 @@ const isHost = computed(() => {
 });
 
 const toggleChat = () => {
-	isChatOpen.value = !isChatOpen.value;
+    isChatOpen.value = !isChatOpen.value;
 };
 
 const navigateTo = (path) => {
-	router.push({ name: path });
+    router.push({ name: path });
 };
 
 const bgImage = computed(() => boothStore.bgImage);
@@ -58,41 +59,41 @@ const bgImage = computed(() => boothStore.bgImage);
 const showtype = ref(1);
 
 const changeComponent = () => {
-	showtype.value = showtype.value === 1 ? 2 : 1;
-	navigateTo(showtype.value === 1 ? 'background' : 'showphoto');
-	console.log('컴포넌트 변경:', showtype.value === 1 ? '배경 선택' : '사진 보기');
+    showtype.value = showtype.value === 1 ? 2 : 1;
+    navigateTo(showtype.value === 1 ? 'background' : 'showphoto');
+    console.log('컴포넌트 변경:', showtype.value === 1 ? '배경 선택' : '사진 보기');
 };
 
 const showControls = ref(false);
 
 const toggleControls = () => {
-	showControls.value = !showControls.value;
+    showControls.value = !showControls.value;
 };
 
 const handleControlClick = (event) => {
-	event.stopPropagation();
+    event.stopPropagation();
 };
 
 const boothActions = {
-	changeImage: async (image) => {
-		try {
-			await WebSocketService.send({
-				type: 'change_background',
-				boothId: route.params.boothId,
-				backgroundImage: image,
-			});
-			boothStore.setBgImage(image);
-		} catch (error) {
-			console.error('Failed to change background:', error);
-		}
-	},
-	images: () => PhotoService.images,
+    changeImage: async (image) => {
+        try {
+            await WebSocketService.send({
+                type: 'change_background',
+                boothId: route.params.boothId,
+                backgroundImage: image,
+            });
+            boothStore.setBgImage(image);
+        } catch (error) {
+            console.error('Failed to change background:', error);
+        }
+    },
+    images: () => PhotoService.images,
 };
 
 provide('boothActions', boothActions);
 
 const changeImage = async (image) => {
-	await boothActions.changeImage(image);
+    await boothActions.changeImage(image);
 };
 
 const takePhoto = async () => {
@@ -184,10 +185,10 @@ onMounted(() => {
 		}
 	});
 
-	WebSocketService.setBoothStore(boothStore);
-	WebSocketService.on('background_info', (message) => {
-		boothStore.setBgImage(message.backgroundImage);
-	});
+    WebSocketService.setBoothStore(boothStore);
+    WebSocketService.on('background_info', (message) => {
+        boothStore.setBgImage(message.backgroundImage);
+    });
 });
 </script>
 
@@ -207,31 +208,31 @@ onMounted(() => {
 				</div>
 			</div>
 
-			<div class="booth-content-main">
-				<BoothBack class="booth-camera-box">
-					<div
-						ref="captureArea"
-						:style="{ backgroundImage: `url(${bgImage})` }"
-						class="photo-zone"
-						@focus="handleFocus"
-						@blur="handleBlur"
-						tabindex="0"
-					>
-						<div class="video-container">
-							<!-- 로컬 비디오 스트림 -->
-							<div
-								v-if="publisher"
-								class="stream-container"
-							>
-								<h3>Me</h3>
-								<video
-									ref="myVideo"
-									autoplay
-									muted
-									playsinline
-									class="mirrored-video"
-								></video>
-							</div>
+            <div class="booth-content-main">
+                <BoothBack class="booth-camera-box">
+                    <div
+                        ref="captureArea"
+                        :style="{ backgroundImage: `url(${bgImage})` }"
+                        class="photo-zone"
+                        @focus="handleFocus"
+                        @blur="handleBlur"
+                        tabindex="0"
+                    >
+                        <div class="video-container">
+                            <!-- 로컬 비디오 스트림 -->
+                            <div
+                                v-if="publisher"
+                                class="stream-container"
+                            >
+                                <h3>Me</h3>
+                                <video
+                                    ref="myVideo"
+                                    autoplay
+                                    muted
+                                    playsinline
+                                    class="mirrored-video"
+                                ></video>
+                            </div>
 
 							<!-- 원격 참가자 비디오 스트림 -->
 							<div
@@ -361,22 +362,22 @@ onMounted(() => {
 @import url('@/assets/css/shootView.css');
 
 .video-container {
-	display: flex;
-	flex-wrap: wrap;
-	justify-content: center;
-	gap: 20px;
-	margin-top: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 20px;
 }
 
 .stream-container {
-	width: 320px;
+    width: 320px;
 }
 
 video {
-	width: 100%;
-	height: auto;
-	border: 1px dashed #ccc;
-	border-radius: 8px;
+    width: 100%;
+    height: auto;
+    border: 1px dashed #ccc;
+    border-radius: 8px;
 }
 
 .chat-icon {
@@ -408,10 +409,10 @@ video {
 }
 
 canvas {
-	width: 100%;
-	height: auto;
-	border: 1px solid #ccc;
-	border-radius: 8px;
+    width: 100%;
+    height: auto;
+    border: 1px solid #ccc;
+    border-radius: 8px;
 }
 
 .mirrored-video {

@@ -1,9 +1,10 @@
 package com.ssafy.picple.domain.user.service;
 
-import static com.ssafy.picple.config.baseResponse.BaseResponseStatus.*;
+import static com.ssafy.picple.config.baseresponse.BaseResponseStatus.*;
 
 import java.util.Random;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
@@ -11,7 +12,7 @@ import org.thymeleaf.context.Context;
 import org.thymeleaf.templatemode.TemplateMode;
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 
-import com.ssafy.picple.config.baseResponse.BaseException;
+import com.ssafy.picple.config.baseresponse.BaseException;
 import com.ssafy.picple.util.RedisUtil;
 
 import jakarta.mail.MessagingException;
@@ -24,7 +25,9 @@ public class EmailServiceImpl implements EmailService {
 
 	private final JavaMailSender javaMailSender;
 	private final RedisUtil redisUtil;
-	private static final String senderEmail = "kodd11021@gmail.com";
+
+	@Value("${spring.mail.username}")
+	private static String senderEmail;
 
 	// TODO: 수정 필요
 	// 인증코드 이메일 발송

@@ -1,7 +1,8 @@
 package com.ssafy.picple.domain.user.controller;
 
-import static com.ssafy.picple.config.baseResponse.BaseResponseStatus.*;
+import static com.ssafy.picple.config.baseresponse.BaseResponseStatus.*;
 
+import com.ssafy.picple.domain.user.dto.request.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,14 +12,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.ssafy.picple.config.baseResponse.BaseException;
-import com.ssafy.picple.config.baseResponse.BaseResponse;
-import com.ssafy.picple.config.baseResponse.BaseResponseStatus;
-import com.ssafy.picple.domain.user.dto.request.EmailCheckRequest;
-import com.ssafy.picple.domain.user.dto.request.EmailRequest;
-import com.ssafy.picple.domain.user.dto.request.LoginRequest;
-import com.ssafy.picple.domain.user.dto.request.ModifyNicknameRequest;
-import com.ssafy.picple.domain.user.dto.request.ModifyPasswordRequest;
+import com.ssafy.picple.config.baseresponse.BaseException;
+import com.ssafy.picple.config.baseresponse.BaseResponse;
+import com.ssafy.picple.config.baseresponse.BaseResponseStatus;
 import com.ssafy.picple.domain.user.dto.response.LoginResponse;
 import com.ssafy.picple.domain.user.dto.response.ModifyConfirmResponse;
 import com.ssafy.picple.domain.user.dto.response.UserInfoResponse;
@@ -120,8 +116,7 @@ public class UserController {
         if (emailDto.getEmail() == null || emailDto.getEmail().trim().isEmpty()) {
             throw new BaseException(USER_EMAIL_EMPTY);
         }
-        emailService.sendEmail(emailDto.getEmail());
-        return new BaseResponse<>(null);
+        return new BaseResponse<>(emailService.sendEmail(emailDto.getEmail()));
     }
 
 	/**
@@ -167,7 +162,21 @@ public class UserController {
 		return new BaseResponse<>(userService.modifyUserPassword(userId, modifyPasswordRequest));
 	}
 
-    /**
+	/**
+	 * Password 재설정 (비밀번호 찾기)
+	 * @param resetPasswordRequest
+	 * @return
+	 * @throws BaseException
+	 */
+	@PatchMapping("/reset-password")
+	public BaseResponse<BaseResponseStatus> resetPassword(@RequestBody ResetPasswordRequest resetPasswordRequest) throws BaseException {
+		return new BaseResponse<>(userService.resetPassword(
+				resetPasswordRequest.getEmail(),
+				resetPasswordRequest.getPassword()
+		));
+	}
+
+	/**
      * 로그아웃
      * @param request, response
      * @return BaseResponse
@@ -185,6 +194,8 @@ public class UserController {
 
         Cookie cookie = new Cookie("refreshToken", null);
         cookie.setMaxAge(0);
+		cookie.setDomain(domain);
+		cookie.setHttpOnly(true);
         cookie.setPath("/");
         response.addCookie(cookie);
 

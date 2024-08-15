@@ -14,8 +14,8 @@ public class WebConfig implements WebMvcConfigurer {
 
     private final JWTInterceptor jwtInterceptor;
 
-    @Value("${cors.allowed.origins}")
-    private String[] allowOrigins;
+    // @Value("${cors.allowed.origins}")
+    // private String[] allowOrigins;
 
     // jwt interceptor
     @Override
@@ -29,7 +29,7 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins(allowOrigins)
+                .allowedOrigins("https://i11a503.p.ssafy.io")
                 .allowCredentials(true)
                 .allowedMethods("OPTIONS", "GET", "POST", "PUT", "DELETE", "PATCH")
                 .maxAge(1800);

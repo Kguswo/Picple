@@ -42,7 +42,7 @@ public class User extends BaseTimeEntity {
 	@Column(nullable = false, columnDefinition = "TINYINT(1) DEFAULT 0")
 	private boolean isDeleted;
 
-	@Column(length = 250)
+	@Column(length = 512)
 	private String refreshToken;
 
 	@Builder

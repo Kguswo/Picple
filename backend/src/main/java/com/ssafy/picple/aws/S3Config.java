@@ -1,4 +1,4 @@
-package com.ssafy.picple.AwsS3;
+package com.ssafy.picple.aws;
 
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
