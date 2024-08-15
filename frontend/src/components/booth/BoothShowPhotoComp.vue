@@ -55,6 +55,13 @@ const closeModal = () => {
                 @click="showImage(img)"
                 alt="myPhoto"
             />
+            <!-- images가 비어 있을 때 표시되는 문구 -->
+            <p
+                v-if="!images || images.length === 0"
+                class="no-images-text"
+            >
+                사진 촬영을 해보세요!
+            </p>
         </div>
     </div>
 
@@ -204,5 +211,14 @@ const closeModal = () => {
 .action-button:hover {
     background-color: #5da39a;
     transform: translateY(-2px);
+}
+
+.no-images-text {
+    text-align: center;
+    font-size: 18px;
+    color: #000000bd;
+    margin-right: 20px;
+    margin-top: 10px;
+    width: 100%;
 }
 </style>
