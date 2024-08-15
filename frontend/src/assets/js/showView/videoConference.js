@@ -72,7 +72,7 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
             }
         });
 
-        session.on('connectionDestroyed', (event) => {
+        session.value.on('connectionDestroyed', (event) => {
             removeSubscriber(event.stream.streamId);
         });
 
