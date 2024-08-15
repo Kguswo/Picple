@@ -215,6 +215,7 @@ const toggleSort = (criteria) => {
 	line-height: 35px;
 	cursor: pointer;
 	font-size: 15px;
+	cursor: url('@/assets/img/app/hoverCursorIcon.png') 5 5, pointer !important;
 }
 
 .form-button-small {
@@ -228,7 +229,7 @@ const toggleSort = (criteria) => {
 	font-size: 15px;
 	background-color: #62abd9;
 	color: white;
-	cursor: pointer;
+	cursor: url('@/assets/img/app/hoverCursorIcon.png') 5 5, pointer !important;
 
 	&:active {
 		transform: translateY(-40%);
@@ -247,6 +248,7 @@ const toggleSort = (criteria) => {
 		color: black;
 		transition: background-color 0.3s ease;
 		cursor: pointer;
+		cursor: url('@/assets/img/app/hoverCursorIcon.png') 5 5, pointer !important;
 
 		&:hover {
 			background-color: rgb(98, 171, 217, 0.5);
