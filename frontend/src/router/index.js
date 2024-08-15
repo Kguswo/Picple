@@ -170,7 +170,8 @@ router.beforeEach(async (to, from) => {
 	}
 
 	if (
-		(to.name === 'background' && from.name !== 'createbooth') ||
+		(to.name === 'background' && from.name !== 'createbooth' && from.name !== 'showphoto') ||
+		(to.name === 'showphoto' && from.name !== 'background') ||
 		(to.name === 'selectTemp' && from.name !== 'background' && from.name !== 'showphoto')
 	) {
 		await alertResult(false, '새로고침 시 부스에 재입장해야 합니다.');
