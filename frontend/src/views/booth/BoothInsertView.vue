@@ -203,7 +203,6 @@ onMounted(() => {
 });
 </script>
 
-죄송합니다. BoothInsertView.vue의 나머지 부분을 이어서 제공하겠습니다: vueCopy
 <template>
 	<WhiteBoardComp class="whiteboard-area-booth">
 		<div class="booth-content">
@@ -383,7 +382,7 @@ onMounted(() => {
 
 .save-button {
 	padding: 10px 20px;
-	background-color: #4caf50;
+	background-color: #7bd9dc;
 	color: white;
 	border: none;
 	border-radius: 5px;
@@ -392,7 +391,7 @@ onMounted(() => {
 }
 
 .save-button:hover {
-	background-color: #45a049;
+	background-color: #44c7cc;
 }
 
 .captured-images {

@@ -1,18 +1,19 @@
 .select-text-box {
     display: flex;
-    height: 85%;
+    height: 95%;
     width: 90%;
     flex-direction: column;
     align-items: center;
 }
 
 .select-box-top {
-    height: 15%;
+    height: 10%;
     width: 85%;
-
     display: flex;
     justify-content: space-between;
     align-items: center;
+    margin-top: 5%;
+
     button {
         background: transparent;
         border: none;
@@ -25,10 +26,11 @@
         }
     }
 }
+
 .booth-content {
     display: flex;
     flex-direction: column;
-    justify-content: space-evenly;
+    justify-content: flex-end;
     align-items: center;
 
     width: 100%;
@@ -41,6 +43,14 @@
     align-items: center;
     font-size: 30px;
     justify-content: space-between;
+    
+    .booth-code {
+		margin-right: 200px;
+	}
+
+    .remaining-pics {
+		margin-left: 58%;
+	}
 
     .close-btn {
         padding: 5px;
@@ -59,11 +69,11 @@
     align-content: center;
     justify-content: space-evenly;
     width: 100%;
-    height: 95%;
+    height: 91%;
 
     .photo-zone {
         justify-content: center;
-        width: 95%;
+        width: 98%;
         height: 87%;
         border-radius: 20px;
         background-size: cover;
@@ -116,12 +126,11 @@
     }
 
     .create-btn {
-        height: 10%;
-        width: 90%;
+        width: 98%;
         display: flex;
         flex-wrap: wrap;
         justify-content: space-between;
-        align-content: flex-end;
+
         align-items: center;
         .left-btn {
             display: flex;
@@ -142,53 +151,84 @@
             border-radius: 50%;
             width: 50px;
             height: 50px;
-            line-height: 50px;
-            padding: 5px;
+            padding: 10px;
             display: flex;
             justify-content: center;
             align-items: center;
-            margin: 0 5px;
-            border: none;
-            background-color: transparent;
-            cursor: pointer;
+            margin: 0 10px;
+            background-color: #7bd9dc;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease, background-color 0.2s ease;
         }
+
+        .circle-btn img {
+            width: 24px;
+            height: 24px;
+        }
+
+        .circle-btn:hover {
+            transform: scale(1.1);
+            background-color: #44c7cc;
+        }
+
         .take-photo {
-            border: none;
+            border: 1px solid #ffffff;
             border-radius: 50%;
             width: 50px;
             height: 50px;
-            line-height: 50px;
-            padding: 5px;
+            padding: 10px;
             display: flex;
             justify-content: center;
             align-items: center;
-            margin: 0 5px;
-            border: 0.3px solid black;
-            background-color: transparent;
+            margin: 0 15px;
+            background-color: #3498db;
             cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+        }
 
-            &:hover {
-                background-color: rgb(203, 203, 203);
-            }
-            &:active {
-                background-color: rgb(90, 90, 90);
-            }
+        .take-photo img {
+            width: 30px;
+            height: 30px;
+            filter: brightness(0) invert(1);
+        }
+
+        .take-photo:hover {
+            transform: scale(1.15);
+            background-color: #2980b9;
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .take-photo:active {
+            transform: scale(1.05);
+            background-color: #1f6f9f;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
     }
 }
 
 .ract-btn {
     border: none;
-    border-radius: 10px;
-    width: 100px;
-    height: 36px;
+    border-radius: 20px;
+    width: 110px;
+    height: 40px;
     margin: 5px;
-    padding: 5px;
-
-    &:hover {
-        background-color: rgb(136, 136, 136);
-    }
+    padding: 10px;
+    background-color: #f7a1a1;
+    color: white;
+    font-size: 16px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s ease, transform 0.2s ease;
 }
+
+.ract-btn:hover {
+    background-color: #f58080;
+    transform: scale(1.05);
+}
+
 .timer-modal {
     box-shadow: none;
     border: none;

@@ -3,25 +3,73 @@ import WhiteBoardComp from '@/components/common/WhiteBoardComp.vue';
 import BoardPhotoComp from '@/components/board/BoardPhotoComp.vue';
 import Page from '@/components/common/PageComp.vue';
 import { onMounted, ref } from 'vue';
-import { boardListApi, boardSortApi } from '@/api/boardApi';
+import { boardListApi } from '@/api/boardApi';
 import { alertResult } from '@/api/baseApi';
+import { debounce } from '@/assets/js/util';
 
 const boardList = ref([]);
-const sortArrow = ref('');
-const prevCriteria = ref('');
+const sortArrow = ref('↓');
+const prevCriteria = ref('createdAt');
+const prevNickname = ref('');
 const nickname = ref('');
+const paging = ref({
+	page: 0,
+	size: 20,
+	sort: 'createdAt,desc',
+});
+const isLoading = ref(true);
+const debounceTimer = ref(0);
 
 onMounted(() => {
-	getBoardList();
+	debounce(debounceTimer, getBoardList, 1000)();
 });
 
+const getNextBoards = async () => {
+	++paging.value.page;
+	isLoading.value = true;
+	debounce(debounceTimer, getBoardList, 2000)();
+};
+
 const getBoardList = async () => {
-	const { data } = await boardListApi();
+	const { data } = await boardListApi(prevNickname.value, paging.value);
 	if (!data.isSuccess) {
 		await alertResult(false, '게시판 조회에 실패하였습니다.');
 		return;
 	}
-	boardList.value = data.result;
+	boardList.value = boardList.value.concat(data.result);
+	isLoading.value = false;
+};
+
+const sortBoards = async (criteria) => {
+	if (isLoading.value) {
+		return;
+	}
+	paging.value.page = 0;
+	boardList.value = [];
+	if (prevCriteria.value !== criteria || sortArrow.value === '↑') {
+		paging.value.sort = `${criteria},desc`;
+	} else {
+		paging.value.sort = `${criteria},asc`;
+	}
+	isLoading.value = true;
+	debounce(debounceTimer, getBoardList, 1000)();
+	toggleSort(criteria);
+};
+
+const searchByNickname = async () => {
+	if (isLoading.value || prevNickname.value === nickname.value) {
+		return;
+	}
+
+	sortArrow.value = '↓';
+	prevCriteria.value = 'createdAt';
+	paging.value.page = 0;
+	paging.value.sort = 'createdAt,desc';
+	boardList.value = [];
+
+	isLoading.value = true;
+	prevNickname.value = nickname.value;
+	debounce(debounceTimer, getBoardList, 1000)();
 };
 
 const toggleSort = (criteria) => {
@@ -36,37 +84,6 @@ const toggleSort = (criteria) => {
 
 	sortArrow.value = '↓';
 	prevCriteria.value = criteria;
-};
-
-const sortBoards = async (criteria) => {
-	const { data } = await boardSortApi(
-		nickname.value,
-		criteria,
-		prevCriteria.value !== criteria || sortArrow.value !== '↓' ? false : true,
-	);
-	if (!data.isSuccess) {
-		await alertResult(false, '게시글 정렬에 실패하였습니다.');
-		return;
-	}
-	boardList.value = data.result;
-	toggleSort(criteria);
-};
-
-const searchByNickname = async () => {
-	sortArrow.value = '';
-	prevCriteria.value = '';
-
-	if (!nickname.value) {
-		await getBoardList();
-		return;
-	}
-
-	const { data } = await boardSortApi(nickname.value, 'createdAt', false);
-	if (!data.isSuccess) {
-		await alertResult(false, '사용자 검색에 실패하였습니다.');
-		return;
-	}
-	boardList.value = data.result;
 };
 </script>
 
@@ -116,17 +133,29 @@ const searchByNickname = async () => {
 
 				<div class="board">
 					<div
-						v-if="boardList.length === 0"
+						v-if="!isLoading && boardList.length === 0"
 						style="font-size: 50px"
 					>
 						게시글 없음
 					</div>
 					<BoardPhotoComp
 						v-else
-						v-for="board in boardList"
+						v-for="(board, index) in boardList"
 						:key="board.id"
+						:count="index + 1"
+						:paging="paging"
 						:board="board"
+						@observe="getNextBoards"
 					/>
+					<div
+						v-if="isLoading"
+						class="loading"
+					>
+						<img
+							src="@/assets/icon/모래시계.gif"
+							alt="loading..."
+						/>
+					</div>
 				</div>
 			</div>
 		</WhiteBoardComp>
@@ -186,6 +215,7 @@ const searchByNickname = async () => {
 	line-height: 35px;
 	cursor: pointer;
 	font-size: 15px;
+	cursor: url('@/assets/img/app/hoverCursorIcon.png') 5 5, pointer !important;
 }
 
 .form-button-small {
@@ -199,7 +229,12 @@ const searchByNickname = async () => {
 	font-size: 15px;
 	background-color: #62abd9;
 	color: white;
-	cursor: pointer;
+	cursor: url('@/assets/img/app/hoverCursorIcon.png') 5 5, pointer !important;
+
+	&:active {
+		transform: translateY(-40%);
+		transition: transform 0.3s ease;
+	}
 }
 
 .button-group {
@@ -213,6 +248,7 @@ const searchByNickname = async () => {
 		color: black;
 		transition: background-color 0.3s ease;
 		cursor: pointer;
+		cursor: url('@/assets/img/app/hoverCursorIcon.png') 5 5, pointer !important;
 
 		&:hover {
 			background-color: rgb(98, 171, 217, 0.5);
@@ -240,5 +276,18 @@ const searchByNickname = async () => {
 	align-items: center;
 
 	overflow: scroll;
+
+	&::-webkit-scrollbar {
+		width: 8px;
+	}
+
+	&::-webkit-scrollbar-thumb {
+		background: #888; /* Scrollbar color */
+		border-radius: 10px;
+	}
+
+	&::-webkit-scrollbar-thumb:hover {
+		background: #555;
+	}
 }
 </style>

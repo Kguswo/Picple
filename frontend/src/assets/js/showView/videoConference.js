@@ -1,15 +1,19 @@
 import { OpenVidu } from 'openvidu-browser';
 import { nextTick } from 'vue';
 import VideoBackgroundRemoval from '@/assets/js/showView/VideoBackgroundRemoval';
+import { SelfieSegmentation } from '@mediapipe/selfie_segmentation';
+import { Camera } from '@mediapipe/camera_utils';
+import { storeToRefs } from 'pinia';
 
 const OPENVIDU_SERVER_URL = import.meta.env.VITE_API_OPENVIDU_SERVER;
 const OPENVIDU_SERVER_SECRET = import.meta.env.VITE_OPENVIDU_SERVER_SECRET;
 
 let selfieSegmentation;
 
-export const joinExistingSession = async (session, publisher, subscribers, myVideo, sessionId, boothStore, addSubscriber, removeSubscriber) => {
-    try {
-        const sessionInfo = boothStore.getSessionInfo();
+export const joinExistingSession = async (publisher, subscribers, myVideo, boothStore) => {
+	try {
+		const sessionInfo = boothStore.getSessionInfo();
+		const session = storeToRefs(boothStore);
 
         if (!sessionInfo || !sessionInfo.sessionId || !sessionInfo.token) {
             throw new Error('세션 정보가 없습니다.');
@@ -148,12 +152,16 @@ const applySegmentation = (streamRef) => {
         const videoTrack = videoStream.getVideoTracks()[0];
         const originalStream = actualStreamRef.stream.getMediaStream();
 
-        if (originalStream.getVideoTracks().length > 0) {
-            originalStream.removeTrack(originalStream.getVideoTracks()[0]);
-        }
+		if (originalStream && originalStream.getVideoTracks().length > 0) {
+			originalStream.removeTrack(originalStream.getVideoTracks()[0]);
+		}
 
-        originalStream.addTrack(videoTrack);
-    };
+		if (originalStream) {
+			originalStream.addTrack(videoTrack);
+		} else {
+			console.error('originalStream is undefined or null');
+		}
+	};
 
     selfieSegmentation.onResults(onResults);
 

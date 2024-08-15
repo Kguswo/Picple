@@ -1,5 +1,6 @@
 <script setup>
 import { onMounted, ref } from 'vue';
+import ZoomableImage from '../zoomableImage/ZoomableImage.vue';
 
 const props = defineProps({
 	board: Object,
@@ -91,11 +92,9 @@ const formatDate = (dateString) => {
 			<div class="modal-body">
 				<div class="photo-container">
 					<div class="modal-img">
-						<img
+						<ZoomableImage
 							:src="board.photoUrl"
 							alt="사진없음"
-							@contextmenu.prevent
-							@dragstart.prevent
 						/>
 						<div class="modal-text">
 							<span class="modal-date">작성일 {{ formatDate(board.createdAt) }}</span>
@@ -121,7 +120,7 @@ const formatDate = (dateString) => {
 .modal-img {
 	img {
 		height: 95%;
-		width: 100%;
+		width: auto;
 	}
 }
 
@@ -137,5 +136,38 @@ const formatDate = (dateString) => {
 
 .button-delete {
 	background-color: none;
+}
+
+.dropdown {
+	position: relative;
+	z-index: 10;
+	cursor: url('@/assets/img/app/hoverCursorIcon.png') 5 5, pointer !important;
+}
+
+.dropdown-contnet {
+	position: absolute;
+	right: 0;
+	background-color: #f9f9f9;
+	min-width: 160px;
+	box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+	z-index: 11;
+	display: none;
+	cursor: url('@/assets/img/app/hoverCursorIcon.png') 5 5, pointer !important;
+}
+
+.dropdown-icon {
+	cursor: url('@/assets/img/app/hoverCursorIcon.png') 5 5, pointer !important;
+}
+
+.dropdown-content button {
+	cursor: url('@/assets/img/app/hoverCursorIcon.png') 5 5, pointer !important;
+}
+
+.dropdown-show {
+	display: block;
+}
+
+.close {
+	cursor: url('@/assets/img/app/hoverCursorIcon.png') 5 5, pointer !important;
 }
 </style>
