@@ -1,19 +1,17 @@
 import { OpenVidu } from 'openvidu-browser';
 import { nextTick } from 'vue';
 import VideoBackgroundRemoval from '@/assets/js/showView/VideoBackgroundRemoval';
-import { SelfieSegmentation } from '@mediapipe/selfie_segmentation';
-import { Camera } from '@mediapipe/camera_utils';
 import { storeToRefs } from 'pinia';
 
 const OPENVIDU_SERVER_URL = import.meta.env.VITE_API_OPENVIDU_SERVER;
 const OPENVIDU_SERVER_SECRET = import.meta.env.VITE_OPENVIDU_SERVER_SECRET;
 
-let selfieSegmentation;
+let videoBackgroundRemoval;
 
 export const joinExistingSession = async (publisher, subscribers, myVideo, boothStore, addSubscriber, removeSubscriber) => {
-	try {
-		const sessionInfo = boothStore.getSessionInfo();
-		const session = storeToRefs(boothStore);
+    try {
+        const sessionInfo = boothStore.getSessionInfo();
+        const session = storeToRefs(boothStore);
 
         if (!sessionInfo || !sessionInfo.sessionId || !sessionInfo.token) {
             throw new Error('세션 정보가 없습니다.');
@@ -115,7 +113,7 @@ export const joinExistingSession = async (publisher, subscribers, myVideo, booth
     }
 };
 
-const applySegmentation = (streamRef) => {
+const applySegmentation = async (streamRef) => {
     const actualStreamRef = streamRef.value || streamRef;
 
     if (!actualStreamRef || !actualStreamRef.stream) return;
@@ -127,53 +125,39 @@ const applySegmentation = (streamRef) => {
     const videoElement = document.createElement('video');
     videoElement.srcObject = mediaStream;
 
-    selfieSegmentation = new window.SelfieSegmentation({
-        locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file}`,
+    await new Promise((resolve) => {
+        videoElement.onloadedmetadata = () => {
+            resolve();
+        };
     });
 
-    selfieSegmentation.setOptions({
-        modelSelection: 1,
-    });
+    const canvasElement = document.createElement('canvas');
+    canvasElement.width = videoElement.videoWidth;
+    canvasElement.height = videoElement.videoHeight;
 
-    const onResults = (results) => {
-        const canvasElement = document.createElement('canvas');
-        const canvasCtx = canvasElement.getContext('2d');
-
-        canvasElement.width = results.image.width;
-        canvasElement.height = results.image.height;
-
-        canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-        canvasCtx.drawImage(results.segmentationMask, 0, 0, canvasElement.width, canvasElement.height);
-
-        canvasCtx.globalCompositeOperation = 'source-in';
-        canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+    try {
+        if (!videoBackgroundRemoval) {
+            videoBackgroundRemoval = new VideoBackgroundRemoval();
+            await videoBackgroundRemoval.initialize();
+        }
+        videoBackgroundRemoval.startProcessing(videoElement, canvasElement);
 
         const videoStream = canvasElement.captureStream(30);
         const videoTrack = videoStream.getVideoTracks()[0];
         const originalStream = actualStreamRef.stream.getMediaStream();
 
-		if (originalStream && originalStream.getVideoTracks().length > 0) {
-			originalStream.removeTrack(originalStream.getVideoTracks()[0]);
-		}
+        if (originalStream && originalStream.getVideoTracks().length > 0) {
+            originalStream.removeTrack(originalStream.getVideoTracks()[0]);
+        }
 
-		if (originalStream) {
-			originalStream.addTrack(videoTrack);
-		} else {
-			console.error('originalStream is undefined or null');
-		}
-	};
-
-    selfieSegmentation.onResults(onResults);
-
-    const camera = new window.Camera(videoElement, {
-        onFrame: async () => {
-            await selfieSegmentation.send({ image: videoElement });
-        },
-        width: 640,
-        height: 480,
-    });
-
-    camera.start();
+        if (originalStream) {
+            originalStream.addTrack(videoTrack);
+        } else {
+            console.error('originalStream is undefined or null');
+        }
+    } catch (error) {
+        console.error('배경 제거 처리 중 오류 발생:', error);
+    }
 };
 
 const initializeBackgroundRemoval = async (videoElement, canvasElement) => {
