@@ -1,8 +1,6 @@
 import { OpenVidu } from 'openvidu-browser';
 import { nextTick } from 'vue';
 import VideoBackgroundRemoval from '@/assets/js/showView/VideoBackgroundRemoval';
-import { SelfieSegmentation } from '@mediapipe/selfie_segmentation';
-import { Camera } from '@mediapipe/camera_utils';
 import { storeToRefs } from 'pinia';
 
 const OPENVIDU_SERVER_URL = import.meta.env.VITE_API_OPENVIDU_SERVER;
@@ -56,7 +54,6 @@ export const joinExistingSession = async (publisher, subscribers, myVideo, booth
 
         session.value.on('streamCreated', async ({ stream }) => {
             const subscriber = await session.value.subscribe(stream);
-            addSubscriber(subscriber);
             subscribers.value.push({ subscriber });
 
             nextTick(async () => {
@@ -70,7 +67,6 @@ export const joinExistingSession = async (publisher, subscribers, myVideo, booth
 
         session.value.on('streamDestroyed', ({ stream }) => {
             const index = subscribers.value.findIndex((sub) => sub.stream.streamId === stream.streamId);
-            removeSubscriber(stream.streamId);
             if (index >= 0) {
                 subscribers.value.splice(index, 1);
             }
