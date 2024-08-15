@@ -145,19 +145,21 @@ export default class VideoBackgroundRemoval {
   }
 
   async processVideo(videoElement, canvasElement) {
-    if (!videoElement || !canvasElement) return;
-
+    if (!videoElement || !canvasElement) {
+      console.error('비디오 또는 캔버스 요소가 없음');
+      return;
+    }
+  
     if (videoElement.videoWidth === 0 || videoElement.videoHeight === 0) {
       console.warn('비디오 크기가 0입니다. 다음 프레임에서 재시도합니다.');
       requestAnimationFrame(() => this.processVideo(videoElement, canvasElement));
       return;
     }
-
-    canvasElement.width = videoElement.videoWidth;
-    canvasElement.height = videoElement.videoHeight;
-
+  
+    console.log('프레임 처리 시작');
     await this.selfieSegmentation.send({ image: videoElement });
-
+    console.log('프레임 처리 완료');
+  
     requestAnimationFrame(() => this.processVideo(videoElement, canvasElement));
   }
 

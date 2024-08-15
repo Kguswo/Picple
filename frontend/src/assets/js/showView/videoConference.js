@@ -7,6 +7,26 @@ const OPENVIDU_SERVER_SECRET = import.meta.env.VITE_OPENVIDU_SERVER_SECRET;
 
 let selfieSegmentation;
 
+export async function waitForVideoSize(videoElement, maxAttempts = 10, interval = 500) {
+    return new Promise((resolve, reject) => {
+      let attempts = 0;
+      const checkSize = () => {
+        attempts++;
+        if (videoElement.videoWidth > 0 && videoElement.videoHeight > 0) {
+          console.log(`비디오 크기 확인됨: ${videoElement.videoWidth}x${videoElement.videoHeight}`);
+          resolve();
+        } else if (attempts >= maxAttempts) {
+          console.error('최대 시도 횟수 초과: 비디오 크기를 확인할 수 없음');
+          reject(new Error('비디오 크기를 확인할 수 없음'));
+        } else {
+          console.log(`비디오 크기 대기 중... 시도: ${attempts}`);
+          setTimeout(checkSize, interval);
+        }
+      };
+      checkSize();
+    });
+  }
+
 export const joinExistingSession = async (session, publisher, subscribers, myVideo, sessionId, boothStore) => {
   try {
     const sessionInfo = boothStore.getSessionInfo();
@@ -63,16 +83,14 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
       const canvasElement = document.getElementById( `canvas-${event.stream.streamId}`);
 
       if (videoElement && canvasElement) {
-        console.log(`비디오 및 캔버스 요소 찾음: ${event.stream.streamId}`);
-        console.log(`배경 제거 초기화 시작: ${event.stream.streamId}`);
-        const backgroundRemoval = new VideoBackgroundRemoval();
         try {
+          await waitForVideoSize(videoElement);
+          console.log(`비디오 크기 확인 완료: ${event.stream.streamId}`);
+          const backgroundRemoval = new VideoBackgroundRemoval();
           await backgroundRemoval.initialize();
-          console.log(`배경 제거 초기화 완료: ${event.stream.streamId}`);
           backgroundRemoval.startProcessing(videoElement, canvasElement);
-          console.log(`배경 제거 처리 시작됨: ${event.stream.streamId}`);
         } catch (error) {
-          console.error( `배경 제거 초기화 실패: ${event.stream.streamId}`, error);
+          console.error(`비디오 처리 실패: ${event.stream.streamId}`, error);
         }
       } else {
         console.warn(`비디오 또는 캔버스 요소를 찾을 수 없음: ${event.stream.streamId}`);

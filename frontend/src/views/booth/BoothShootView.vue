@@ -25,7 +25,7 @@ const props = defineProps({
 
 const isVideoOn = ref(false);
 const isMicroOn = ref(false);
-const isMirrored = ref(false);
+
 const videoElement = ref(null);
 const canvasElement = ref(null);
 const isChatOpen = ref(false);
@@ -35,6 +35,7 @@ const subscribers = ref([]);
 const myVideo = ref(null);
 
 const boothStore = useBoothStore();
+const isCreator = ref(false);
 const userStore = useUserStore();
 
 const username = userStore.userNickname;
@@ -132,6 +133,20 @@ const toggleMicro = () => {
 
 // boothshoot
 onMounted(async () => {
+    const sessionInfo = boothStore.getSessionInfo();
+
+    if (sessionInfo && sessionInfo.metadata) {
+        try {
+            const metadata = JSON.parse(sessionInfo.metadata);
+            if (metadata.creatorId === userStore.userNickname) { 
+                isCreator.value = true;
+                console.log('현재 사용자가 부스 생성자입니다.');
+            }
+        } catch (error) {
+            console.error('메타데이터 파싱 중 오류 발생:', error);
+        }
+    }
+
     await joinExistingSession(session, publisher, subscribers, myVideo, sessionId, boothStore);
     console.log('세션 참가 완료');
 
