@@ -70,35 +70,22 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
 
     session.value = OV.initSession();
 
-    session.value.on("streamCreated", async (event) => {
+    session.value.on("streamCreated", (event) => {
         console.log(`새 스트림 생성됨: ${event.stream.streamId}`);
         const subscriber = session.value.subscribe(event.stream, undefined);
         subscribers.value.push({ stream: event.stream, subscriber: subscriber });
         console.log(`구독자 목록에 새 구독자 추가됨: ${event.stream.streamId}`);
-
-        await nextTick();
-        console.log(`DOM 업데이트 대기 후 비디오 요소 찾기 시작: ${event.stream.streamId}`);
-        const videoElement = document.getElementById(`video-${event.stream.streamId}`);
-        const canvasElement = document.getElementById(`canvas-${event.stream.streamId}`);
-
-        if (videoElement && canvasElement) {
-            try {
-            const { width, height } = await waitForVideoSize(videoElement);
-            console.log(`비디오 크기 확인 완료: ${width}x${height}`);
-            
-            canvasElement.width = width;
-            canvasElement.height = height;
-            
-            const backgroundRemoval = new VideoBackgroundRemoval();
-            await backgroundRemoval.initialize(canvasElement);
-            backgroundRemoval.startProcessing(videoElement, canvasElement);
-            } catch (error) {
-                console.error(`비디오 처리 실패: ${event.stream.streamId}`, error);
-            }
-        } else {
-            console.warn(`비디오 또는 캔버스 요소를 찾을 수 없음: ${event.stream.streamId}`);
-        }   
-    });
+  
+        subscriber.on('videoElementCreated', (event) => {
+          console.log(`비디오 요소 생성됨: ${subscriber.stream.streamId}`);
+          const videoElement = event.element;
+          const canvasElement = document.createElement('canvas');
+          canvasElement.id = `canvas-${subscriber.stream.streamId}`;
+          videoElement.parentNode.insertBefore(canvasElement, videoElement.nextSibling);
+  
+          initializeBackgroundRemoval(videoElement, canvasElement, subscriber.stream.streamId);
+        });
+      });
 
     session.value.on("streamDestroyed", ({ stream }) => {
         const index = subscribers.value.findIndex( (sub) => sub.stream.streamId === stream.streamId);
@@ -220,31 +207,34 @@ const applySegmentation = (streamRef) => {
   camera.start();
 };
 
-const initializeBackgroundRemoval = async (videoElement, canvasElement) => {
-  if (!videoElement || !canvasElement) return;
-
-  await new Promise((resolve) => {
-    const checkVideo = () => {
-      if (
-        videoElement.readyState >= 2 &&
-        videoElement.videoWidth > 0 &&
-        videoElement.videoHeight > 0
-      ) {
+const initializeBackgroundRemoval = (videoElement, canvasElement, streamId) => {
+    const checkVideoReady = () => {
+      if (videoElement.readyState >= 2 && videoElement.videoWidth > 0 && videoElement.videoHeight > 0) {
+        console.log(`비디오 준비 완료: ${streamId}, 크기: ${videoElement.videoWidth}x${videoElement.videoHeight}`);
         canvasElement.width = videoElement.videoWidth;
         canvasElement.height = videoElement.videoHeight;
-        resolve();
+  
+        const backgroundRemoval = new VideoBackgroundRemoval();
+        backgroundRemoval.initialize(canvasElement)
+          .then(() => {
+            backgroundRemoval.startProcessing(videoElement, canvasElement);
+          })
+          .catch((error) => {
+            console.error(`배경 제거 초기화 실패: ${streamId}`, error);
+          });
       } else {
-        requestAnimationFrame(checkVideo);
+        console.log(`비디오 아직 준비되지 않음: ${streamId}, 재시도...`);
+        requestAnimationFrame(checkVideoReady);
       }
     };
-    checkVideo();
-  });
-
-  try {
-    const newBackgroundRemoval = new VideoBackgroundRemoval();
-    await newBackgroundRemoval.initialize();
-    newBackgroundRemoval.startProcessing(videoElement, canvasElement);
-  } catch (error) {
-    console.error("WebGL 배경 제거 초기화 중 오류 발생:", error);
-  }
-};
+  
+    videoElement.addEventListener('loadedmetadata', () => {
+      console.log(`비디오 메타데이터 로드됨: ${streamId}`);
+      checkVideoReady();
+    });
+  
+    // 이미 메타데이터가 로드되었을 경우를 대비
+    if (videoElement.readyState >= 1) {
+      checkVideoReady();
+    }
+  };
