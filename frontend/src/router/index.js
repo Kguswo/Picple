@@ -170,7 +170,10 @@ router.beforeEach(async (to, from) => {
 	}
 
 	if (
-		(to.name === 'background' && from.name !== 'createbooth' && from.name !== 'showphoto') ||
+		(to.name === 'background' &&
+			from.name !== 'createbooth' &&
+			from.name !== 'boothVideoTest' &&
+			from.name !== 'showphoto') ||
 		(to.name === 'showphoto' && from.name !== 'background') ||
 		(to.name === 'selectTemp' && from.name !== 'background' && from.name !== 'showphoto')
 	) {
