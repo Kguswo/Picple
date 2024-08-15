@@ -7,8 +7,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.ssafy.picple.config.baseResponse.BaseException;
-import com.ssafy.picple.config.baseResponse.BaseResponse;
+import com.ssafy.picple.config.baseresponse.BaseException;
+import com.ssafy.picple.config.baseresponse.BaseResponse;
 import com.ssafy.picple.domain.photouser.dto.request.PhotoUserRequestDto;
 import com.ssafy.picple.domain.photouser.dto.response.PhotoUserResponseDto;
 import com.ssafy.picple.domain.photouser.service.PhotoUserService;

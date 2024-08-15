@@ -1,6 +1,6 @@
-package com.ssafy.picple.config.baseResponse;
+package com.ssafy.picple.config.baseresponse;
 
-import static com.ssafy.picple.config.baseResponse.BaseResponseStatus.*;
+import static com.ssafy.picple.config.baseresponse.BaseResponseStatus.*;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;

@@ -8,8 +8,8 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.ssafy.picple.config.baseResponse.BaseException;
-import com.ssafy.picple.config.baseResponse.BaseResponse;
+import com.ssafy.picple.config.baseresponse.BaseException;
+import com.ssafy.picple.config.baseresponse.BaseResponse;
 import com.ssafy.picple.domain.photo.entity.Photo;
 import com.ssafy.picple.domain.photo.service.PhotoService;
 

@@ -27,10 +27,10 @@ public class Background {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id; // 배경 ID (PK)
 
-	@Column(nullable = false, length = 60)
+	@Column(nullable = false, length = 100)
 	private String backgroundTitle; // 배경 제목
 
-	@Column(name = "background_url", nullable = false)
+	@Column(name = "background_url", nullable = false, length = 500)
 	private String backgroundUrl;
 
 	@Column(nullable = false, columnDefinition = "TINYINT(1) DEFAULT 0")
@@ -44,7 +44,7 @@ public class Background {
 		this.backgroundTitle = backgroundTitle;
 		this.isDefault = false;
 		this.isDeleted = false;
-		this.backgroundUrl = backgroundUrl;
+		this.backgroundUrl = backgroundUrl.length() > 500 ? backgroundUrl.substring(0, 500) : backgroundUrl;
 	}
 
 	// 배경 제목 수정 메서드

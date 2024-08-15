@@ -1,4 +1,4 @@
-package com.ssafy.picple.config.baseResponse;
+package com.ssafy.picple.config.baseresponse;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

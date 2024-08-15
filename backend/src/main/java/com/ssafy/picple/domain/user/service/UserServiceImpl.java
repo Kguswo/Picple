@@ -1,7 +1,7 @@
 package com.ssafy.picple.domain.user.service;
 
-import com.ssafy.picple.config.baseResponse.BaseException;
-import com.ssafy.picple.config.baseResponse.BaseResponseStatus;
+import com.ssafy.picple.config.baseresponse.BaseException;
+import com.ssafy.picple.config.baseresponse.BaseResponseStatus;
 import com.ssafy.picple.domain.user.dto.request.LoginRequest;
 import com.ssafy.picple.domain.user.dto.request.ModifyPasswordRequest;
 import com.ssafy.picple.domain.user.dto.response.ModifyConfirmResponse;
@@ -17,7 +17,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import static com.ssafy.picple.config.baseResponse.BaseResponseStatus.*;
+import static com.ssafy.picple.config.baseresponse.BaseResponseStatus.*;
 
 @Service
 @RequiredArgsConstructor
