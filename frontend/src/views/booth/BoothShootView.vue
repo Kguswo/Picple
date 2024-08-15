@@ -118,20 +118,6 @@ const exitphoto = async () => {
 	}
 };
 
-const toggleMirror = () => {
-	isMirrored.value = !isMirrored.value;
-	const transform = isMirrored.value ? 'scaleX(-1)' : 'scaleX(1)';
-	if (videoElement.value) {
-		videoElement.value.style.transform = transform;
-	}
-	if (canvasElement.value) {
-		canvasElement.value.style.transform = transform;
-	}
-	if (myVideo.value) {
-		myVideo.value.style.transform = transform;
-	}
-};
-
 const toggleCamera = () => {
 	isVideoOn.value = !isVideoOn.value;
 	if (publisher.value) {
@@ -294,12 +280,6 @@ onMounted(() => {
 										:src="isVideoOn ? videoOn : videoOff"
 										alt="Toggle Camera"
 									/>
-								</button>
-								<button
-									class="ract-btn"
-									@click="toggleMirror"
-								>
-									반전
 								</button>
 							</div>
 
