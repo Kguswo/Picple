@@ -37,6 +37,12 @@ const username = userStore.userNickname;
 
 const sessionId = boothStore.getSessionInfo().sessionId;
 
+const isHost = computed(() => {
+  const result = boothStore.isHost;
+  console.log('Current isHost value:', result);
+  return result;
+});
+
 const toggleChat = () => {
 	isChatOpen.value = !isChatOpen.value;
 };
@@ -88,8 +94,13 @@ const changeImage = async (image) => {
 };
 
 const takePhoto = async () => {
-	console.log('takePhoto 함수 호출');
-	await PhotoService.takePhoto(sessionId);
+  console.log('Attempting to take photo. isHost:', isHost.value);
+  if (!isHost.value) {
+    console.warn('Only the host can take photos');
+    return;
+  }
+  console.log('takePhoto 함수 호출');
+  await PhotoService.takePhoto(sessionId);
 };
 
 const exitphoto = async () => {
@@ -149,6 +160,8 @@ const updateVideoDisplay = () => {
 const { remainPicCnt, images } = PhotoService;
 
 onMounted(() => {
+	console.log('BoothShootView mounted. Checking isHost:', isHost.value);
+
 	joinExistingSession(publisher, subscribers, myVideo, boothStore).then(() => {
 		if (publisher.value) {
 			isVideoOn.value = publisher.value.stream.videoActive;
@@ -259,12 +272,13 @@ onMounted(() => {
 							</div>
 
 							<button
+								v-if="isHost"  
 								@click="takePhoto"
 								class="take-photo"
 							>
 								<img
 									src="@/assets/icon/camera.png"
-									alt=""
+									alt="Take Photo"
 								/>
 							</button>
 							<div class="right-btn">

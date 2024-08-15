@@ -138,12 +138,13 @@ const handleCreateBooth = async () => {
 		const token = await createSessionAndGetToken(boothId);
 		console.log('Obtained token:', token);
 
-		boothStore.setSessionInfo({ sessionId: boothId, token });
-		console.log('Session info stored:', { sessionId: boothId, token });
+	    boothStore.setSessionInfo({ sessionId: boothId, token, isHost: true });
+    	console.log('Session info stored:', { sessionId: boothId, token, isHost: true });
 
 		router.push({ path: `/booth/${boothId}` });
 	} catch (error) {
 		console.error('Failed to create booth:', error);
+		alert('부스 생성에 실패했습니다. 다시 시도해 주세요.');
 	}
 };
 
@@ -233,6 +234,8 @@ const toggleMicro = () => {
 		track.enabled = isMicroOn.value;
 	});
 };
+
+
 </script>
 
 <template>

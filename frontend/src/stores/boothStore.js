@@ -23,10 +23,12 @@ export const useBoothStore = defineStore('booth', {
 				console.error('Invalid session info provided');
 				return;
 			}
-			this.sessionInfo = info;
-			console.log('Session info set:', info);
+			this.sessionInfo = {
+				...info,
+				isHost: info.isHost !== undefined ? info.isHost : false
+			};			console.log('Session info set:', info);
 			// 로컬 스토리지에 저장 (선택사항)
-			localStorage.setItem('boothSessionInfo', JSON.stringify(info));
+			localStorage.setItem('boothSessionInfo', JSON.stringify(this.sessionInfo));
 		},
 		getSessionInfo() {
 			if (!this.sessionInfo) {
@@ -47,4 +49,7 @@ export const useBoothStore = defineStore('booth', {
 			localStorage.removeItem('boothSessionInfo');
 		},
 	},
+	getters: {
+		isHost: (state) => state.sessionInfo?.isHost || false
+	}
 });
