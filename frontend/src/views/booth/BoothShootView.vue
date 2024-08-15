@@ -3,15 +3,14 @@ import WhiteBoardComp from '@/components/common/WhiteBoardComp.vue';
 import BoothBack from '@/components/booth/BoothBackComp.vue';
 import ChatModal from '@/components/chat/ChatModal.vue';
 
-import InitializationService from '@/assets/js/showView/InitializationService';
 import PhotoService from '@/assets/js/showView/PhotoService';
 import WebSocketService from '@/services/WebSocketService';
 
-import { ref, onMounted, onUnmounted, computed, provide } from 'vue';
+import { ref, onMounted, onUnmounted, computed, provide,nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useBoothStore } from '@/stores/boothStore';
 import { useUserStore } from '@/stores/userStore';
-import { joinExistingSession } from '@/assets/js/showView/videoConference';
+import { joinExistingSession, applySegmentation  } from '@/assets/js/showView/videoConference';
 
 import videoOn from '@/assets/icon/video_on.png';
 import videoOff from '@/assets/icon/video_off.png';
@@ -22,19 +21,14 @@ const props = defineProps({
     sessionId: String,
 });
 
-const isVideoOn = ref(false);
-const isMicroOn = ref(false);
-
-const videoElement = ref(null);
-const canvasElement = ref(null);
 const isChatOpen = ref(false);
 const session = ref(null);
 const publisher = ref(null);
 const subscribers = ref([]);
 const myVideo = ref(null);
 
+
 const boothStore = useBoothStore();
-const isCreator = ref(false);
 const userStore = useUserStore();
 
 const username = userStore.userNickname;
@@ -101,7 +95,6 @@ const takePhoto = async () => {
 };
 
 const exitphoto = async () => {
-    console.log('exitphoto 호출 시도');
     const shouldExit = await PhotoService.exitphoto();
     console.log('exitphoto 결과:', shouldExit);
     if (shouldExit) {
@@ -113,10 +106,10 @@ const exitphoto = async () => {
 };
 
 const toggleCamera = () => {
-    isVideoOn.value = !isVideoOn.value;
+    isvideoOn.value = !isvideoOn.value;
     if (InitializationService.videoElement) {
         InitializationService.videoElement.srcObject.getVideoTracks().forEach((track) => {
-            track.enabled = isVideoOn.value;
+            track.enabled = isvideoOn.value;
         });
     }
 };
@@ -131,39 +124,34 @@ const toggleMicro = () => {
 };
 
 // boothshoot
-onMounted(async () => {
-    try {
-        await joinExistingSession(session, publisher, subscribers, myVideo, sessionId, boothStore);
-        console.log('세션 참가 완료');
 
-        session.value.on('connectionStateChanged', (event) => {
-            console.log('연결 상태 변경:', event.connectionId, event.newState);
-        });
+onMounted(async() => {
+    await joinExistingSession(session, publisher, subscribers, myVideo, sessionId, boothStore);
 
-        session.value.on('streamCreated', (event) => {
-            console.log('새 스트림 생성:', event.stream.streamId);
-        });
+    session.value.on('streamCreated', async ({ stream }) => {
+        try {
+            const subscriber = await session.value.subscribe(stream);
+            subscribers.value.push({ subscriber });
 
-        WebSocketService.setBoothStore(boothStore);
-        WebSocketService.on('background_info', (message) => {
-            console.log('배경 이미지 업데이트:', message.backgroundImage);
-            boothStore.setBgImage(message.backgroundImage);
-        });
-
-        WebSocketService.on('open', () => {
-            console.log('WebSocket 연결 성공');
-        });
-
-        WebSocketService.on('error', (error) => {
-            console.error('WebSocket 오류:', error);
-        });
-
-    } catch (error) {
-        console.error('세션 참가 또는 WebSocket 설정 중 오류 발생:', error);
-    }
+            nextTick(async () => {
+                try {
+                    await applySegmentation({ stream: subscriber });
+                } catch (error) {
+                    console.error('Subscriber 배경 제거 적용 중 오류:', error);
+                }
+            });
+        } catch (error) {
+            console.error('스트림 구독 중 오류 발생:', error);
+        }
+    });
+    
+    WebSocketService.setBoothStore(boothStore);
+    WebSocketService.on('background_info', (message) => {
+        boothStore.setBgImage(message.backgroundImage);
+    });
 });
 
-onUnmounted(() => { });
+onUnmounted(() => {});
 
 const { remainPicCnt, images } = PhotoService;
 </script>
@@ -182,8 +170,14 @@ const { remainPicCnt, images } = PhotoService;
 
             <div class="booth-content-main">
                 <BoothBack class="booth-camera-box">
-                    <div ref="captureArea" :style="{ backgroundImage: `url(${bgImage})` }" class="photo-zone"
-                        @focus="handleFocus" @blur="handleBlur" tabindex="0">
+                    <div
+                        ref="captureArea"
+                        :style="{ backgroundImage: `url(${bgImage})` }"
+                        class="photo-zone"
+                        @focus="handleFocus"
+                        @blur="handleBlur"
+                        tabindex="0"
+                    >
                         <div class="video-container">
                             <!-- 로컬 비디오 스트림 -->
                             <div v-if="publisher" class="stream-container">
@@ -192,30 +186,54 @@ const { remainPicCnt, images } = PhotoService;
                             </div>
 
                             <!-- 원격 참가자 비디오 스트림 -->
-                            <div v-for="sub in subscribers" :key="sub.stream.streamId" class="stream-container">
-                                <h3>{{ sub.stream.connection.data }}</h3>
-                                <video :id="`video-${sub.stream.streamId}`" :ref="`video-${sub.stream.streamId}`"
-                                    autoplay playsinline></video>
-                                <canvas :id="`canvas-${sub.stream.streamId}`" :ref="`canvas-${sub.stream.streamId}`"
-                                    class="mirrored-video"></canvas>
+                            <div v-for="sub in subscribers" :key="sub.subscriber.stream.streamId" class="stream-container">
+                                <h3>Remote</h3>
+                                <video
+                                    :id="`video-${sub.subscriber.stream.streamId}`"
+                                    :ref="`video-${sub.subscriber.stream.streamId}`"
+                                    autoplay
+                                    playsinline
+                                    class="mirrored-video"
+                                ></video>
                             </div>
                         </div>
                     </div>
                     <div class="create-btn">
                         <div class="left-btn">
-                            <button class="circle-btn" @click="toggleMicro">
-                                <img :src="isMicroOn ? microOn : microOff" alt="M" />
+                            <button
+                                class="circle-btn"
+                                @click="toggleMicro"
+                            >
+                                <img
+                                    :src="isMicroOn ? microOn : microOff"
+                                    alt="M"
+                                />
                             </button>
-                            <button class="circle-btn" @click="toggleCamera">
-                                <img :src="isVideoOn ? videoOn : videoOff" alt="Toggle Camera" />
+                            <button
+                                class="circle-btn"
+                                @click="toggleCamera"
+                            >
+                                <img
+                                    :src="isvideoOn ? videoOn : videoOff"
+                                    alt="Toggle Camera"
+                                />
                             </button>
                         </div>
 
-                        <button @click="takePhoto" class="take-photo">
-                            <img src="@/assets/icon/camera.png" alt="" />
+                        <button
+                            @click="takePhoto"
+                            class="take-photo"
+                        >
+                            <img
+                                src="@/assets/icon/camera.png"
+                                alt=""
+                            />
                         </button>
                         <div class="right-btn">
-                            <button class="ract-btn" @click="exitphoto">
+                            <button
+                                class="ract-btn"
+                                @click="exitphoto"
+                            >
                                 템플릿 선택
                             </button>
                         </div>
@@ -223,30 +241,50 @@ const { remainPicCnt, images } = PhotoService;
                 </BoothBack>
                 <BoothBack class="booth-select-box">
                     <div class="select-box-top">
-                        <button class="prev-btn" @click="changeComponent">
+                        <button
+                            class="prev-btn"
+                            @click="changeComponent"
+                        >
                             &lt;
                         </button>
                         <div class="box-name">
                             <p v-if="showtype === 1">배경선택</p>
                             <p v-if="showtype === 2">사진보기</p>
                         </div>
-                        <button class="next-btn" @click="changeComponent">
+                        <button
+                            class="next-btn"
+                            @click="changeComponent"
+                        >
                             &gt;
                         </button>
                     </div>
 
                     <div class="select-text-box">
-                        <RouterView v-if="showtype === 1" @update="changeImage"></RouterView>
-                        <RouterView v-else :images="images">
+                        <RouterView
+                            v-if="showtype === 1"
+                            @update="changeImage"
+                        ></RouterView>
+                        <RouterView
+                            v-else
+                            :images="images"
+                        >
                         </RouterView>
                     </div>
                 </BoothBack>
             </div>
         </div>
-        <button class="chat-icon" @click="toggleChat">
+        <button
+            class="chat-icon"
+            @click="toggleChat"
+        >
             채팅창
         </button>
-        <ChatModal v-show="isChatOpen" :username="username" :session="session" @close="toggleChat" />
+        <ChatModal
+            v-show="isChatOpen"
+            :username="username"
+            :session="session"
+            @close="toggleChat"
+        />
     </WhiteBoardComp>
 </template>
 
@@ -309,28 +347,6 @@ canvas {
 }
 
 .mirrored-video {
-    transform: scaleX(-1);
-    /* 비디오를 수평으로 반전시킴 */
-}
-
-.stream-container {
-    width: 320px;
-    height: 240px;
-    position: relative;
-    overflow: hidden;
-}
-
-.stream-container video {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.stream-container canvas {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+    transform: scaleX(-1); /* 비디오를 수평으로 반전시킴 */
 }
 </style>
