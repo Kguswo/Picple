@@ -129,11 +129,13 @@ const toggleMicro = () => {
 };
 
 //subscriber 관련 function
+
 const addSubscriber = (subscriber) => {
     subscribers.value.push({
         streamId: subscriber.stream.streamId,
         subscriber: subscriber
     });
+    console.log('add : ',subscribers.value);
 };
 
 const removeSubscriber = (streamId) => {
@@ -141,6 +143,7 @@ const removeSubscriber = (streamId) => {
     if (index > -1) {
         subscribers.value.splice(index, 1);
     }
+    console.log('remove : ',subscribers.value);
 };
 
 // boothshoot
@@ -203,10 +206,10 @@ const { remainPicCnt, images } = PhotoService;
                             <!-- 원격 참가자 비디오 스트림 -->
                             <div
                                 v-for="sub in subscribers"
-                                :key="sub.subscriber.stream.streamId"
+                                :key="sub.streamId"
                                 class="stream-container"
                             >
-                                <!-- <h3>{{ sub.username }}</h3> -->
+                                <h3>{{ sub.subscriber.stream.connection.data }}</h3>
                                 <video
                                     :id="`video-${sub.subscriber.stream.streamId}`"
                                     :width="320"

@@ -72,6 +72,10 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
             }
         });
 
+        session.on('connectionDestroyed', (event) => {
+            removeSubscriber(event.stream.streamId);
+        });
+
         await session.value.connect(token);
 
         const devices = await OV.getDevices();
