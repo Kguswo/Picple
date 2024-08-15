@@ -7,7 +7,7 @@ const OPENVIDU_SERVER_SECRET = import.meta.env.VITE_OPENVIDU_SERVER_SECRET;
 
 let selfieSegmentation;
 
-export const joinExistingSession = async (session, publisher, subscribers, myVideo, sessionId, boothStore) => {
+export const joinExistingSession = async (session, publisher, subscribers, myVideo, sessionId, boothStore, addSubscriber, removeSubscriber) => {
     try {
         const sessionInfo = boothStore.getSessionInfo();
 
@@ -52,6 +52,7 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
 
         session.value.on('streamCreated', async ({ stream }) => {
             const subscriber = await session.value.subscribe(stream);
+            addSubscriber(subscriber);
             subscribers.value.push({ subscriber });
 
             nextTick(async () => {
@@ -65,6 +66,7 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
 
         session.value.on('streamDestroyed', ({ stream }) => {
             const index = subscribers.value.findIndex((sub) => sub.stream.streamId === stream.streamId);
+            removeSubscriber(stream.streamId);
             if (index >= 0) {
                 subscribers.value.splice(index, 1);
             }

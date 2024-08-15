@@ -24,7 +24,6 @@ const props = defineProps({
 
 const isVideoOn = ref(false);
 const isMicroOn = ref(false);
-const isMirrored = ref(false);
 const videoElement = ref(null);
 const canvasElement = ref(null);
 const isChatOpen = ref(false);
@@ -111,17 +110,6 @@ const exitphoto = async () => {
     }
 };
 
-const toggleMirror = () => {
-    isMirrored.value = !isMirrored.value;
-    const transform = isMirrored.value ? 'scaleX(-1)' : 'scaleX(1)';
-    if (videoElement.value) {
-        videoElement.value.style.transform = transform;
-    }
-    if (canvasElement.value) {
-        canvasElement.value.style.transform = transform;
-    }
-};
-
 const toggleCamera = () => {
     isVideoOn.value = !isVideoOn.value;
     if (InitializationService.videoElement) {
@@ -140,10 +128,25 @@ const toggleMicro = () => {
     }
 };
 
+//subscriber 관련 function
+const addSubscriber = (subscriber) => {
+    subscribers.value.push({
+        streamId: subscriber.stream.streamId,
+        subscriber: subscriber
+    });
+};
+
+const removeSubscriber = (streamId) => {
+    const index = subscribers.value.findIndex(sub => sub.streamId === streamId);
+    if (index > -1) {
+        subscribers.value.splice(index, 1);
+    }
+};
+
 // boothshoot
 
 onMounted(() => {
-    joinExistingSession(session, publisher, subscribers, myVideo, sessionId, boothStore);
+    joinExistingSession(session, publisher, subscribers, myVideo, sessionId, boothStore, addSubscriber, removeSubscriber);
 
     WebSocketService.setBoothStore(boothStore);
     WebSocketService.on('background_info', (message) => {
@@ -242,12 +245,7 @@ const { remainPicCnt, images } = PhotoService;
                                     alt="Toggle Camera"
                                 />
                             </button>
-                            <button
-                                class="ract-btn"
-                                @click="toggleMirror"
-                            >
-                                반전
-                            </button>
+
                         </div>
 
                         <button
