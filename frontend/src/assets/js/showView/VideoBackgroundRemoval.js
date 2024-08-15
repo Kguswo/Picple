@@ -8,8 +8,6 @@ export default class VideoBackgroundRemoval {
       modelSelection: 1,
     });
 
-    this.selfieSegmentation.onResults(this.onResults.bind(this));
-
     this.gl = null;
     this.program = null;
     this.textures = {
@@ -26,6 +24,10 @@ export default class VideoBackgroundRemoval {
       videoTexture: null,
       maskTexture: null,
     };
+    this.isProcessingComplete = false;
+    this.onProcessingComplete = null;
+    this.isRunning = false;
+    this.originalVideoTrack = null;
   }
 
   async initialize(canvasElement) {
@@ -33,6 +35,7 @@ export default class VideoBackgroundRemoval {
     try {
       await this.selfieSegmentation.initialize();
       this.initWebGL(canvasElement);
+      this.selfieSegmentation.onResults(this.onResults.bind(this));
       console.log('배경 제거 초기화 완료');
     } catch (error) {
       console.error('배경 제거 초기화 중 오류 발생:', error);
@@ -124,7 +127,7 @@ export default class VideoBackgroundRemoval {
   }
 
   onResults(results) {
-    if (!this.gl) return;
+    if (!this.gl || !this.isRunning) return;
 
     this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures.video);
     this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, results.image);
@@ -151,14 +154,27 @@ export default class VideoBackgroundRemoval {
     this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures.mask);
 
     this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4);
+
+    if (!this.isProcessingComplete) {
+      this.isProcessingComplete = true;
+      if (this.onProcessingComplete) {
+        this.onProcessingComplete();
+      }
+    }
   }
 
-  startProcessing(videoElement, canvasElement) {
+  startProcessing(videoElement, canvasElement, mediaStream) {
+    if (this.isRunning) return;
+    this.isRunning = true;
     console.log('비디오 처리 시작');
-    this.processVideo(videoElement, canvasElement);
+    
+    this.originalVideoTrack = mediaStream.getVideoTracks()[0];
+    this.processVideo(videoElement, canvasElement, mediaStream);
   }
 
-  async processVideo(videoElement, canvasElement) {
+  async processVideo(videoElement, canvasElement, mediaStream) {
+    if (!this.isRunning) return;
+
     if (!videoElement || !canvasElement) {
       console.error('비디오 또는 캔버스 요소가 없음');
       return;
@@ -166,18 +182,52 @@ export default class VideoBackgroundRemoval {
 
     if (videoElement.readyState < 2) {
       console.log('비디오가 아직 로드되지 않음. 다음 프레임에서 재시도합니다.');
-      requestAnimationFrame(() => this.processVideo(videoElement, canvasElement));
+      requestAnimationFrame(() => this.processVideo(videoElement, canvasElement, mediaStream));
       return;
     }
 
-    console.log('프레임 처리 시작');
     try {
       await this.selfieSegmentation.send({ image: videoElement });
-      console.log('프레임 처리 완료');
+      
+      const processedStream = canvasElement.captureStream(30);
+      const processedVideoTrack = processedStream.getVideoTracks()[0];
+
+      if (mediaStream.getVideoTracks().length > 0) {
+        mediaStream.removeTrack(mediaStream.getVideoTracks()[0]);
+      }
+      mediaStream.addTrack(processedVideoTrack);
+
     } catch (error) {
       console.error('프레임 처리 중 오류 발생:', error);
     }
 
-    requestAnimationFrame(() => this.processVideo(videoElement, canvasElement));
+    requestAnimationFrame(() => this.processVideo(videoElement, canvasElement, mediaStream));
+  }
+
+  stopProcessing(mediaStream) {
+    this.isRunning = false;
+    if (this.originalVideoTrack && mediaStream) {
+      if (mediaStream.getVideoTracks().length > 0) {
+        mediaStream.removeTrack(mediaStream.getVideoTracks()[0]);
+      }
+      mediaStream.addTrack(this.originalVideoTrack);
+    }
+    console.log('비디오 처리 중지');
+  }
+
+  setOnProcessingComplete(callback) {
+    this.onProcessingComplete = callback;
+  }
+
+  dispose() {
+    this.isRunning = false;
+    if (this.gl) {
+      this.gl.deleteProgram(this.program);
+      this.gl.deleteBuffer(this.buffers.position);
+      this.gl.deleteBuffer(this.buffers.texCoord);
+      this.gl.deleteTexture(this.textures.video);
+      this.gl.deleteTexture(this.textures.mask);
+    }
+    this.selfieSegmentation.close();
   }
 }

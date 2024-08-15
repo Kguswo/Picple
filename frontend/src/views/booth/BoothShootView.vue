@@ -6,7 +6,6 @@ import ChatModal from '@/components/chat/ChatModal.vue';
 import InitializationService from '@/assets/js/showView/InitializationService';
 import PhotoService from '@/assets/js/showView/PhotoService';
 import WebSocketService from '@/services/WebSocketService';
-import VideoBackgroundRemoval from '@/assets/js/showView/VideoBackgroundRemoval';
 
 import { ref, onMounted, onUnmounted, computed, provide } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
@@ -133,20 +132,6 @@ const toggleMicro = () => {
 
 // boothshoot
 onMounted(async () => {
-    const sessionInfo = boothStore.getSessionInfo();
-
-    if (sessionInfo && sessionInfo.metadata) {
-        try {
-            const metadata = JSON.parse(sessionInfo.metadata);
-            if (metadata.creatorId === userStore.userNickname) { 
-                isCreator.value = true;
-                console.log('현재 사용자가 부스 생성자입니다.');
-            }
-        } catch (error) {
-            console.error('메타데이터 파싱 중 오류 발생:', error);
-        }
-    }
-
     try {
         await joinExistingSession(session, publisher, subscribers, myVideo, sessionId, boothStore);
         console.log('세션 참가 완료');

@@ -1,5 +1,4 @@
 import { OpenVidu } from "openvidu-browser";
-import { nextTick } from "vue";
 import VideoBackgroundRemoval from "@/assets/js/showView/VideoBackgroundRemoval";
 
 const OPENVIDU_SERVER_URL = import.meta.env.VITE_API_OPENVIDU_SERVER;
@@ -29,7 +28,6 @@ export async function waitForVideoSize(videoElement, maxAttempts = 20, interval 
 
 export const joinExistingSession = async (session, publisher, subscribers, myVideo, sessionId, boothStore) => {
     try {
-        console.log('[시작] 세션 참가 프로세스 시작');
         const sessionInfo = boothStore.getSessionInfo();
 
         if (!sessionInfo || !sessionInfo.sessionId || !sessionInfo.token) {
@@ -37,46 +35,50 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
         }
 
         const { token } = sessionInfo;
-        console.log('[정보] 세션 토큰 획득');
 
         const OV = new OpenVidu();
-        console.log('[OV] OpenVidu 인스턴스 생성');
-
         OV.enableProdMode(false);
+
         const advancedConfiguration = {
             logLevel: "DEBUG",
             noStreamPlayingEventExceptionTimeout: 8000,
             iceServers: [
-              { urls: "stun:stun.l.google.com:19302" },
-              {
-                urls: [
-                  "turn:i11a503.p.ssafy.io:3478",
-                  "turn:i11a503.p.ssafy.io:3478?transport=tcp",
-                  "turns:i11a503.p.ssafy.io:3479",
-                ],
-                username: "picplessafy",
-                credential: "ssafya503@picple",
-              },
+                { urls: "stun:stun.l.google.com:19302" },
+                {
+                    urls: [
+                        "turn:i11a503.p.ssafy.io:3478",
+                        "turn:i11a503.p.ssafy.io:3478?transport=tcp",
+                        "turns:i11a503.p.ssafy.io:3479",
+                    ],
+                    username: "picplessafy",
+                    credential: "ssafya503@picple",
+                },
             ],
             iceTransportPolicy: "all",
             forceMediaReconnectionAfterNetworkDrop: true,
             publisherSpeakingEventsOptions: {
-              interval: 100,
-              threshold: -50,
+                interval: 100,
+                threshold: -50,
             },
-            videoSimulcast: false,
-            videoSendInitialDelay: 0,
-            videoDimensions: "640x480",
-            minVideoBitrate: 300,
-            maxVideoBitrate: 1000,
-          };
+        };
         OV.setAdvancedConfiguration(advancedConfiguration);
         console.log('[OV] OpenVidu 고급 설정 적용:', advancedConfiguration);
 
         session.value = OV.initSession();
         console.log('[세션] OpenVidu 세션 초기화');
+        session.value.on('connectionCreated', (event) => {
+            console.log('[세션] 새 연결 생성:', event.connection.connectionId);
+        });
 
-        session.value.on("streamCreated", (event) => {
+        session.value.on('connectionDestroyed', (event) => {
+            console.log('[세션] 연결 종료:', event.connection.connectionId);
+        });
+
+        session.value.on('sessionDisconnected', (event) => {
+            console.log('[세션] 세션 연결 해제:', event.reason);
+        });
+
+        session.value.on("streamCreated", async (event) => {
             console.log(`[1] 새 스트림 감지됨: ${event.stream.streamId}`);
             console.log(`[1-1] 스트림 세부 정보:`, {
                 hasAudio: event.stream.hasAudio,
@@ -94,10 +96,9 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
                 publishVideo: true
             });
             console.log(`[2] 스트림 구독 시작: ${event.stream.streamId}`);
-            console.log(`[2-1] 구독자 객체:`, subscriber);
-            
+
             subscriber.on('connectionStateChanged', (event) => {
-                console.log(`[2-2] 연결 상태 변경: ${event.connectionId} - ${event.newState}`);
+                console.log(`[2-2] 구독자 연결 상태 변경: ${event.connectionId} - ${event.newState}`);
                 if (event.newState === 'connected') {
                     console.log(`[2-3] ICE 연결 성공: ${subscriber.stream.streamId}`);
                 } else if (event.newState === 'disconnected' || event.newState === 'failed') {
@@ -106,17 +107,17 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
             });
 
             subscriber.on('streamManagerStarted', () => {
-                console.log(`[2-4] 스트림 매니저 시작됨: ${subscriber.stream.streamId}`);
-                initializeBackgroundRemoval(subscriber.videos[0].video, subscriber.videos[0].video.parentElement, subscriber.stream.streamId);
+                console.log(`[2-4] 구독자 스트림 매니저 시작됨: ${subscriber.stream.streamId}`);
+                applyBackgroundRemoval(subscriber);
             });
 
             subscriber.on('streamPlaying', () => {
-                console.log(`[7] 스트림 재생 시작됨: ${subscriber.stream.streamId}`);
+                console.log(`[7] 구독자 스트림 재생 시작됨: ${subscriber.stream.streamId}`);
                 const peerConnection = subscriber.getPeerConnection();
-                console.log(`[7-1] ICE 연결 상태: ${peerConnection.iceConnectionState}`);
+                console.log(`[7-1] 구독자 ICE 연결 상태: ${peerConnection.iceConnectionState}`);
                 
                 peerConnection.addEventListener('iceconnectionstatechange', () => {
-                    console.log(`[7-2] ICE 연결 상태 변경: ${peerConnection.iceConnectionState}`);
+                    console.log(`[7-2] 구독자 ICE 연결 상태 변경: ${peerConnection.iceConnectionState}`);
                 });
             });
 
@@ -141,6 +142,7 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
             console.warn("[경고] OpenVidu 예외 발생:", exception);
         });
 
+        console.log('[세션] 세션 연결 시도 중...');
         await session.value.connect(token);
         console.log('[세션] 세션 연결 완료');
 
@@ -159,8 +161,17 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
             mirror: true,
         };
 
+        console.log('[게시자] 게시자 초기화 시작');
         publisher.value = await OV.initPublisherAsync(undefined, publisherOptions);
-        console.log('[게시자] 게시자 초기화 완료');
+        console.log('[게시자] 게시자 초기화 완료: ',publisher.value);
+
+        publisher.value.on('accessAllowed', () => {
+            console.log('[게시자] 미디어 접근 허용됨');
+        });
+
+        publisher.value.on('accessDenied', () => {
+            console.error('[게시자] 미디어 접근 거부됨');
+        });
 
         publisher.value.on('streamCreated', (event) => {
             console.log('[게시자] 로컬 스트림 생성됨:', event.stream.streamId);
@@ -168,18 +179,19 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
 
         publisher.value.on('streamPlaying', () => {
             console.log('[게시자] 로컬 스트림 재생 시작');
+            applyBackgroundRemoval(publisher.value);
         });
 
+        console.log('[세션] 게시자 발행 시도 중...');
         await session.value.publish(publisher.value);
-        console.log('[게시자] 스트림 게시 완료');
+        console.log('[세션] 게시자 발행 완료');
 
         if (myVideo.value && publisher.value.stream && publisher.value.stream.getMediaStream()) {
             myVideo.value.srcObject = publisher.value.stream.getMediaStream();
             console.log('[비디오] 로컬 비디오 스트림 설정 완료');
+        } else {
+            console.error('[오류] 로컬 비디오 스트림 설정 실패');
         }
-
-        applySegmentation(publisher);
-        console.log('[세그멘테이션] 배경 제거 적용 시작');
 
     } catch (error) {
         console.error("[오류] 세션 참가 중 오류 발생:", error);
@@ -212,40 +224,12 @@ const applySegmentation = (streamRef) => {
   videoElement.srcObject = mediaStream;
   console.log('[세그멘테이션] 비디오 요소 생성 및 스트림 연결');
 
-  selfieSegmentation = new window.SelfieSegmentation({
-    locateFile: (file) =>
-      `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file}`,
-  });
+  const canvasElement = document.createElement("canvas");
+  const canvasCtx = canvasElement.getContext("2d");
 
-  selfieSegmentation.setOptions({
-    modelSelection: 1,
-  });
-
-  const onResults = (results) => {
-    const canvasElement = document.createElement("canvas");
-    const canvasCtx = canvasElement.getContext("2d");
-
-    canvasElement.width = results.image.width;
-    canvasElement.height = results.image.height;
-
-    canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-    canvasCtx.drawImage(
-      results.segmentationMask,
-      0,
-      0,
-      canvasElement.width,
-      canvasElement.height
-    );
-
-    canvasCtx.globalCompositeOperation = "source-in";
-    canvasCtx.drawImage(
-      results.image,
-      0,
-      0,
-      canvasElement.width,
-      canvasElement.height
-    );
-
+  const backgroundRemoval = new VideoBackgroundRemoval();
+  backgroundRemoval.setOnProcessingComplete(() => {
+    console.log('[세그멘테이션] 배경 제거 처리 완료, 스트림 전환');
     const videoStream = canvasElement.captureStream(30);
     const videoTrack = videoStream.getVideoTracks()[0];
     const originalStream = actualStreamRef.stream.getMediaStream();
@@ -255,19 +239,19 @@ const applySegmentation = (streamRef) => {
     }
 
     originalStream.addTrack(videoTrack);
-  };
-
-  selfieSegmentation.onResults(onResults);
-
-  const camera = new window.Camera(videoElement, {
-    onFrame: async () => {
-      await selfieSegmentation.send({ image: videoElement });
-    },
-    width: 640,
-    height: 480,
   });
 
-  camera.start();
+  backgroundRemoval.initialize(canvasElement)
+    .then(() => {
+      console.log('[세그멘테이션] 배경 제거 초기화 완료');
+      backgroundRemoval.startProcessing(videoElement, canvasElement);
+    })
+    .catch((error) => {
+      console.error('[오류] 배경 제거 초기화 실패:', error);
+    });
+
+  // 원본 스트림을 먼저 표시
+  actualStreamRef.stream.addTrack(mediaStream.getVideoTracks()[0]);
 };
 
 const initializeBackgroundRemoval = (videoElement, canvasElement, streamId) => {
