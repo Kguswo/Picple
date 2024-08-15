@@ -41,7 +41,7 @@ public class BackgroundController {
 	}
 
 	// 사용자가 등록한 배경 사진을 가져옴
-	@GetMapping("/{userId}")
+	@GetMapping("/user")
 	public BaseResponse<List<BackgroundResponseDto>> getUserBackgrounds(
 			HttpServletRequest request)
 			throws BaseException {
@@ -53,14 +53,15 @@ public class BackgroundController {
 	}
 
 	// 생성형 AI를 통해 배경 사진을 만듦
-	@PostMapping("/ai/{userId}")
+	@PostMapping("/ai")
 	public BaseResponse<Object> createAiBackground(
-			@PathVariable Long userId,
-			@RequestBody CreateAIBackgroundRequest request) throws BaseException {
+			HttpServletRequest request,
+			@RequestBody CreateAIBackgroundRequest aiBackgroundRequest) throws BaseException {
 
-		backgroundService.createAIBackground(userId, request.getPrompt());
+		Long userId = (Long)request.getAttribute("userId");
+		String url = backgroundService.createAIBackground(userId, aiBackgroundRequest.getPrompt());
 
-		return new BaseResponse<>(SUCCESS);
+		return new BaseResponse<>(url);
 	}
 
 	// 로컬에서 사진을 불러와 배경 사진을 등록

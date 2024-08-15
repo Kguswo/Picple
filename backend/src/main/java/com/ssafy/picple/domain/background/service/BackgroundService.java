@@ -16,7 +16,7 @@ public interface BackgroundService {
 	List<BackgroundResponseDto> getUserBackgrounds(Long userId) throws BaseException;
 
 	// AI API를 사용해 prompt에 적힌 이미지 생성
-	void createAIBackground(Long userId, String prompt) throws BaseException;
+	String createAIBackground(Long userId, String prompt) throws BaseException;
 
 	// 로컬에 있는 사진을 배경 사진으로 추가
 	void createLocalBackground(Long userId, MultipartFile file) throws BaseException;

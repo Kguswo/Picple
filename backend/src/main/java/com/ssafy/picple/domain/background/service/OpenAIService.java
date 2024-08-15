@@ -45,7 +45,6 @@ public class OpenAIService {
 
 		try {
 			Mono<String> result = requestImageGeneration(prompt);
-
 			String base64Image = fileUploadService.parseAIBackgroundImage(result);
 			String fileName = fileUploadService.generateFileName("ai", ".png"); // 포맷을 PNG로 가정
 
@@ -70,29 +69,37 @@ public class OpenAIService {
 		if (prompt.isEmpty())
 			throw new BaseException(REQUEST_ERROR);
 
+		String enhancedPrompt = String.format("%s. This is the subject of the picture you want." +
+				"        Draw an 8-bit pixel style picture based on this topic." +
+				"        If there is a request for a specific celebrity or player on the topic, it should not come out." +
+				"        If there are too many objects, it will be distracting, so please draw it so that it won't." +
+				"        Please review if there is any awkwardness and if there is any awkwardness, please draw it again with great effort!", prompt);
+
 		Mono<String> result = this.webClient.post()
 				.uri("/images/generations")
 				.contentType(MediaType.APPLICATION_JSON)
-				.bodyValue("""
-						{
-						  "prompt": "%s. 이는 사용자가 바라는 그림의 주제야.
-						  이 주제를 바탕으로 8비트 픽셀 스타일의 그림을 그려줘.
-						  주제에 특정 연예인이나 선수 같은 인물에 대한 요청이 있다면 나오지 않아야 해.
-						  너무 개체가 많으면 산만하니 그러지 않도록 그려줘.
-						  어색한 부분이 있는지 검토하고 어색한 부분이 있다면 다시 공들여서 그려줘!",
-						  "model": "dall-e-3",
-						  "n": 1,
-						  "quality": "standard",
-						  "response_format": "b64_json",
-						  "size": "1024x1024",
-						  "style": "vivid"
-						}
-						""".formatted(prompt))
+				.bodyValue(String.format("""
+            {
+              "prompt": "%s",
+              "model": "dall-e-3",
+              "n": 1,
+              "quality": "standard",
+              "response_format": "b64_json",
+              "size": "1024x1024",
+              "style": "vivid"
+            }
+            """, enhancedPrompt.replace("\"", "\\\"")))
 				.retrieve()
+				.onStatus(HttpStatus.BAD_REQUEST::equals,
+						response -> response.bodyToMono(String.class).map(errorBody -> {
+							System.out.println("Error Body: " + errorBody);
+							return new BaseException(REQUEST_ERROR);
+						}))
 				.onStatus(HttpStatus.INTERNAL_SERVER_ERROR::equals,
-						response -> response.bodyToMono(String.class).map(Exception::new))
-				.onStatus(HttpStatus.UNAUTHORIZED::equals,
-						response -> response.bodyToMono(String.class).map(Exception::new))
+						response -> response.bodyToMono(String.class).map(errorBody -> {
+							System.out.println("Error Body: " + errorBody);
+							return new BaseException(AI_CLIENT_ERROR);
+						}))
 				.bodyToMono(String.class);
 
 		return result;

@@ -69,13 +69,13 @@ public class BackgroundServiceImpl implements BackgroundService {
 	// AI를 통해 배경 사진을 생성하여 S3와 DB에 저장
 	@Override
 	@Transactional
-	public void createAIBackground(Long userId, String prompt) throws BaseException {
+	public String createAIBackground(Long userId, String prompt) throws BaseException {
 		try {
 			// 프롬프트를 통해 AI API를 사용하여 사진 생성
 			String[] result = openAIService.createAIBackground(prompt);
-			s3Service.uploadBase64ImageToS3(result[0], result[1]);
+			String url = s3Service.uploadBase64ImageToS3(result[0], result[1]);
 			saveBackgroundToDB(userId, result[0], result[1]);
-
+			return url;
 		} catch (Exception e) {
 			// 예외 처리
 			throw new BaseException(BACKGROUND_UPLOAD_ERROR);
