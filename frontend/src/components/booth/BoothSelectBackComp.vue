@@ -152,6 +152,7 @@ const handleCloseModal = () => {
     gap: 10px; /* 버튼들 사이의 간격을 줄임 */
     width: 100%; /* 버튼의 너비를 동일하게 맞춤 */
     justify-content: center;
+    margin-bottom: 10px;
 }
 
 /* AI 생성 버튼의 글자 무게를 줄임 */
