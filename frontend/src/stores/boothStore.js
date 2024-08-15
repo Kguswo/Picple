@@ -7,6 +7,7 @@ export const useBoothStore = defineStore('booth', {
 		remainPicCnt: 10,
 		sessionInfo: null,
 		session: null,
+		boothCode: null,
 	}),
 	actions: {
 		setBgImage(image) {
@@ -26,7 +27,8 @@ export const useBoothStore = defineStore('booth', {
 			this.sessionInfo = {
 				...info,
 				isHost: info.isHost !== undefined ? info.isHost : false
-			};			console.log('Session info set:', info);
+			};			
+			console.log('Session info set:', info);
 			// 로컬 스토리지에 저장 (선택사항)
 			localStorage.setItem('boothSessionInfo', JSON.stringify(this.sessionInfo));
 		},
@@ -42,8 +44,16 @@ export const useBoothStore = defineStore('booth', {
 			console.log('Retrieving session info:', this.sessionInfo);
 			return this.sessionInfo;
 		},
+		setBoothCode(code) {
+			this.boothCode = code;
+			console.log('Booth code set:', code);
+		},
+		getBoothCode() {
+			return this.boothCode;
+		},
 		clearSessionInfo() {
 			this.sessionInfo = null;
+			this.boothCode = null;
 			console.log('Session info cleared');
 			// 로컬 스토리지에서도 제거 (선택사항)
 			localStorage.removeItem('boothSessionInfo');

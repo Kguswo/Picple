@@ -43,6 +43,14 @@
     align-items: center;
     font-size: 30px;
     justify-content: space-between;
+    
+    .booth-code {
+		margin-right: 200px;
+	}
+
+    .remaining-pics {
+		margin-left: 58%;
+	}
 
     .close-btn {
         padding: 5px;

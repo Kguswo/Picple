@@ -31,6 +31,8 @@ const route = useRoute();
 const router = useRouter();
 
 const boothStore = useBoothStore();
+const boothCode = computed(() => boothStore.getBoothCode());
+
 const userStore = useUserStore();
 
 const username = userStore.userNickname;
@@ -170,6 +172,18 @@ onMounted(() => {
 		}
 	});
 
+	WebSocketService.on('booth_created', (message) => {
+		boothCode.value = message.boothId.slice(0, 10);
+		boothStore.setBoothCode(boothCode.value);
+	});
+
+	WebSocketService.on('joined_booth', (message) => {
+		if (message.boothId) {
+		boothCode.value = message.boothId.slice(0, 10);
+		boothStore.setBoothCode(boothCode.value);
+		}
+	});
+
 	WebSocketService.setBoothStore(boothStore);
 	WebSocketService.on('background_info', (message) => {
 		boothStore.setBgImage(message.backgroundImage);
@@ -181,7 +195,8 @@ onMounted(() => {
 	<WhiteBoardComp class="whiteboard-area-shoot-booth">
 		<div class="booth-content">
 			<div class="booth-top-div">
-				<div>남은 사진 수: {{ remainPicCnt }}/10</div>
+				<div v-if="boothCode" class="booth-code">부스 코드: {{ boothCode }}</div>
+				<div class="remaining-pics">남은 사진 수: {{ remainPicCnt }}/10</div>
 				<div class="close-btn">
 					<button
 						class="close"
@@ -408,8 +423,22 @@ canvas {
 	height: 7%;
 	display: flex;
 	align-items: center;
-	font-size: 30px;
+	font-size: 26px;
 	justify-content: space-between;
+
+	.booth-top-div-content {
+		display: flex;
+		justify-content: space-between;
+		width: 100%;
+	}
+
+	.remaining-pics {
+		margin-left: 20px;
+	}
+
+	.booth-code {
+		margin-right: 20px;
+	}
 
 	.close-btn {
 		padding: 5px;
@@ -440,5 +469,10 @@ canvas {
 
 .close {
 	font-size: 22px;
+}
+
+.booth-code {
+  font-size: 26px;
+  margin-right: 20px;
 }
 </style>
