@@ -312,12 +312,13 @@ onMounted(() => {
 				</BoothBack>
 			</div>
 		</div>
-		<button
-			class="chat-icon"
-			@click="toggleChat"
-		>
-			채팅창
+		<button class="chat-icon" @click="toggleChat">
+			<svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24">
+      <path d="M0 0h24v24H0z" fill="none"/>
+      <path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z" fill="white"/>
+    </svg>
 		</button>
+
 		<ChatModal
 			v-show="isChatOpen"
 			:username="username"
@@ -330,7 +331,6 @@ onMounted(() => {
 <style scoped>
 @import url('@/assets/css/shootView.css');
 
-/* 비디오 컨테이너 스타일 */
 .video-container {
 	display: flex;
 	flex-wrap: wrap;
@@ -339,12 +339,10 @@ onMounted(() => {
 	margin-top: 20px;
 }
 
-/* 개별 스트림 컨테이너 스타일 */
 .stream-container {
 	width: 320px;
 }
 
-/* 비디오 요소 스타일 */
 video {
 	width: 100%;
 	height: auto;
@@ -353,31 +351,33 @@ video {
 }
 
 .chat-icon {
-	position: fixed;
-	bottom: 20px;
-	right: 20px;
-	background-color: #007bff;
-	color: white;
-	border: none;
-	border-radius: 10px;
-	width: 60px;
-	height: 60px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	cursor: pointer;
-	font-size: 14px;
-	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-	transition: transform 0.3s, box-shadow 0.3s;
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  background-color: #4CAF50;
+  border: none;
+  border-radius: 50%;
+  width: 70px;
+  height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+  transition: transform 0.3s, box-shadow 0.3s, background-color 0.3s;
 }
 
 .chat-icon:hover {
-	background-color: #0056b3;
-	transform: scale(1.1);
-	box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+  background-color: #45a049;
+  transform: scale(1.1);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
 }
 
-/* 캔버스 요소 스타일 */
+.chat-icon svg {
+  width: 32px;
+  height: 32px;
+}
+
 canvas {
 	width: 100%;
 	height: auto;
@@ -386,6 +386,41 @@ canvas {
 }
 
 .mirrored-video {
-	transform: scaleX(-1); /* 비디오를 수평으로 반전시킴 */
+	transform: scaleX(-1);
+}
+
+.booth-top-div {
+	width: 93%;
+	height: 7%;
+	display: flex;
+	align-items: center;
+	font-size: 30px;
+	justify-content: space-between;
+
+	.close-btn {
+		padding: 5px;
+		display: flex;
+		justify-content: right;
+		.close {
+			background-color: transparent;
+			border: none;
+		}
+
+		.close {
+            background-color: #E6A4A4;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 10px 20px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+		.close:hover {
+            background-color: #f58080;
+            transform: scale(1.05);
+        }
+	}
 }
 </style>

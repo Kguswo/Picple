@@ -106,12 +106,12 @@ const toggleMicro = () => {
 
         <div class="booth-content">
             <div class="close-btn">
-                <img
-                    class="close-icon"
-                    src="@/assets/img/common/close.png"
-                    alt="Close"
-                    @click="cancel"
-                />
+                <button
+						class="close"
+						@click="navigateTo('main')"
+					>
+						나가기
+					</button>
             </div>
 
             <div
@@ -218,7 +218,7 @@ const toggleMicro = () => {
     justify-content: center;
     align-items: center;
     margin: 0 10px;
-    background-color: #b2f2bb;
+    background-color: #7bd9dc;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     transition: transform 0.2s ease, background-color 0.2s ease;
     cursor: pointer;
@@ -231,7 +231,7 @@ const toggleMicro = () => {
 
 .circle-btn:hover {
     transform: scale(1.1);
-    background-color: #8ef49c;
+    background-color: #44c7cc;
 }
 
 .ract-btn {
@@ -321,5 +321,40 @@ video {
 .video-container {
     width: 90%;
     height: 75%;
+}
+
+.booth-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    background-color: #f4f0d1f7;
+    border-radius: 20px;
+}
+
+.close-btn {
+    width: 93%;
+    padding: 5px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+.close {
+    background-color: #E6A4A4;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 10px 20px;
+    font-size: 18px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.close:hover {
+    background-color: #f58080;
+    transform: scale(1.05);
 }
 </style>

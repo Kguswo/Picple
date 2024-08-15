@@ -148,7 +148,7 @@
             justify-content: center;
             align-items: center;
             margin: 0 10px;
-            background-color: #b2f2bb;
+            background-color: #7bd9dc;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             transition: transform 0.2s ease, background-color 0.2s ease;
         }
@@ -160,7 +160,7 @@
 
         .circle-btn:hover {
             transform: scale(1.1);
-            background-color: #8ef49c;
+            background-color: #44c7cc;
         }
 
         .take-photo {
