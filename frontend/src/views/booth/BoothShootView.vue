@@ -162,10 +162,26 @@ const updateVideoDisplay = () => {
 
 const { remainPicCnt, images } = PhotoService;
 
+const addSubscriber = (subscriber) => {
+    subscribers.value.push({
+        streamId: subscriber.stream.streamId,
+        subscriber: subscriber
+    });
+    console.log('add : ',subscribers.value);
+};
+
+const removeSubscriber = (streamId) => {
+    const index = subscribers.value.findIndex(sub => sub.streamId === streamId);
+    if (index > -1) {
+        subscribers.value.splice(index, 1);
+    }
+    console.log('remove : ',subscribers.value);
+};
+
 onMounted(() => {
 	console.log('BoothShootView mounted. Checking isHost:', isHost.value);
 
-	joinExistingSession(publisher, subscribers, myVideo, boothStore).then(() => {
+	joinExistingSession(publisher, subscribers, myVideo, boothStore,addSubscriber,removeSubscriber).then(() => {
 		if (publisher.value) {
 			isVideoOn.value = publisher.value.stream.videoActive;
 			isMicroOn.value = publisher.value.stream.audioActive;

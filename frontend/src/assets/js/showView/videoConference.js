@@ -10,7 +10,7 @@ const OPENVIDU_SERVER_SECRET = import.meta.env.VITE_OPENVIDU_SERVER_SECRET;
 
 let selfieSegmentation;
 
-export const joinExistingSession = async (publisher, subscribers, myVideo, boothStore) => {
+export const joinExistingSession = async (publisher, subscribers, myVideo, boothStore, addSubscriber, removeSubscriber) => {
 	try {
 		const sessionInfo = boothStore.getSessionInfo();
 		const session = storeToRefs(boothStore);
