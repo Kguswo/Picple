@@ -29,8 +29,15 @@ export default class VideoBackgroundRemoval {
   }
 
   async initialize() {
-    await this.selfieSegmentation.initialize();
-  }
+    console.log('배경 제거 초기화 시작');
+    try {
+        await this.selfieSegmentation.initialize();
+        console.log('배경 제거 초기화 완료');
+    } catch (error) {
+        console.error('배경 제거 초기화 중 오류 발생:', error);
+        throw error;
+    }
+}
 
   initWebGL(canvas) {
     this.gl = canvas.getContext('webgl');
@@ -60,7 +67,7 @@ export default class VideoBackgroundRemoval {
         gl_FragColor = vec4(videoColor.rgb, maskColor.r);
       }
     `;
-
+    
     const vertexShader = this.createShader(this.gl.VERTEX_SHADER, vertexShaderSource);
     const fragmentShader = this.createShader(this.gl.FRAGMENT_SHADER, fragmentShaderSource);
 
@@ -141,7 +148,8 @@ export default class VideoBackgroundRemoval {
     if (!videoElement || !canvasElement) return;
 
     if (videoElement.videoWidth === 0 || videoElement.videoHeight === 0) {
-      console.error('비디오 크기가 0입니다.');
+      console.warn('비디오 크기가 0입니다. 다음 프레임에서 재시도합니다.');
+      requestAnimationFrame(() => this.processVideo(videoElement, canvasElement));
       return;
     }
 
@@ -154,6 +162,7 @@ export default class VideoBackgroundRemoval {
   }
 
   startProcessing(videoElement, canvasElement) {
+    console.log('비디오 처리 시작');
     this.initWebGL(canvasElement);
     this.processVideo(videoElement, canvasElement);
   }
