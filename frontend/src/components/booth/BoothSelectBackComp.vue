@@ -157,7 +157,7 @@ const handleCloseModal = () => {
 
 /* AI 생성 버튼의 글자 무게를 줄임 */
 .ract-btn {
-    background-color: #f5a623; /* 노란색 배경 */
+    background-color: #eb9a64; /* 노란색 배경 */
     border: none;
     border-radius: 10px;
     width: 45%; /* 버튼의 너비를 100%로 설정하여 일관성 유지 */
@@ -170,7 +170,7 @@ const handleCloseModal = () => {
 }
 
 .ract-btn:hover {
-    background-color: #e0941f; /* 어두운 노란색으로 강조 */
+    background-color: #f3852b; /* 어두운 노란색으로 강조 */
 }
 
 .background-box {

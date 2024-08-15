@@ -164,7 +164,7 @@
         }
 
         .take-photo {
-            border: 1px solid #ffffff; /* 흰색 테두리로 고급스러움을 추가 */
+            border: 1px solid #ffffff;
             border-radius: 50%;
             width: 50px;
             height: 50px;
@@ -173,7 +173,7 @@
             justify-content: center;
             align-items: center;
             margin: 0 15px;
-            background-color: #6fa3ef00; /* 투명한 파란색 배경 */
+            background-color: #3498db;
             cursor: pointer;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
@@ -187,13 +187,13 @@
 
         .take-photo:hover {
             transform: scale(1.15);
-            background-color: #6fa3ef;
+            background-color: #2980b9;
             box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
         }
 
         .take-photo:active {
             transform: scale(1.05);
-            background-color: #4d89e0;
+            background-color: #1f6f9f;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
     }
