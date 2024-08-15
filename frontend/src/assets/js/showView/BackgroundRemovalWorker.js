@@ -15,17 +15,18 @@ self.onmessage = async function(e) {
         locateFile: async (file) => {
           const baseUrl = 'https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation@0.1.1675465747/';
           if (file.endsWith('.tflite')) {
-            const tfliteUrl = `${baseUrl}${file}`;
-            try {
-              const tfliteData = await loadTFLite(tfliteUrl);
-              return URL.createObjectURL(new Blob([tfliteData.buffer], { type: 'application/octet-stream' }));
-            } catch (error) {
-              console.error('Error loading TFLITE file:', error);
-              throw error;
-            }
+              const tfliteUrl = baseUrl + file;
+              try {
+                  const tfliteData = await fetch(tfliteUrl).then(res => res.arrayBuffer());
+                  return URL.createObjectURL(new Blob([tfliteData], { type: 'application/octet-stream' }));
+              } catch (error) {
+                  console.error('Error loading TFLITE file:', error);
+                  throw error;
+              }
           }
-          return `${baseUrl}${file}`;
-        },
+          return baseUrl + file;
+        }
+
       });    
 
       selfieSegmentation.setOptions({
