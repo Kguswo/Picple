@@ -354,7 +354,7 @@ video {
   position: fixed;
   bottom: 30px;
   right: 30px;
-  background-color: #4CAF50;
+  background-color: #62bc65;
   border: none;
   border-radius: 50%;
   width: 70px;
@@ -368,7 +368,7 @@ video {
 }
 
 .chat-icon:hover {
-  background-color: #45a049;
+  background-color: #41af47;
   transform: scale(1.1);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
 }
