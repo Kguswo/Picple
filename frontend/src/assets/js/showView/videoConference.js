@@ -183,6 +183,6 @@ const initializeBackgroundRemoval = async (videoElement, canvasElement) => {
         await newBackgroundRemoval.initialize();
         newBackgroundRemoval.startProcessing(videoElement, canvasElement);
     } catch (error) {
-        console.error('MediaPipe 초기화 중 오류 발생:', error);
+        console.error('WebGL 배경 제거 초기화 중 오류 발생:', error);
     }
 };
