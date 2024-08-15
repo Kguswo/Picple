@@ -41,7 +41,7 @@ const join = async () => {
 
 		const token = await getToken(sessionId);
 
-		boothStore.setSessionInfo({ sessionId, token });
+		boothStore.setSessionInfo({ sessionId, token, isHost: false });
 
 		router.push({
 			name: 'boothVideoTest',

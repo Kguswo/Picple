@@ -31,11 +31,19 @@ const route = useRoute();
 const router = useRouter();
 
 const boothStore = useBoothStore();
+const boothCode = computed(() => boothStore.getBoothCode());
+
 const userStore = useUserStore();
 
 const username = userStore.userNickname;
 
 const sessionId = boothStore.getSessionInfo().sessionId;
+
+const isHost = computed(() => {
+  const result = boothStore.isHost;
+  console.log('Current isHost value:', result);
+  return result;
+});
 
 const toggleChat = () => {
 	isChatOpen.value = !isChatOpen.value;
@@ -88,8 +96,13 @@ const changeImage = async (image) => {
 };
 
 const takePhoto = async () => {
-	console.log('takePhoto 함수 호출');
-	await PhotoService.takePhoto(sessionId);
+  console.log('Attempting to take photo. isHost:', isHost.value);
+  if (!isHost.value) {
+    console.warn('Only the host can take photos');
+    return;
+  }
+  console.log('takePhoto 함수 호출');
+  await PhotoService.takePhoto(sessionId);
 };
 
 const exitphoto = async () => {
@@ -149,11 +162,25 @@ const updateVideoDisplay = () => {
 const { remainPicCnt, images } = PhotoService;
 
 onMounted(() => {
+	console.log('BoothShootView mounted. Checking isHost:', isHost.value);
+
 	joinExistingSession(publisher, subscribers, myVideo, boothStore).then(() => {
 		if (publisher.value) {
 			isVideoOn.value = publisher.value.stream.videoActive;
 			isMicroOn.value = publisher.value.stream.audioActive;
 			updateVideoDisplay();
+		}
+	});
+
+	WebSocketService.on('booth_created', (message) => {
+		boothCode.value = message.boothId.slice(0, 10);
+		boothStore.setBoothCode(boothCode.value);
+	});
+
+	WebSocketService.on('joined_booth', (message) => {
+		if (message.boothId) {
+		boothCode.value = message.boothId.slice(0, 10);
+		boothStore.setBoothCode(boothCode.value);
 		}
 	});
 
@@ -168,7 +195,8 @@ onMounted(() => {
 	<WhiteBoardComp class="whiteboard-area-shoot-booth">
 		<div class="booth-content">
 			<div class="booth-top-div">
-				<div>남은 사진 수: {{ remainPicCnt }}/10</div>
+				<div v-if="boothCode" class="booth-code">부스 코드: {{ boothCode }}</div>
+				<div class="remaining-pics">남은 사진 수: {{ remainPicCnt }}/10</div>
 				<div class="close-btn">
 					<button
 						class="close"
@@ -259,12 +287,13 @@ onMounted(() => {
 							</div>
 
 							<button
+								v-if="isHost"  
 								@click="takePhoto"
 								class="take-photo"
 							>
 								<img
 									src="@/assets/icon/camera.png"
-									alt=""
+									alt="Take Photo"
 								/>
 							</button>
 							<div class="right-btn">
@@ -394,8 +423,22 @@ canvas {
 	height: 7%;
 	display: flex;
 	align-items: center;
-	font-size: 30px;
+	font-size: 26px;
 	justify-content: space-between;
+
+	.booth-top-div-content {
+		display: flex;
+		justify-content: space-between;
+		width: 100%;
+	}
+
+	.remaining-pics {
+		margin-left: 20px;
+	}
+
+	.booth-code {
+		margin-right: 20px;
+	}
 
 	.close-btn {
 		padding: 5px;
@@ -426,5 +469,10 @@ canvas {
 
 .close {
 	font-size: 22px;
+}
+
+.booth-code {
+  font-size: 26px;
+  margin-right: 20px;
 }
 </style>

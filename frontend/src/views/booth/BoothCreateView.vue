@@ -21,6 +21,7 @@ const OV = ref(null);
 const session = ref(null);
 const publisher = ref(null);
 const subscribers = ref([]);
+const isCreating = ref(false);
 
 const router = useRouter();
 
@@ -128,6 +129,9 @@ const joinSession = async (sessionId) => {
 };
 
 const handleCreateBooth = async () => {
+	if (isCreating.value) return;
+    isCreating.value = true;
+
 	try {
 		if (!WebSocketService.isConnected()) {
 			await WebSocketService.connect(import.meta.env.VITE_WS);
@@ -138,13 +142,23 @@ const handleCreateBooth = async () => {
 		const token = await createSessionAndGetToken(boothId);
 		console.log('Obtained token:', token);
 
-		boothStore.setSessionInfo({ sessionId: boothId, token });
-		console.log('Session info stored:', { sessionId: boothId, token });
+		boothStore.setSessionInfo({ sessionId: boothId, token, isHost: true });
+		boothStore.setBoothCode(boothId);
+		boothCode.value = boothId;
+
+		console.log('Session info stored:', { sessionId: boothId, token, isHost: true });
+		console.log('Booth code stored:', boothId);
+
+		// 부스 코드를 표시한 후 잠시 대기
+		await new Promise(resolve => setTimeout(resolve, 3000));
 
 		router.push({ path: `/booth/${boothId}` });
 	} catch (error) {
 		console.error('Failed to create booth:', error);
-	}
+		alert('부스 생성에 실패했습니다. 다시 시도해 주세요.');
+	} finally {
+        isCreating.value = false;
+    }
 };
 
 const boothCode = ref('');
@@ -233,11 +247,16 @@ const toggleMicro = () => {
 		track.enabled = isMicroOn.value;
 	});
 };
+
+
 </script>
 
 <template>
 	<WhiteBoardComp class="whiteboard-area-booth">
 		<div class="booth-content">
+			<div v-if="boothCode" class="booth-code">
+				부스 코드: {{ boothCode }}
+			</div>
 			<div class="booth-top-div">
 				<div>영상 테스트</div>
 				<div class="close-btn">
@@ -310,7 +329,7 @@ const toggleMicro = () => {
 							class="ract-btn"
 							@click="handleCreateBooth"
 						>
-							생성
+							{{ isCreating ? '생성 중...' : '생성' }}
 						</button>
 						<button
 							class="ract-btn"
@@ -388,6 +407,11 @@ const toggleMicro = () => {
 .ract-btn:hover {
 	background-color: #f58080;
 	transform: scale(1.05);
+}
+
+.ract-btn:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
 }
 
 .left-btn {
@@ -498,5 +522,13 @@ video {
             transform: scale(1.05);
         }
 	}
+}
+.booth-code {
+  font-size: 24px;
+  font-weight: bold;
+  margin-top: 20px;
+  padding: 10px;
+  background-color: #f0f0f0;
+  border-radius: 5px;
 }
 </style>
