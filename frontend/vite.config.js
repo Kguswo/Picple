@@ -24,13 +24,13 @@ export default defineConfig({
     commonjsOptions: {
       transformMixedEsModules: true,
     },
-    assetsInlineLimit: 0,
-    rollupOptions: {
-      input: {
-        main: path.resolve(__dirname, "index.html"),
-        worker: path.resolve(__dirname, "src/assets/js/showView/BackgroundRemovalWorker.js"),
-      },
-    },
+    // assetsInlineLimit: 0,
+    // rollupOptions: {
+    //   input: {
+    //     main: path.resolve(__dirname, "index.html"),
+    //     worker: path.resolve(__dirname, "src/assets/js/showView/BackgroundRemovalWorker.js"),
+    //   },
+    // },
   },
   devServer: {
     https: true,

@@ -1,16 +1,17 @@
 <script setup>
-import { ref, onMounted, computed, provide } from 'vue';
+import WhiteBoardComp from '@/components/common/WhiteBoardComp.vue';
+import BoothBack from '@/components/booth/BoothBackComp.vue';
+import ChatModal from '@/components/chat/ChatModal.vue';
+
+import InitializationService from '@/assets/js/showView/InitializationService';
+import PhotoService from '@/assets/js/showView/PhotoService';
+import WebSocketService from '@/services/WebSocketService';
+
+import { ref, onMounted, onUnmounted, computed, provide } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useBoothStore } from '@/stores/boothStore';
 import { useUserStore } from '@/stores/userStore';
 import { joinExistingSession } from '@/assets/js/showView/videoConference';
-import WhiteBoardComp from '@/components/common/WhiteBoardComp.vue';
-import BoothBack from '@/components/booth/BoothBackComp.vue';
-import ChatModal from '@/components/chat/ChatModal.vue';
-import InitializationService from '@/assets/js/showView/InitializationService';
-import PhotoService from '@/assets/js/showView/PhotoService';
-import WebSocketService from '@/services/WebSocketService';
-import VideoBackgroundRemoval from '@/assets/js/showView/VideoBackgroundRemoval';
 
 import videoOn from '@/assets/icon/video_on.png';
 import videoOff from '@/assets/icon/video_off.png';
@@ -21,9 +22,11 @@ const props = defineProps({
     sessionId: String,
 });
 
-const isVideoOn = ref(true);
-const isMicroOn = ref(true);
+const isVideoOn = ref(false);
+const isMicroOn = ref(false);
 const isMirrored = ref(false);
+const videoElement = ref(null);
+const canvasElement = ref(null);
 const isChatOpen = ref(false);
 const session = ref(null);
 const publisher = ref(null);
@@ -43,6 +46,8 @@ const toggleChat = () => {
     isChatOpen.value = !isChatOpen.value;
 };
 
+// boothshoot
+
 const navigateTo = (path) => {
     router.push({ name: path });
 };
@@ -55,6 +60,16 @@ const changeComponent = () => {
     showtype.value = showtype.value === 1 ? 2 : 1;
     navigateTo(showtype.value === 1 ? 'background' : 'showphoto');
     console.log('컴포넌트 변경:', showtype.value === 1 ? '배경 선택' : '사진 보기');
+};
+
+const showControls = ref(false);
+
+const toggleControls = () => {
+    showControls.value = !showControls.value;
+};
+
+const handleControlClick = (event) => {
+    event.stopPropagation();
 };
 
 const boothActions = {
@@ -99,72 +114,44 @@ const exitphoto = async () => {
 const toggleMirror = () => {
     isMirrored.value = !isMirrored.value;
     const transform = isMirrored.value ? 'scaleX(-1)' : 'scaleX(1)';
-    if (myVideo.value) {
-        myVideo.value.style.transform = transform;
+    if (videoElement.value) {
+        videoElement.value.style.transform = transform;
+    }
+    if (canvasElement.value) {
+        canvasElement.value.style.transform = transform;
     }
 };
 
 const toggleCamera = () => {
     isVideoOn.value = !isVideoOn.value;
-    if (publisher.value) {
-        publisher.value.publishVideo(isVideoOn.value);
+    if (InitializationService.videoElement) {
+        InitializationService.videoElement.srcObject.getVideoTracks().forEach((track) => {
+            track.enabled = isVideoOn.value;
+        });
     }
 };
 
 const toggleMicro = () => {
     isMicroOn.value = !isMicroOn.value;
-    if (publisher.value) {
-        publisher.value.publishAudio(isMicroOn.value);
+    if (InitializationService.videoElement) {
+        InitializationService.videoElement.srcObject.getAudioTracks().forEach((track) => {
+            track.enabled = isMicroOn.value;
+        });
     }
 };
 
-onMounted(async () => {
-    console.log('컴포넌트 마운트 시도');
-    try {
-        await joinExistingSession(session, publisher, subscribers, myVideo, sessionId, boothStore);
-        console.log('세션 참가 성공');
-    } catch (error) {
-        console.error('세션 참가 중 오류 발생:', error);
-    }
+// boothshoot
+
+onMounted(() => {
+    joinExistingSession(session, publisher, subscribers, myVideo, sessionId, boothStore);
 
     WebSocketService.setBoothStore(boothStore);
     WebSocketService.on('background_info', (message) => {
-        console.log('배경 정보 수신:', message.backgroundImage);
         boothStore.setBgImage(message.backgroundImage);
     });
-
-    // Publisher 비디오에 대한 배경 제거 적용
-    if (myVideo.value && publisher.value) {
-        console.log('Publisher 비디오에 대한 배경 제거 시도');
-        const videoBackgroundRemoval = new VideoBackgroundRemoval();
-        const initialized = await videoBackgroundRemoval.initialize(myVideo.value);
-        if (initialized) {
-            console.log('Publisher 비디오 배경 제거 초기화 성공');
-            videoBackgroundRemoval.startProcessing(publisher.value.video, myVideo.value);
-        } else {
-            console.error('Publisher의 배경 제거 초기화에 실패했습니다.');
-        }
-    }
-
-    // Subscriber 비디오에 대한 배경 제거 적용
-    subscribers.value.forEach(async (sub) => {
-        const videoElement = document.getElementById(`video-${sub.subscriber.stream.streamId}`);
-        const canvasElement = document.getElementById(`canvas-${sub.subscriber.stream.streamId}`);
-        console.log(`Subscriber 비디오 초기화 시도: ${sub.subscriber.stream.streamId}`);
-        if (videoElement && canvasElement) {
-            const videoBackgroundRemoval = new VideoBackgroundRemoval();
-            const initialized = await videoBackgroundRemoval.initialize(canvasElement);
-            if (initialized) {
-                console.log(`Subscriber 비디오 배경 제거 초기화 성공: ${sub.subscriber.stream.streamId}`);
-                videoBackgroundRemoval.startProcessing(videoElement, canvasElement);
-            } else {
-                console.error(`Subscriber ${sub.subscriber.stream.streamId}의 배경 제거 초기화에 실패했습니다.`);
-            }
-        } else {
-            console.warn(`Subscriber 비디오 또는 캔버스 요소를 찾을 수 없습니다: ${sub.subscriber.stream.streamId}`);
-        }
-    });
 });
+
+onUnmounted(() => {});
 
 const { remainPicCnt, images } = PhotoService;
 </script>
@@ -175,7 +162,10 @@ const { remainPicCnt, images } = PhotoService;
             <div class="booth-top-div">
                 <div>남은 사진 수: {{ remainPicCnt }}/10</div>
                 <div class="close-btn">
-                    <button class="close" @click="navigateTo('main')">
+                    <button
+                        class="close"
+                        @click="navigateTo('main')"
+                    >
                         나가기
                     </button>
                 </div>
@@ -183,38 +173,97 @@ const { remainPicCnt, images } = PhotoService;
 
             <div class="booth-content-main">
                 <BoothBack class="booth-camera-box">
-                    <div ref="captureArea" :style="{ backgroundImage: `url(${bgImage})` }" class="photo-zone"
-                        @focus="handleFocus" @blur="handleBlur" tabindex="0">
+                    <div
+                        ref="captureArea"
+                        :style="{ backgroundImage: `url(${bgImage})` }"
+                        class="photo-zone"
+                        @focus="handleFocus"
+                        @blur="handleBlur"
+                        tabindex="0"
+                    >
                         <div class="video-container">
-                            <div v-if="publisher" class="stream-container">
+                            <!-- 로컬 비디오 스트림 -->
+                            <div
+                                v-if="publisher"
+                                class="stream-container"
+                            >
                                 <h3>Me</h3>
-                                <canvas ref="myVideo" class="mirrored-video"></canvas>
+                                <video
+                                    ref="myVideo"
+                                    autoplay
+                                    muted
+                                    playsinline
+                                    class="mirrored-video"
+                                ></video>
                             </div>
-                            <div v-for="sub in subscribers" :key="sub.subscriber.stream.streamId"
-                                class="stream-container">
-                                <video :id="`video-${sub.subscriber.stream.streamId}`" :width="320" :height="240"
-                                    autoplay playsinline style="display: none"
-                                    :srcObject="sub.subscriber.stream.getMediaStream()"></video>
-                                <canvas :id="`canvas-${sub.subscriber.stream.streamId}`" :width="320" :height="240"
-                                    class="mirrored-video"></canvas>
+
+                            <!-- 원격 참가자 비디오 스트림 -->
+                            <div
+                                v-for="sub in subscribers"
+                                :key="sub.subscriber.stream.streamId"
+                                class="stream-container"
+                            >
+                                <!-- <h3>{{ sub.username }}</h3> -->
+                                <video
+                                    :id="`video-${sub.subscriber.stream.streamId}`"
+                                    :width="320"
+                                    :height="240"
+                                    autoplay
+                                    playsinline
+                                    style="display: none"
+                                    :srcObject="sub.subscriber.stream.getMediaStream()"
+                                ></video>
+                                <canvas
+                                    :id="`canvas-${sub.subscriber.stream.streamId}`"
+                                    :width="320"
+                                    :height="240"
+                                    class="mirrored-video"
+                                ></canvas>
                             </div>
                         </div>
                     </div>
                     <div class="create-btn">
                         <div class="left-btn">
-                            <button class="circle-btn" @click="toggleMicro">
-                                <img :src="isMicroOn ? microOn : microOff" alt="M" />
+                            <button
+                                class="circle-btn"
+                                @click="toggleMicro"
+                            >
+                                <img
+                                    :src="isMicroOn ? microOn : microOff"
+                                    alt="M"
+                                />
                             </button>
-                            <button class="circle-btn" @click="toggleCamera">
-                                <img :src="isVideoOn ? videoOn : videoOff" alt="Toggle Camera" />
+                            <button
+                                class="circle-btn"
+                                @click="toggleCamera"
+                            >
+                                <img
+                                    :src="isVideoOn ? videoOn : videoOff"
+                                    alt="Toggle Camera"
+                                />
+                            </button>
+                            <button
+                                class="ract-btn"
+                                @click="toggleMirror"
+                            >
+                                반전
                             </button>
                         </div>
 
-                        <button @click="takePhoto" class="take-photo">
-                            <img src="@/assets/icon/camera.png" alt="" />
+                        <button
+                            @click="takePhoto"
+                            class="take-photo"
+                        >
+                            <img
+                                src="@/assets/icon/camera.png"
+                                alt=""
+                            />
                         </button>
                         <div class="right-btn">
-                            <button class="ract-btn" @click="exitphoto">
+                            <button
+                                class="ract-btn"
+                                @click="exitphoto"
+                            >
                                 템플릿 선택
                             </button>
                         </div>
@@ -222,29 +271,50 @@ const { remainPicCnt, images } = PhotoService;
                 </BoothBack>
                 <BoothBack class="booth-select-box">
                     <div class="select-box-top">
-                        <button class="prev-btn" @click="changeComponent">
+                        <button
+                            class="prev-btn"
+                            @click="changeComponent"
+                        >
                             &lt;
                         </button>
                         <div class="box-name">
                             <p v-if="showtype === 1">배경선택</p>
                             <p v-if="showtype === 2">사진보기</p>
                         </div>
-                        <button class="next-btn" @click="changeComponent">
+                        <button
+                            class="next-btn"
+                            @click="changeComponent"
+                        >
                             &gt;
                         </button>
                     </div>
 
                     <div class="select-text-box">
-                        <RouterView v-if="showtype === 1" @update="changeImage"></RouterView>
-                        <RouterView v-else :images="images"></RouterView>
+                        <RouterView
+                            v-if="showtype === 1"
+                            @update="changeImage"
+                        ></RouterView>
+                        <RouterView
+                            v-else
+                            :images="images"
+                        >
+                        </RouterView>
                     </div>
                 </BoothBack>
             </div>
         </div>
-        <button class="chat-icon" @click="toggleChat">
+        <button
+            class="chat-icon"
+            @click="toggleChat"
+        >
             채팅창
         </button>
-        <ChatModal v-show="isChatOpen" :username="username" :session="session" @close="toggleChat" />
+        <ChatModal
+            v-show="isChatOpen"
+            :username="username"
+            :session="session"
+            @close="toggleChat"
+        />
     </WhiteBoardComp>
 </template>
 
@@ -307,7 +377,6 @@ canvas {
 }
 
 .mirrored-video {
-    transform: scaleX(-1);
-    /* 비디오를 수평으로 반전시킴 */
+    transform: scaleX(-1); /* 비디오를 수평으로 반전시킴 */
 }
 </style>

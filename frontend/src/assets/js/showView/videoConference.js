@@ -1,8 +1,11 @@
 import { OpenVidu } from 'openvidu-browser';
+import { nextTick } from 'vue';
 import VideoBackgroundRemoval from '@/assets/js/showView/VideoBackgroundRemoval';
 
 const OPENVIDU_SERVER_URL = import.meta.env.VITE_API_OPENVIDU_SERVER;
 const OPENVIDU_SERVER_SECRET = import.meta.env.VITE_OPENVIDU_SERVER_SECRET;
+
+let selfieSegmentation;
 
 export const joinExistingSession = async (session, publisher, subscribers, myVideo, sessionId, boothStore) => {
     try {
@@ -51,21 +54,17 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
             const subscriber = await session.value.subscribe(stream);
             subscribers.value.push({ subscriber });
 
-            const videoElement = document.getElementById(`video-${subscriber.stream.streamId}`);
-            const canvasElement = document.getElementById(`canvas-${subscriber.stream.streamId}`);
-            if (videoElement && canvasElement) {
-                const videoBackgroundRemoval = new VideoBackgroundRemoval();
-                const initialized = await videoBackgroundRemoval.initialize(canvasElement);
-                if (initialized) {
-                    videoBackgroundRemoval.startProcessing(videoElement, canvasElement);
-                } else {
-                    console.error(`Subscriber ${subscriber.stream.streamId}의 배경 제거 초기화에 실패했습니다.`);
+            nextTick(async () => {
+                const video = document.getElementById(`video-${subscriber.stream.streamId}`);
+                const canvas = document.getElementById(`canvas-${subscriber.stream.streamId}`);
+                if (video && canvas) {
+                    await initializeBackgroundRemoval(video, canvas);
                 }
-            }
+            });
         });
 
         session.value.on('streamDestroyed', ({ stream }) => {
-            const index = subscribers.value.findIndex((sub) => sub.subscriber.stream.streamId === stream.streamId);
+            const index = subscribers.value.findIndex((sub) => sub.stream.streamId === stream.streamId);
             if (index >= 0) {
                 subscribers.value.splice(index, 1);
             }
@@ -82,7 +81,7 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
             publishAudio: true,
             publishVideo: true,
             resolution: '640x480',
-            frameRate: 30,
+            frameRate: 60,
             insertMode: 'APPEND',
             mirror: true,
         };
@@ -92,15 +91,10 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
         await session.value.publish(publisher.value);
 
         if (myVideo.value && publisher.value.stream && publisher.value.stream.getMediaStream()) {
-            const videoBackgroundRemoval = new VideoBackgroundRemoval();
-            const initialized = await videoBackgroundRemoval.initialize(myVideo.value);
-            if (initialized) {
-                videoBackgroundRemoval.startProcessing(publisher.value.video, myVideo.value);
-            } else {
-                console.error('Publisher의 배경 제거 초기화에 실패했습니다.');
-            }
+            myVideo.value.srcObject = publisher.value.stream.getMediaStream();
         }
 
+        applySegmentation(publisher);
     } catch (error) {
         console.error('세션 참가 중 오류 발생:', error);
         if (error.name === 'DEVICE_ACCESS_DENIED') {
@@ -108,5 +102,87 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
         } else {
             alert(`오류 발생: ${error.message}`);
         }
+    }
+};
+
+const applySegmentation = (streamRef) => {
+    const actualStreamRef = streamRef.value || streamRef;
+
+    if (!actualStreamRef || !actualStreamRef.stream) return;
+
+    const mediaStream = actualStreamRef.stream.getMediaStream();
+
+    if (!mediaStream) return;
+
+    const videoElement = document.createElement('video');
+    videoElement.srcObject = mediaStream;
+
+    selfieSegmentation = new window.SelfieSegmentation({
+        locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file}`,
+    });
+
+    selfieSegmentation.setOptions({
+        modelSelection: 1,
+    });
+
+    const onResults = (results) => {
+        const canvasElement = document.createElement('canvas');
+        const canvasCtx = canvasElement.getContext('2d');
+
+        canvasElement.width = results.image.width;
+        canvasElement.height = results.image.height;
+
+        canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+        canvasCtx.drawImage(results.segmentationMask, 0, 0, canvasElement.width, canvasElement.height);
+
+        canvasCtx.globalCompositeOperation = 'source-in';
+        canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+
+        const videoStream = canvasElement.captureStream(30);
+        const videoTrack = videoStream.getVideoTracks()[0];
+        const originalStream = actualStreamRef.stream.getMediaStream();
+
+        if (originalStream.getVideoTracks().length > 0) {
+            originalStream.removeTrack(originalStream.getVideoTracks()[0]);
+        }
+
+        originalStream.addTrack(videoTrack);
+    };
+
+    selfieSegmentation.onResults(onResults);
+
+    const camera = new window.Camera(videoElement, {
+        onFrame: async () => {
+            await selfieSegmentation.send({ image: videoElement });
+        },
+        width: 640,
+        height: 480,
+    });
+
+    camera.start();
+};
+
+const initializeBackgroundRemoval = async (videoElement, canvasElement) => {
+    if (!videoElement || !canvasElement) return;
+
+    await new Promise((resolve) => {
+        const checkVideo = () => {
+            if (videoElement.readyState >= 2 && videoElement.videoWidth > 0 && videoElement.videoHeight > 0) {
+                canvasElement.width = videoElement.videoWidth;
+                canvasElement.height = videoElement.videoHeight;
+                resolve();
+            } else {
+                requestAnimationFrame(checkVideo);
+            }
+        };
+        checkVideo();
+    });
+
+    try {
+        const newBackgroundRemoval = new VideoBackgroundRemoval();
+        await newBackgroundRemoval.initialize();
+        newBackgroundRemoval.startProcessing(videoElement, canvasElement);
+    } catch (error) {
+        console.error('MediaPipe 초기화 중 오류 발생:', error);
     }
 };
