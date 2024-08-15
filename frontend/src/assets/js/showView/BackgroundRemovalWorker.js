@@ -13,15 +13,20 @@ self.onmessage = async function(e) {
     try {
       selfieSegmentation = new self.SelfieSegmentation({
         locateFile: async (file) => {
+          const baseUrl = 'https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation@0.1.1675465747/';
           if (file.endsWith('.tflite')) {
-            const tfliteUrl = `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation@0.1.1675465747/${file}`;
-            const tfliteData = await loadTFLite(tfliteUrl);
-            return URL.createObjectURL(new Blob([tfliteData.buffer], {type: 'application/octet-stream'}));
+            const tfliteUrl = `${baseUrl}${file}`;
+            try {
+              const tfliteData = await loadTFLite(tfliteUrl);
+              return URL.createObjectURL(new Blob([tfliteData.buffer], { type: 'application/octet-stream' }));
+            } catch (error) {
+              console.error('Error loading TFLITE file:', error);
+              throw error;
+            }
           }
-          // Ensure the URL returned is correct
-          return `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation@0.1.1675465747/${file}`;
-        }
-      });
+          return `${baseUrl}${file}`;
+        },
+      });    
 
       selfieSegmentation.setOptions({
         modelSelection: 1,
@@ -31,7 +36,7 @@ self.onmessage = async function(e) {
       self.postMessage({ type: 'ready' });
     } catch (error) {
       console.error('Initialization error:', error);
-      self.postMessage({ type: 'error', message: error.message });
+      self.postMessage({ type: 'error', message: error.message, stack: error.stack });
     }
   } else if (e.data.type === 'segment') {
     try {
@@ -39,7 +44,7 @@ self.onmessage = async function(e) {
       self.postMessage({ type: 'segmentation', segmentation: results.segmentationMask }, [results.segmentationMask]);
     } catch (error) {
       console.error('Segmentation error:', error);
-      self.postMessage({ type: 'error', message: error.message });
+      self.postMessage({ type: 'error', message: error.message, stack: error.stack });
     }
   }
 };
