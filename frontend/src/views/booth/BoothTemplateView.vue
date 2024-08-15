@@ -1,5 +1,5 @@
 <script setup>
-import { onBeforeUnmount, onMounted, onUnmounted, ref } from 'vue';
+import { onUnmounted, ref } from 'vue';
 import WhiteBoardComp from '@/components/common/WhiteBoardComp.vue';
 import BoothBack from '@/components/booth/BoothBackComp.vue';
 import TemplateComp from '@/components/template/TemplateComp.vue';
@@ -22,25 +22,9 @@ const isLeaveSite = ref(null);
 
 const sessionId = boothStore.getSessionInfo().sessionId;
 
-onMounted(() => {
-	window.addEventListener('beforeunload', handleUnload);
-});
-
-onBeforeUnmount(() => {
-	window.removeEventListener('beforeunload', handleUnload);
-});
-
 onUnmounted(() => {
 	endSession();
 });
-
-function handleUnload(e) {
-	if (isLeaveSite.value) {
-		return;
-	}
-	e.preventDefault();
-	e.returnValue = '';
-}
 
 const selectTemplate = (item) => {
 	selectedTemplate.value = item;
@@ -83,10 +67,10 @@ const screenshot = async () => {
 		);
 		isLeaveSite.value = true;
 		if (result.isConfirmed) {
-			router.replace({ name: 'main' });
+			router.push({ name: 'main' });
 			return;
 		}
-		router.replace({ name: 'calendarView' });
+		router.push({ name: 'calendarView' });
 		return;
 	}
 };
