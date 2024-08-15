@@ -6,7 +6,7 @@ import { storeToRefs } from 'pinia';
 const OPENVIDU_SERVER_URL = import.meta.env.VITE_API_OPENVIDU_SERVER;
 const OPENVIDU_SERVER_SECRET = import.meta.env.VITE_OPENVIDU_SERVER_SECRET;
 
-export const joinExistingSession = async (publisher, subscribers, myVideo, boothStore, addSubscriber, removeSubscriber) => {
+export const joinExistingSession = async (publisher, subscribers, myVideo, boothStore) => {
   try {
     const sessionInfo = boothStore.getSessionInfo();
     const session = storeToRefs(boothStore);
@@ -27,7 +27,6 @@ export const joinExistingSession = async (publisher, subscribers, myVideo, booth
 
     session.value.on('streamCreated', async ({ stream }) => {
       const subscriber = await session.value.subscribe(stream);
-      addSubscriber(subscriber);
       subscribers.value.push({ subscriber });
 
       nextTick(async () => {
@@ -41,7 +40,6 @@ export const joinExistingSession = async (publisher, subscribers, myVideo, booth
 
     session.value.on('streamDestroyed', ({ stream }) => {
       const index = subscribers.value.findIndex((sub) => sub.stream.streamId === stream.streamId);
-      removeSubscriber(stream.streamId);
       if (index >= 0) {
         subscribers.value.splice(index, 1);
       }
