@@ -3,14 +3,15 @@ import WhiteBoardComp from '@/components/common/WhiteBoardComp.vue';
 import BoothBack from '@/components/booth/BoothBackComp.vue';
 import ChatModal from '@/components/chat/ChatModal.vue';
 
+import InitializationService from '@/assets/js/showView/InitializationService';
 import PhotoService from '@/assets/js/showView/PhotoService';
 import WebSocketService from '@/services/WebSocketService';
 
-import { ref, onMounted, onUnmounted, computed, provide,nextTick } from 'vue';
+import { ref, onMounted, onUnmounted, computed, provide } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useBoothStore } from '@/stores/boothStore';
 import { useUserStore } from '@/stores/userStore';
-import { joinExistingSession, applySegmentation  } from '@/assets/js/showView/videoConference';
+import { joinExistingSession } from '@/assets/js/showView/videoConference';
 
 import videoOn from '@/assets/icon/video_on.png';
 import videoOff from '@/assets/icon/video_off.png';
@@ -21,12 +22,16 @@ const props = defineProps({
     sessionId: String,
 });
 
+const isVideoOn = ref(false);
+const isMicroOn = ref(false);
+const isMirrored = ref(false);
+const videoElement = ref(null);
+const canvasElement = ref(null);
 const isChatOpen = ref(false);
 const session = ref(null);
 const publisher = ref(null);
 const subscribers = ref([]);
 const myVideo = ref(null);
-
 
 const boothStore = useBoothStore();
 const userStore = useUserStore();
@@ -95,6 +100,7 @@ const takePhoto = async () => {
 };
 
 const exitphoto = async () => {
+    console.log('exitphoto 호출 시도');
     const shouldExit = await PhotoService.exitphoto();
     console.log('exitphoto 결과:', shouldExit);
     if (shouldExit) {
@@ -105,11 +111,22 @@ const exitphoto = async () => {
     }
 };
 
+const toggleMirror = () => {
+    isMirrored.value = !isMirrored.value;
+    const transform = isMirrored.value ? 'scaleX(-1)' : 'scaleX(1)';
+    if (videoElement.value) {
+        videoElement.value.style.transform = transform;
+    }
+    if (canvasElement.value) {
+        canvasElement.value.style.transform = transform;
+    }
+};
+
 const toggleCamera = () => {
-    isvideoOn.value = !isvideoOn.value;
+    isVideoOn.value = !isVideoOn.value;
     if (InitializationService.videoElement) {
         InitializationService.videoElement.srcObject.getVideoTracks().forEach((track) => {
-            track.enabled = isvideoOn.value;
+            track.enabled = isVideoOn.value;
         });
     }
 };
@@ -125,26 +142,9 @@ const toggleMicro = () => {
 
 // boothshoot
 
-onMounted(async() => {
-    await joinExistingSession(session, publisher, subscribers, myVideo, sessionId, boothStore);
+onMounted(() => {
+    joinExistingSession(session, publisher, subscribers, myVideo, sessionId, boothStore);
 
-    session.value.on('streamCreated', async ({ stream }) => {
-        try {
-            const subscriber = await session.value.subscribe(stream);
-            subscribers.value.push({ subscriber });
-
-            nextTick(async () => {
-                try {
-                    await applySegmentation({ stream: subscriber });
-                } catch (error) {
-                    console.error('Subscriber 배경 제거 적용 중 오류:', error);
-                }
-            });
-        } catch (error) {
-            console.error('스트림 구독 중 오류 발생:', error);
-        }
-    });
-    
     WebSocketService.setBoothStore(boothStore);
     WebSocketService.on('background_info', (message) => {
         boothStore.setBgImage(message.backgroundImage);
@@ -162,7 +162,10 @@ const { remainPicCnt, images } = PhotoService;
             <div class="booth-top-div">
                 <div>남은 사진 수: {{ remainPicCnt }}/10</div>
                 <div class="close-btn">
-                    <button class="close" @click="navigateTo('main')">
+                    <button
+                        class="close"
+                        @click="navigateTo('main')"
+                    >
                         나가기
                     </button>
                 </div>
@@ -180,21 +183,42 @@ const { remainPicCnt, images } = PhotoService;
                     >
                         <div class="video-container">
                             <!-- 로컬 비디오 스트림 -->
-                            <div v-if="publisher" class="stream-container">
+                            <div
+                                v-if="publisher"
+                                class="stream-container"
+                            >
                                 <h3>Me</h3>
-                                <video ref="myVideo" autoplay muted playsinline class="mirrored-video"></video>
-                            </div>
-
-                            <!-- 원격 참가자 비디오 스트림 -->
-                            <div v-for="sub in subscribers" :key="sub.subscriber.stream.streamId" class="stream-container">
-                                <h3>Remote</h3>
                                 <video
-                                    :id="`video-${sub.subscriber.stream.streamId}`"
-                                    :ref="`video-${sub.subscriber.stream.streamId}`"
+                                    ref="myVideo"
                                     autoplay
+                                    muted
                                     playsinline
                                     class="mirrored-video"
                                 ></video>
+                            </div>
+
+                            <!-- 원격 참가자 비디오 스트림 -->
+                            <div
+                                v-for="sub in subscribers"
+                                :key="sub.subscriber.stream.streamId"
+                                class="stream-container"
+                            >
+                                <!-- <h3>{{ sub.username }}</h3> -->
+                                <video
+                                    :id="`video-${sub.subscriber.stream.streamId}`"
+                                    :width="320"
+                                    :height="240"
+                                    autoplay
+                                    playsinline
+                                    style="display: none"
+                                    :srcObject="sub.subscriber.stream.getMediaStream()"
+                                ></video>
+                                <canvas
+                                    :id="`canvas-${sub.subscriber.stream.streamId}`"
+                                    :width="320"
+                                    :height="240"
+                                    class="mirrored-video"
+                                ></canvas>
                             </div>
                         </div>
                     </div>
@@ -214,9 +238,15 @@ const { remainPicCnt, images } = PhotoService;
                                 @click="toggleCamera"
                             >
                                 <img
-                                    :src="isvideoOn ? videoOn : videoOff"
+                                    :src="isVideoOn ? videoOn : videoOff"
                                     alt="Toggle Camera"
                                 />
+                            </button>
+                            <button
+                                class="ract-btn"
+                                @click="toggleMirror"
+                            >
+                                반전
                             </button>
                         </div>
 

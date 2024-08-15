@@ -1,28 +1,24 @@
 import { OpenVidu } from 'openvidu-browser';
 import { nextTick } from 'vue';
+import VideoBackgroundRemoval from '@/assets/js/showView/VideoBackgroundRemoval';
 
 const OPENVIDU_SERVER_URL = import.meta.env.VITE_API_OPENVIDU_SERVER;
 const OPENVIDU_SERVER_SECRET = import.meta.env.VITE_OPENVIDU_SERVER_SECRET;
 
-function checkWebGLSupport() {
-    const canvas = document.createElement('canvas');
-    const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-    return !!gl;
-}
-
-const showErrorToUser = (message) => {
-    console.error(message);
-};
+let selfieSegmentation;
 
 export const joinExistingSession = async (session, publisher, subscribers, myVideo, sessionId, boothStore) => {
     try {
         const sessionInfo = boothStore.getSessionInfo();
+
         if (!sessionInfo || !sessionInfo.sessionId || !sessionInfo.token) {
             throw new Error('세션 정보가 없습니다.');
         }
+
         const { token } = sessionInfo;
 
         const OV = new OpenVidu();
+
         OV.enableProdMode(false);
         OV.setAdvancedConfiguration({
             logLevel: 'DEBUG',
@@ -41,6 +37,15 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
             ],
             iceTransportPolicy: 'all',
             forceMediaReconnectionAfterNetworkDrop: true,
+            publisherSpeakingEventsOptions: {
+                interval: 100,
+                threshold: -50,
+            },
+            videoSimulcast: false,
+            videoSendInitialDelay: 0,
+            videoDimensions: '640x480',
+            minVideoBitrate: 300,
+            maxVideoBitrate: 1000,
         });
 
         session.value = OV.initSession();
@@ -53,13 +58,13 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
                 const video = document.getElementById(`video-${subscriber.stream.streamId}`);
                 const canvas = document.getElementById(`canvas-${subscriber.stream.streamId}`);
                 if (video && canvas) {
-                    await applySegmentation({ stream: subscriber });
+                    await initializeBackgroundRemoval(video, canvas);
                 }
             });
         });
 
         session.value.on('streamDestroyed', ({ stream }) => {
-            const index = subscribers.value.findIndex((sub) => sub.subscriber.stream.streamId === stream.streamId);
+            const index = subscribers.value.findIndex((sub) => sub.stream.streamId === stream.streamId);
             if (index >= 0) {
                 subscribers.value.splice(index, 1);
             }
@@ -67,13 +72,16 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
 
         await session.value.connect(token);
 
+        const devices = await OV.getDevices();
+        const videoDevices = devices.filter((device) => device.kind === 'videoinput');
+
         const publisherOptions = {
             audioSource: undefined,
             videoSource: undefined,
             publishAudio: true,
             publishVideo: true,
             resolution: '640x480',
-            frameRate: 30,
+            frameRate: 60,
             insertMode: 'APPEND',
             mirror: true,
         };
@@ -86,97 +94,95 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
             myVideo.value.srcObject = publisher.value.stream.getMediaStream();
         }
 
-        if (!checkWebGLSupport()) {
-            console.warn('WebGL이 지원되지 않습니다. 배경 제거 기능을 사용할 수 없습니다.');
-            return;
-        }
-
-        await applySegmentation(publisher);
+        applySegmentation(publisher);
     } catch (error) {
         console.error('세션 참가 중 오류 발생:', error);
         if (error.name === 'DEVICE_ACCESS_DENIED') {
-            showErrorToUser('카메라 또는 마이크 접근이 거부되었습니다. 브라우저 설정에서 권한을 확인해주세요.');
+            alert('카메라 또는 마이크 접근이 거부되었습니다. 브라우저 설정에서 권한을 확인해주세요.');
         } else {
-            showErrorToUser(`오류 발생: ${error.message}`);
+            alert(`오류 발생: ${error.message}`);
         }
     }
 };
 
-export const applySegmentation = async (streamRef) => {
-    let isProcessing = false;
-    let selfieSegmentation;
-    let camera;
+const applySegmentation = (streamRef) => {
+    const actualStreamRef = streamRef.value || streamRef;
 
-    try {
-        const actualStreamRef = streamRef.value || streamRef;
-        if (!actualStreamRef || !actualStreamRef.stream) {
-            throw new Error('스트림 참조가 유효하지 않습니다.');
-        }
+    if (!actualStreamRef || !actualStreamRef.stream) return;
 
-        const mediaStream = actualStreamRef.stream.getMediaStream
-            ? actualStreamRef.stream.getMediaStream()
-            : actualStreamRef.stream.streamManager.stream.getMediaStream();
+    const mediaStream = actualStreamRef.stream.getMediaStream();
 
-        if (!mediaStream) {
-            throw new Error('미디어 스트림을 가져올 수 없습니다.');
-        }
+    if (!mediaStream) return;
 
-        const videoElement = document.createElement('video');
-        videoElement.srcObject = mediaStream;
-        videoElement.muted = true;
-        videoElement.playsInline = true;
+    const videoElement = document.createElement('video');
+    videoElement.srcObject = mediaStream;
 
+    selfieSegmentation = new window.SelfieSegmentation({
+        locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file}`,
+    });
+
+    selfieSegmentation.setOptions({
+        modelSelection: 1,
+    });
+
+    const onResults = (results) => {
         const canvasElement = document.createElement('canvas');
-        canvasElement.width = videoElement.videoWidth || 640;
-        canvasElement.height = videoElement.videoHeight || 480;
         const canvasCtx = canvasElement.getContext('2d');
 
-        selfieSegmentation = new window.SelfieSegmentation({
-            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file}`,
-        });
+        canvasElement.width = results.image.width;
+        canvasElement.height = results.image.height;
 
-        await selfieSegmentation.setOptions({ modelSelection: 1 });
-        await selfieSegmentation.initialize();
+        canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+        canvasCtx.drawImage(results.segmentationMask, 0, 0, canvasElement.width, canvasElement.height);
 
-        selfieSegmentation.onResults((results) => {
-            if (isProcessing) return;
-            isProcessing = true;
+        canvasCtx.globalCompositeOperation = 'source-in';
+        canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
 
-            try {
-                canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-                canvasCtx.drawImage(results.segmentationMask, 0, 0, canvasElement.width, canvasElement.height);
-                canvasCtx.globalCompositeOperation = 'source-in';
-                canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
-                canvasCtx.globalCompositeOperation = 'source-over';
+        const videoStream = canvasElement.captureStream(30);
+        const videoTrack = videoStream.getVideoTracks()[0];
+        const originalStream = actualStreamRef.stream.getMediaStream();
 
-                const videoStream = canvasElement.captureStream(30);
-                const videoTrack = videoStream.getVideoTracks()[0];
-                const originalStream = actualStreamRef.stream.getMediaStream();
+        if (originalStream.getVideoTracks().length > 0) {
+            originalStream.removeTrack(originalStream.getVideoTracks()[0]);
+        }
 
-                if (originalStream.getVideoTracks().length > 0) {
-                    originalStream.removeTrack(originalStream.getVideoTracks()[0]);
-                }
-                originalStream.addTrack(videoTrack);
-            } catch (error) {
-                console.error('세그멘테이션 처리 중 오류:', error);
-            } finally {
-                isProcessing = false;
+        originalStream.addTrack(videoTrack);
+    };
+
+    selfieSegmentation.onResults(onResults);
+
+    const camera = new window.Camera(videoElement, {
+        onFrame: async () => {
+            await selfieSegmentation.send({ image: videoElement });
+        },
+        width: 640,
+        height: 480,
+    });
+
+    camera.start();
+};
+
+const initializeBackgroundRemoval = async (videoElement, canvasElement) => {
+    if (!videoElement || !canvasElement) return;
+
+    await new Promise((resolve) => {
+        const checkVideo = () => {
+            if (videoElement.readyState >= 2 && videoElement.videoWidth > 0 && videoElement.videoHeight > 0) {
+                canvasElement.width = videoElement.videoWidth;
+                canvasElement.height = videoElement.videoHeight;
+                resolve();
+            } else {
+                requestAnimationFrame(checkVideo);
             }
-        });
+        };
+        checkVideo();
+    });
 
-        camera = new window.Camera(videoElement, {
-            onFrame: async () => {
-                if (!isProcessing) {
-                    await selfieSegmentation.send({ image: videoElement });
-                }
-            },
-            width: videoElement.videoWidth || 640,
-            height: videoElement.videoHeight || 480,
-        });
-
-        await camera.start();
+    try {
+        const newBackgroundRemoval = new VideoBackgroundRemoval();
+        await newBackgroundRemoval.initialize();
+        newBackgroundRemoval.startProcessing(videoElement, canvasElement);
     } catch (error) {
-        console.error('세그멘테이션 적용 중 오류 발생:', error);
-        throw error;
+        console.error('MediaPipe 초기화 중 오류 발생:', error);
     }
 };
