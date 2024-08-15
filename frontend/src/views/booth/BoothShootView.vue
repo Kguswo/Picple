@@ -147,13 +147,35 @@ onMounted(async () => {
         }
     }
 
-    await joinExistingSession(session, publisher, subscribers, myVideo, sessionId, boothStore);
-    console.log('세션 참가 완료');
+    try {
+        await joinExistingSession(session, publisher, subscribers, myVideo, sessionId, boothStore);
+        console.log('세션 참가 완료');
 
-    WebSocketService.setBoothStore(boothStore);
-    WebSocketService.on('background_info', (message) => {
-        boothStore.setBgImage(message.backgroundImage);
-    });
+        session.value.on('connectionStateChanged', (event) => {
+            console.log('연결 상태 변경:', event.connectionId, event.newState);
+        });
+
+        session.value.on('streamCreated', (event) => {
+            console.log('새 스트림 생성:', event.stream.streamId);
+        });
+
+        WebSocketService.setBoothStore(boothStore);
+        WebSocketService.on('background_info', (message) => {
+            console.log('배경 이미지 업데이트:', message.backgroundImage);
+            boothStore.setBgImage(message.backgroundImage);
+        });
+
+        WebSocketService.on('open', () => {
+            console.log('WebSocket 연결 성공');
+        });
+
+        WebSocketService.on('error', (error) => {
+            console.error('WebSocket 오류:', error);
+        });
+
+    } catch (error) {
+        console.error('세션 참가 또는 WebSocket 설정 중 오류 발생:', error);
+    }
 });
 
 onUnmounted(() => { });
