@@ -28,16 +28,17 @@ export default class VideoBackgroundRemoval {
     };
   }
 
-  async initialize() {
+  async initialize(canvasElement) {
     console.log('배경 제거 초기화 시작');
     try {
-        await this.selfieSegmentation.initialize();
-        console.log('배경 제거 초기화 완료');
+      await this.selfieSegmentation.initialize();
+      this.initWebGL(canvasElement);
+      console.log('배경 제거 초기화 완료');
     } catch (error) {
-        console.error('배경 제거 초기화 중 오류 발생:', error);
-        throw error;
+      console.error('배경 제거 초기화 중 오류 발생:', error);
+      throw error;
     }
-}
+  }
 
   initWebGL(canvas) {
     this.gl = canvas.getContext('webgl');
@@ -144,28 +145,31 @@ export default class VideoBackgroundRemoval {
     this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4);
   }
 
+  startProcessing(videoElement, canvasElement) {
+    console.log('비디오 처리 시작');
+    this.processVideo(videoElement, canvasElement);
+  }
+
   async processVideo(videoElement, canvasElement) {
     if (!videoElement || !canvasElement) {
       console.error('비디오 또는 캔버스 요소가 없음');
       return;
     }
-  
-    if (videoElement.videoWidth === 0 || videoElement.videoHeight === 0) {
-      console.warn('비디오 크기가 0입니다. 다음 프레임에서 재시도합니다.');
+
+    if (videoElement.readyState < 2) {
+      console.log('비디오가 아직 로드되지 않음. 다음 프레임에서 재시도합니다.');
       requestAnimationFrame(() => this.processVideo(videoElement, canvasElement));
       return;
     }
-  
-    console.log('프레임 처리 시작');
-    await this.selfieSegmentation.send({ image: videoElement });
-    console.log('프레임 처리 완료');
-  
-    requestAnimationFrame(() => this.processVideo(videoElement, canvasElement));
-  }
 
-  startProcessing(videoElement, canvasElement) {
-    console.log('비디오 처리 시작');
-    this.initWebGL(canvasElement);
-    this.processVideo(videoElement, canvasElement);
+    console.log('프레임 처리 시작');
+    try {
+      await this.selfieSegmentation.send({ image: videoElement });
+      console.log('프레임 처리 완료');
+    } catch (error) {
+      console.error('프레임 처리 중 오류 발생:', error);
+    }
+
+    requestAnimationFrame(() => this.processVideo(videoElement, canvasElement));
   }
 }

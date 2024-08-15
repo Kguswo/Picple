@@ -7,25 +7,25 @@ const OPENVIDU_SERVER_SECRET = import.meta.env.VITE_OPENVIDU_SERVER_SECRET;
 
 let selfieSegmentation;
 
-export async function waitForVideoSize(videoElement, maxAttempts = 10, interval = 500) {
+export async function waitForVideoSize(videoElement, maxAttempts = 20, interval = 250) {
     return new Promise((resolve, reject) => {
-      let attempts = 0;
-      const checkSize = () => {
+        let attempts = 0;
+        const checkSize = () => {
         attempts++;
-        if (videoElement.videoWidth > 0 && videoElement.videoHeight > 0) {
-          console.log(`비디오 크기 확인됨: ${videoElement.videoWidth}x${videoElement.videoHeight}`);
-          resolve();
+        if (videoElement.readyState >= 2 && videoElement.videoWidth > 0 && videoElement.videoHeight > 0) {
+            console.log(`비디오 크기 확인됨: ${videoElement.videoWidth}x${videoElement.videoHeight}`);
+            resolve({ width: videoElement.videoWidth, height: videoElement.videoHeight });
         } else if (attempts >= maxAttempts) {
-          console.error('최대 시도 횟수 초과: 비디오 크기를 확인할 수 없음');
-          reject(new Error('비디오 크기를 확인할 수 없음'));
+            console.error('최대 시도 횟수 초과: 비디오 크기를 확인할 수 없음');
+            reject(new Error('비디오 크기를 확인할 수 없음'));
         } else {
-          console.log(`비디오 크기 대기 중... 시도: ${attempts}`);
-          setTimeout(checkSize, interval);
+            console.log(`비디오 크기 대기 중... 시도: ${attempts}`);
+            setTimeout(checkSize, interval);
         }
-      };
-      checkSize();
+        };
+        checkSize();
     });
-  }
+}
 
 export const joinExistingSession = async (session, publisher, subscribers, myVideo, sessionId, boothStore) => {
   try {
@@ -70,40 +70,41 @@ export const joinExistingSession = async (session, publisher, subscribers, myVid
 
     session.value = OV.initSession();
 
-    console.log("새 스트림 생성 이벤트 리스너 등록");
     session.value.on("streamCreated", async (event) => {
-      console.log(`새 스트림 생성됨: ${event.stream.streamId}`);
-      const subscriber = session.value.subscribe(event.stream, undefined);
-      subscribers.value.push({ stream: event.stream, subscriber: subscriber });
-      console.log(`구독자 목록에 새 구독자 추가됨: ${event.stream.streamId}`);
+        console.log(`새 스트림 생성됨: ${event.stream.streamId}`);
+        const subscriber = session.value.subscribe(event.stream, undefined);
+        subscribers.value.push({ stream: event.stream, subscriber: subscriber });
+        console.log(`구독자 목록에 새 구독자 추가됨: ${event.stream.streamId}`);
 
-      await nextTick();
-      console.log( `DOM 업데이트 대기 후 비디오 요소 찾기 시작: ${event.stream.streamId}`);
-      const videoElement = document.getElementById( `video-${event.stream.streamId}`);
-      const canvasElement = document.getElementById( `canvas-${event.stream.streamId}`);
+        await nextTick();
+        console.log(`DOM 업데이트 대기 후 비디오 요소 찾기 시작: ${event.stream.streamId}`);
+        const videoElement = document.getElementById(`video-${event.stream.streamId}`);
+        const canvasElement = document.getElementById(`canvas-${event.stream.streamId}`);
 
-      if (videoElement && canvasElement) {
-        try {
-          await waitForVideoSize(videoElement);
-          console.log(`비디오 크기 확인 완료: ${event.stream.streamId}`);
-          const backgroundRemoval = new VideoBackgroundRemoval();
-          await backgroundRemoval.initialize();
-          backgroundRemoval.startProcessing(videoElement, canvasElement);
-        } catch (error) {
-          console.error(`비디오 처리 실패: ${event.stream.streamId}`, error);
-        }
-      } else {
-        console.warn(`비디오 또는 캔버스 요소를 찾을 수 없음: ${event.stream.streamId}`);
-      }
+        if (videoElement && canvasElement) {
+            try {
+            const { width, height } = await waitForVideoSize(videoElement);
+            console.log(`비디오 크기 확인 완료: ${width}x${height}`);
+            
+            canvasElement.width = width;
+            canvasElement.height = height;
+            
+            const backgroundRemoval = new VideoBackgroundRemoval();
+            await backgroundRemoval.initialize(canvasElement);
+            backgroundRemoval.startProcessing(videoElement, canvasElement);
+            } catch (error) {
+                console.error(`비디오 처리 실패: ${event.stream.streamId}`, error);
+            }
+        } else {
+            console.warn(`비디오 또는 캔버스 요소를 찾을 수 없음: ${event.stream.streamId}`);
+        }   
     });
 
     session.value.on("streamDestroyed", ({ stream }) => {
-      const index = subscribers.value.findIndex(
-        (sub) => sub.stream.streamId === stream.streamId
-      );
-      if (index >= 0) {
-        subscribers.value.splice(index, 1);
-      }
+        const index = subscribers.value.findIndex( (sub) => sub.stream.streamId === stream.streamId);
+        if (index >= 0) {
+            subscribers.value.splice(index, 1);
+        }
     });
 
     await session.value.connect(token);

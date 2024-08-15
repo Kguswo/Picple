@@ -154,17 +154,6 @@ onMounted(async () => {
     WebSocketService.on('background_info', (message) => {
         boothStore.setBgImage(message.backgroundImage);
     });
-
-    subscribers.value.forEach(async (sub) => {
-        const videoElement = document.getElementById(`video-${sub.stream.streamId}`);
-        const canvasElement = document.getElementById(`canvas-${sub.stream.streamId}`);
-
-        if (videoElement && canvasElement) {
-            const backgroundRemoval = new VideoBackgroundRemoval();
-            await backgroundRemoval.initialize();
-            backgroundRemoval.startProcessing(videoElement, canvasElement);
-        }
-    });
 });
 
 onUnmounted(() => { });
