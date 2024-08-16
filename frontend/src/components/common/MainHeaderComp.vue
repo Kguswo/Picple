@@ -2,25 +2,26 @@
 import { useRoute, useRouter } from 'vue-router';
 import { useUserStore } from '@/stores/userStore';
 import { logoutApi } from '@/api/userApi';
-import Swal from 'sweetalert2';
+import { storeToRefs } from 'pinia';
+import { alertResult } from '@/api/baseApi';
 
 const router = useRouter();
 const route = useRoute();
 const userStore = useUserStore();
 
-const user = userStore.user;
+const { userEmail, userNickname } = storeToRefs(userStore);
 
 const navigateTo = (name) => {
 	router.push({ name });
 };
 
 const logout = async () => {
-	const data = await logoutApi();
+	const { data } = await logoutApi(userEmail);
 	if (!data.isSuccess) {
-		await Swal.fire({ icon: 'error', title: `${data.message}`, width: 600 });
+		await alertResult(false, '로그아웃에 실패하였습니다.');
 		return;
 	}
-	userStore.resetUser();
+	userStore.resetUserInfo();
 	if (route.name !== 'main') {
 		router.push({ name: 'main' });
 		return;
@@ -37,19 +38,20 @@ const logout = async () => {
 					src="@/assets/img/mainView/picpleLogo.png"
 					alt=""
 					@click="navigateTo('main')"
+					class="custom-cursor"
 				/>
 			</div>
 			<div class="right">
 				<div
-					v-if="user.email && user.nickname"
+					v-if="userNickname"
 					class="dropdown"
 				>
-					<span>{{ user.nickname }}</span>
+					<span>{{ userNickname }}</span>
 					<div class="dropdown-content">
 						<button
 							type="button"
 							@click="navigateTo('modifyAccount')"
-							class="navbar-button"
+							class="navbar-button custom-cursor"
 						>
 							정보 수정
 						</button>
@@ -57,7 +59,7 @@ const logout = async () => {
 						<button
 							type="button"
 							@click="logout"
-							class="navbar-button"
+							class="navbar-button custom-cursor"
 						>
 							로그아웃
 						</button>
@@ -67,7 +69,7 @@ const logout = async () => {
 					<button
 						type="button"
 						@click="navigateTo('login')"
-						class="navbar-button"
+						class="navbar-button custom-cursor"
 					>
 						로그인
 					</button>
@@ -79,4 +81,10 @@ const logout = async () => {
 
 <style scoped>
 @import '@/assets/css/header.css';
+
+.left .custom-cursor,
+.right .custom-cursor,
+.right .dropdown > span {
+	cursor: url('@/assets/img/app/hoverCursorIcon.png') 5 5, pointer !important;
+}
 </style>

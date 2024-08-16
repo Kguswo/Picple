@@ -1,44 +1,48 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
+import { jwtDecode } from 'jwt-decode'; // 'jwt-decode'에서 중괄호는 제거해야 합니다.
 
 export const useUserStore = defineStore(
 	'userStore',
 	() => {
-		const user = ref({
-			email: '',
-			nickname: '',
-		});
-
+		const userEmail = ref('');
+		const userNickname = ref('');
 		const verifiedEmail = ref('');
+		const isLogined = ref(false);
 
-		const setUser = (email, nickname) => {
-			user.value.email = email;
-			user.value.nickname = nickname;
+		const setUserInfo = (accessToken) => {
+			localStorage.setItem('accessToken', accessToken);
+			const token = jwtDecode(accessToken);
+			userEmail.value = token.sub;
+			userNickname.value = token.nickname;
+			isLogined.value = true;
 		};
 
-		const resetUser = () => {
-			user.value.email = '';
-			user.value.nickname = '';
+		const resetUserInfo = () => {
 			localStorage.removeItem('accessToken');
-			localStorage.removeItem('user');
+			userEmail.value = '';
+			userNickname.value = '';
+			isLogined.value = false;
 		};
 
 		const changeNickname = (nickname) => {
-			user.value.nickname = nickname;
+			userNickname.value = nickname;
 		};
 
 		return {
-			user,
+			userEmail,
+			userNickname,
 			verifiedEmail,
-			setUser,
-			resetUser,
+			isLogined,
+			setUserInfo,
+			resetUserInfo,
 			changeNickname,
 		};
 	},
 	{
 		persist: {
-			key: 'user',
-			paths: ['user'],
+			key: 'userInfo',
+			paths: ['userEmail', 'userNickname', 'isLogined'],
 		},
 	},
 );

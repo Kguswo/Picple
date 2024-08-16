@@ -1,12 +1,12 @@
 package com.ssafy.picple.domain.photouser.service;
 
-import static com.ssafy.picple.config.baseResponse.BaseResponseStatus.*;
+import static com.ssafy.picple.config.baseresponse.BaseResponseStatus.*;
 import static com.ssafy.picple.domain.photouser.dto.response.PhotoUserResponseDto.*;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.ssafy.picple.config.baseResponse.BaseException;
+import com.ssafy.picple.config.baseresponse.BaseException;
 import com.ssafy.picple.domain.photo.entity.Photo;
 import com.ssafy.picple.domain.photo.repository.PhotoRepository;
 import com.ssafy.picple.domain.photouser.dto.request.PhotoUserRequestDto;
@@ -38,7 +38,7 @@ public class PhotoUserServiceImpl implements PhotoUserService {
 	public PhotoUserResponseDto createPhotoUser(PhotoUserRequestDto requestDto, Long userId) throws BaseException {
 		// Photo와 User 조회, 없을 경우 예외 발생
 		Photo photo = photoRepository.findById(requestDto.getPhotoId())
-				.orElseThrow(() -> new BaseException(NOT_FOUND_PHOTO));
+				.orElseThrow(() -> new BaseException(GET_PHOTO_EMPTY));
 		User user = userRepository.findById(userId)
 				.orElseThrow(() -> new BaseException(NOT_FOUND_USER));
 

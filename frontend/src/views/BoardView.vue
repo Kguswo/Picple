@@ -3,56 +3,87 @@ import WhiteBoardComp from '@/components/common/WhiteBoardComp.vue';
 import BoardPhotoComp from '@/components/board/BoardPhotoComp.vue';
 import Page from '@/components/common/PageComp.vue';
 import { onMounted, ref } from 'vue';
-import { boardSearchApi, boardSortApi } from '@/api/boardApi';
-import Swal from 'sweetalert2';
+import { boardListApi } from '@/api/boardApi';
+import { alertResult } from '@/api/baseApi';
+import { debounce } from '@/assets/js/util';
 
 const boardList = ref([]);
-const isLikeClicked = ref(false);
-const isTimeClicked = ref(false);
+const sortArrow = ref('↓');
+const prevCriteria = ref('createdAt');
+const prevNickname = ref('');
+const nickname = ref('');
+const paging = ref({
+	page: 0,
+	size: 20,
+	sort: 'createdAt,desc',
+});
+const isLoading = ref(true);
+const debounceTimer = ref(0);
 
-onMounted(async () => {
-	const data = await boardSortApi('createdAt');
-	if (!data.isSuccess) {
-		await Swal.fire({ icon: 'error', title: '게시글을 불러오지 못했습니다.', width: 600 });
-		return;
-	}
-	boardList.value = data.result;
+onMounted(() => {
+	debounce(debounceTimer, getBoardList, 1000)();
 });
 
-const nickname = ref('');
+const getNextBoards = async () => {
+	++paging.value.page;
+	isLoading.value = true;
+	debounce(debounceTimer, getBoardList, 2000)();
+};
+
+const getBoardList = async () => {
+	const { data } = await boardListApi(prevNickname.value, paging.value);
+	if (!data.isSuccess) {
+		await alertResult(false, '게시판 조회에 실패하였습니다.');
+		return;
+	}
+	boardList.value = boardList.value.concat(data.result);
+	isLoading.value = false;
+};
+
+const sortBoards = async (criteria) => {
+	if (isLoading.value) {
+		return;
+	}
+	paging.value.page = 0;
+	boardList.value = [];
+	if (prevCriteria.value !== criteria || sortArrow.value === '↑') {
+		paging.value.sort = `${criteria},desc`;
+	} else {
+		paging.value.sort = `${criteria},asc`;
+	}
+	isLoading.value = true;
+	debounce(debounceTimer, getBoardList, 1000)();
+	toggleSort(criteria);
+};
 
 const searchByNickname = async () => {
-	if (!nickname.value) {
+	if (isLoading.value || prevNickname.value === nickname.value) {
 		return;
 	}
-	const data = await boardSearchApi(nickname.value);
-	if (!data.isSuccess) {
-		await Swal.fire({ icon: 'error', title: '검색 조회에 실패하였습니다.', width: 600 });
-		return;
-	}
-	boardList.value = data.result;
+
+	sortArrow.value = '↓';
+	prevCriteria.value = 'createdAt';
+	paging.value.page = 0;
+	paging.value.sort = 'createdAt,desc';
+	boardList.value = [];
+
+	isLoading.value = true;
+	prevNickname.value = nickname.value;
+	debounce(debounceTimer, getBoardList, 1000)();
 };
 
-const sortByCreatedAt = async () => {
-	const data = await boardSortApi('createdAt');
-	if (!data.isSuccess) {
-		await Swal.fire({ icon: 'error', title: '최신순 정렬에 실패하였습니다.', width: 600 });
+const toggleSort = (criteria) => {
+	if (prevCriteria.value === criteria) {
+		if (sortArrow.value !== '↓') {
+			sortArrow.value = '↓';
+			return;
+		}
+		sortArrow.value = '↑';
 		return;
 	}
-	boardList.value = data.result;
-	isTimeClicked.value = true;
-	isLikeClicked.value = false;
-};
 
-const sortByHit = async () => {
-	const data = await boardSortApi('hit');
-	if (!data.isSuccess) {
-		await Swal.fire({ icon: 'error', title: '좋아요순 정렬에 실패하였습니다.', width: 600 });
-		return;
-	}
-	boardList.value = data.result;
-	isLikeClicked.value = true;
-	isTimeClicked.value = false;
+	sortArrow.value = '↓';
+	prevCriteria.value = criteria;
 };
 </script>
 
@@ -86,35 +117,45 @@ const sortByHit = async () => {
 
 					<div class="button-group">
 						<button
-							class="button-sort-like"
-							:class="{ clicked: isLikeClicked }"
-							@click="sortByHit"
+							@click="sortBoards('hit')"
+							:class="{ clicked: prevCriteria === 'hit' }"
 						>
-							좋아요순
+							좋아요순 <span>{{ prevCriteria === 'hit' ? sortArrow : '' }}</span>
 						</button>
 						<button
-							class="button-sort-time"
-							:class="{ clicked: isTimeClicked }"
-							@click="sortByCreatedAt"
+							@click="sortBoards('createdAt')"
+							:class="{ clicked: prevCriteria === 'createdAt' }"
 						>
-							최신순
+							최신순 <span>{{ prevCriteria === 'createdAt' ? sortArrow : '' }}</span>
 						</button>
 					</div>
 				</div>
 
 				<div class="board">
 					<div
-						v-if="boardList.length === 0"
+						v-if="!isLoading && boardList.length === 0"
 						style="font-size: 50px"
 					>
 						게시글 없음
 					</div>
 					<BoardPhotoComp
 						v-else
-						v-for="board in boardList"
+						v-for="(board, index) in boardList"
 						:key="board.id"
+						:count="index + 1"
+						:paging="paging"
 						:board="board"
+						@observe="getNextBoards"
 					/>
+					<div
+						v-if="isLoading"
+						class="loading"
+					>
+						<img
+							src="@/assets/icon/모래시계.gif"
+							alt="loading..."
+						/>
+					</div>
 				</div>
 			</div>
 		</WhiteBoardComp>
@@ -174,6 +215,7 @@ const sortByHit = async () => {
 	line-height: 35px;
 	cursor: pointer;
 	font-size: 15px;
+	cursor: url('@/assets/img/app/hoverCursorIcon.png') 5 5, pointer !important;
 }
 
 .form-button-small {
@@ -187,7 +229,12 @@ const sortByHit = async () => {
 	font-size: 15px;
 	background-color: #62abd9;
 	color: white;
-	cursor: pointer;
+	cursor: url('@/assets/img/app/hoverCursorIcon.png') 5 5, pointer !important;
+
+	&:active {
+		transform: translateY(-40%);
+		transition: transform 0.3s ease;
+	}
 }
 
 .button-group {
@@ -201,21 +248,21 @@ const sortByHit = async () => {
 		color: black;
 		transition: background-color 0.3s ease;
 		cursor: pointer;
-	}
+		cursor: url('@/assets/img/app/hoverCursorIcon.png') 5 5, pointer !important;
 
-	.button-sort-time,
-	.button-sort-like {
 		&:hover {
-			background-color: rgba(250, 198, 198, 0.3);
+			background-color: rgb(98, 171, 217, 0.5);
 		}
 
 		&:active {
-			transform: translateY(4px);
+			transform: translateY(5px);
+			transition: transform 0.3s ease;
 		}
 	}
 
 	.clicked {
-		background-color: rgb(250, 198, 198);
+		background-color: #62abd9;
+		color: white;
 	}
 }
 
@@ -229,5 +276,18 @@ const sortByHit = async () => {
 	align-items: center;
 
 	overflow: scroll;
+
+	&::-webkit-scrollbar {
+		width: 8px;
+	}
+
+	&::-webkit-scrollbar-thumb {
+		background: #888; /* Scrollbar color */
+		border-radius: 10px;
+	}
+
+	&::-webkit-scrollbar-thumb:hover {
+		background: #555;
+	}
 }
 </style>

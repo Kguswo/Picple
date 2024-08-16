@@ -3,28 +3,56 @@ import FormComp from '@/components/form/FormComp.vue';
 import FormInputComp from '@/components/form/FormInputComp.vue';
 import FormButtonComp from '@/components/form/FormButtonComp.vue';
 import { useRouter } from 'vue-router';
-import Swal from 'sweetalert2';
-import { setFormMessage } from '@/composables/validation';
-import { useFormStore } from '@/stores/formStore';
-import { storeToRefs } from 'pinia';
+import { ref } from 'vue';
+import WebSocketService from '@/services/WebSocketService';
+import { useBoothStore } from '@/stores/boothStore';
+import axios from 'axios';
 
 const router = useRouter();
-const formStore = useFormStore();
+const boothStore = useBoothStore();
+const boothCode = ref({ type: 'text', label: '부스 코드', value: '' });
 
-const { boothCode, boothCodeField } = storeToRefs(formStore);
-formStore.initForm([boothCode], [boothCodeField]);
+const OPENVIDU_SERVER_URL = import.meta.env.VITE_API_OPENVIDU_SERVER;
+const OPENVIDU_SERVER_SECRET = import.meta.env.VITE_OPENVIDU_SERVER_SECRET;
 
-const verifyBoothCode = async () => {
-	boothCodeField.value.message = !boothCode.value.value
-		? setFormMessage('부스 코드가 일치하지 않습니다.', true)
-		: setFormMessage('', false);
-
-	if (formStore.focusInputField(boothCodeField)) {
-		return;
+const getToken = async (sessionId) => {
+	try {
+		const response = await axios.post(
+			`${OPENVIDU_SERVER_URL}/openvidu/api/sessions/${sessionId}/connection`,
+			{},
+			{
+				headers: {
+					Authorization: 'Basic ' + btoa('OPENVIDUAPP:' + OPENVIDU_SERVER_SECRET),
+					'Content-Type': 'application/json',
+				},
+			},
+		);
+		return response.data.token;
+	} catch (error) {
+		console.error('Error getting token:', error);
+		throw error;
 	}
+};
 
-	// todo: 부스 코드 검사 api 연결
-	await Swal.fire({ icon: 'success', title: '부스 코드가 인증되었습니다.', width: 600 });
+const join = async () => {
+	try {
+		const sessionId = boothCode.value.value;
+		await WebSocketService.joinBooth(sessionId);
+
+		const token = await getToken(sessionId);
+
+		boothStore.setSessionInfo({ sessionId, token, isHost: false });
+
+		router.push({
+			name: 'boothVideoTest',
+			params: {
+				boothId: sessionId,
+			},
+		});
+	} catch (error) {
+		console.error('Failed to join booth:', error);
+		alert('부스 참여에 실패했습니다. 부스 코드를 확인해 주세요.');
+	}
 };
 
 const cancel = () => {
@@ -37,18 +65,15 @@ const cancel = () => {
 		<form
 			class="form-content"
 			@submit.prevent
-			@keyup.enter="verifyBoothCode"
+			@keyup.enter="join"
 		>
-			<FormInputComp
-				:inputParams="boothCode"
-				ref="boothCodeField"
-			/>
-
+			<FormInputComp :inputParams="boothCode" />
 			<FormButtonComp
 				size="big"
-				@click="verifyBoothCode"
-				>확인</FormButtonComp
+				@click="join"
 			>
+				확인
+			</FormButtonComp>
 			<button
 				type="button"
 				class="form-button-big form-button-cancel mt-10"
@@ -60,4 +85,24 @@ const cancel = () => {
 	</FormComp>
 </template>
 
-<style scoped></style>
+<style scoped>
+.form-button-big.form-button-cancel {
+	cursor: url('@/assets/img/app/hoverCursorIcon.png') 5 5, pointer !important;
+}
+
+:deep(.form-button) {
+	cursor: url('@/assets/img/app/hoverCursorIcon.png') 5 5, pointer !important;
+}
+
+:deep(.form-input) {
+	cursor: url('@/assets/img/app/hoverCursorIcon.png') 5 5, text !important;
+}
+
+.form-button-small {
+	cursor: url('@/assets/img/app/hoverCursorIcon.png') 5 5, pointer !important;
+}
+
+:deep(.form-button-none) {
+	cursor: url('@/assets/img/app/hoverCursorIcon.png') 5 5, pointer !important;
+}
+</style>

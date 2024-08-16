@@ -1,49 +1,62 @@
-import { instance, axiosPost, axiosPatch, axiosDelete } from '@/api/baseApi';
+import { axiosAuth } from '@/api/baseApi';
+import axios from 'axios';
 
-const usersBaseUrl = instance.defaults.baseURL + '/users';
+const usersBaseUrl = import.meta.env.VITE_API_USER;
 
-const loginApi = async (email, password) => {
-	return await axiosPost(`${usersBaseUrl}/login`, { email, password });
+const loginApi = (email, password) => {
+	return axios.post(`${usersBaseUrl}/login`, { email, password }, { withCredentials: true });
 };
 
-const signupApi = async (email, password, nickname) => {
-	return await axiosPost(`${usersBaseUrl}/sign-up`, {
+const signupApi = (email, password, nickname) => {
+	return axios.post(`${usersBaseUrl}/sign-up`, {
 		email,
 		password,
 		nickname,
 	});
 };
 
-const sendAuthNumberApi = async (email) => {
-	return await axiosPost(`${usersBaseUrl}/mail`, { email });
+const sendAuthNumberByFindApi = (email) => {
+	return axios.post(`${usersBaseUrl}/mail/find`, { email });
 };
 
-const verifyAuthNumberApi = async (email, authNumber) => {
-	return await axiosPost(`${usersBaseUrl}/mailcheck`, { email, authNumber });
+const sendAuthNumberApi = (email) => {
+	return axios.post(`${usersBaseUrl}/mail`, { email });
 };
 
-const modifyAccountApi = async (nickname) => {
-	return await axiosPatch(`${usersBaseUrl}/modify/nickname`, { nickname });
+const verifyAuthNumberApi = (email, authNumber) => {
+	return axios.post(`${usersBaseUrl}/mailcheck`, { email, authNumber });
 };
 
-const modifyPasswordApi = async (oldPassword, newPassword) => {
-	return await axiosPatch(`${usersBaseUrl}/modify/password`, { oldPassword, newPassword });
+const modifyAccountApi = (nickname) => {
+	return axiosAuth.patch(`${usersBaseUrl}/modify/nickname`, { nickname });
 };
 
-const logoutApi = async () => {
-	return await axiosPost(`${usersBaseUrl}/logout`);
+const findPasswordApi = (email, password) => {
+	return axios.patch(`${usersBaseUrl}/reset-password`, { email, password });
 };
 
-const deleteAccountApi = async () => {
-	return await axiosDelete(`${usersBaseUrl}`);
+const modifyPasswordApi = (oldPassword, newPassword) => {
+	return axiosAuth.patch(`${usersBaseUrl}/modify/password`, { oldPassword, newPassword });
+};
+
+const logoutApi = (email) => {
+	return axiosAuth.post(`${usersBaseUrl}/logout`, {
+		email,
+	});
+};
+
+const deleteAccountApi = () => {
+	return axiosAuth.delete(`${usersBaseUrl}`);
 };
 
 export {
 	loginApi,
 	signupApi,
+	sendAuthNumberByFindApi,
 	sendAuthNumberApi,
 	verifyAuthNumberApi,
 	modifyAccountApi,
+	findPasswordApi,
 	modifyPasswordApi,
 	deleteAccountApi,
 	logoutApi,

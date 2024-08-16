@@ -1,0 +1,282 @@
+.select-text-box {
+    display: flex;
+    height: 95%;
+    width: 90%;
+    flex-direction: column;
+    align-items: center;
+}
+
+.select-box-top {
+    height: 10%;
+    width: 85%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 5%;
+
+    button {
+        background: transparent;
+        border: none;
+        width: 20%;
+        height: 100%;
+        font-size: 40px;
+
+        &:hover {
+            color: rgb(137, 137, 137);
+        }
+    }
+}
+
+.booth-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+
+    width: 100%;
+    height: 100%;
+}
+.booth-top-div {
+    width: 95%;
+    height: 8%;
+    display: flex;
+    align-items: center;
+    font-size: 30px;
+    justify-content: space-between;
+    
+    .booth-code {
+		margin-right: 200px;
+	}
+
+    .remaining-pics {
+		margin-left: 58%;
+	}
+
+    .close-btn {
+        padding: 5px;
+        display: flex;
+        justify-content: right;
+        .close {
+            background-color: transparent;
+            border: none;
+        }
+    }
+}
+
+.booth-content-main {
+    display: flex;
+    flex-wrap: wrap;
+    align-content: center;
+    justify-content: space-evenly;
+    width: 100%;
+    height: 91%;
+
+    .photo-zone {
+        justify-content: center;
+        width: 98%;
+        height: 87%;
+        border-radius: 20px;
+        background-size: cover;
+        background-position: center;
+        background-size: cover;
+        transition: background-image 0.5s;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .center-indicator {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 10px;
+        height: 10px;
+        background-color: red;
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+    }
+
+    .rotate-handle {
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        background-color: rgba(255, 255, 255, 0.5);
+        border-radius: 50%;
+        cursor: pointer;
+    }
+
+    .top-left {
+        top: 0;
+        left: 0;
+        cursor: nw-resize;
+    }
+    .top-right {
+        top: 0;
+        right: 0;
+        cursor: ne-resize;
+    }
+    .bottom-left {
+        bottom: 0;
+        left: 0;
+        cursor: sw-resize;
+    }
+    .bottom-right {
+        bottom: 0;
+        right: 0;
+        cursor: se-resize;
+    }
+
+    .create-btn {
+        width: 98%;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+
+        align-items: center;
+        .left-btn {
+            display: flex;
+            margin: 5px;
+            align-items: center;
+            width: 40%;
+        }
+        .right-btn {
+            display: flex;
+            margin: 5px;
+            flex-direction: row-reverse;
+            align-items: center;
+            width: 40%;
+        }
+
+        .circle-btn {
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 10px;
+            background-color: #7bd9dc;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease, background-color 0.2s ease;
+        }
+
+        .circle-btn img {
+            width: 24px;
+            height: 24px;
+        }
+
+        .circle-btn:hover {
+            transform: scale(1.1);
+            background-color: #44c7cc;
+        }
+
+        .take-photo {
+            border: 1px solid #ffffff;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 15px;
+            background-color: #3498db;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .take-photo img {
+            width: 30px;
+            height: 30px;
+            filter: brightness(0) invert(1);
+        }
+
+        .take-photo:hover {
+            transform: scale(1.15);
+            background-color: #2980b9;
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .take-photo:active {
+            transform: scale(1.05);
+            background-color: #1f6f9f;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+    }
+}
+
+.ract-btn {
+    border: none;
+    border-radius: 20px;
+    width: 110px;
+    height: 40px;
+    margin: 5px;
+    padding: 10px;
+    background-color: #f7a1a1;
+    color: white;
+    font-size: 16px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.ract-btn:hover {
+    background-color: #f58080;
+    transform: scale(1.05);
+}
+
+.timer-modal {
+    box-shadow: none;
+    border: none;
+    color: rgb(255, 255, 255);
+}
+
+.controls {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    width: 150px;
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 10px;
+    padding: 10px;
+    z-index: 10;
+}
+
+.controls label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.close-controls {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #8551ff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    filter: hue-rotate(320deg) saturate(10%) brightness(85%) contrast(100%);
+}
+
+.loading-overlay img {
+    width: 10vw;
+    height: 9vw;
+    max-width: 200px;
+    max-height: 180px;
+}

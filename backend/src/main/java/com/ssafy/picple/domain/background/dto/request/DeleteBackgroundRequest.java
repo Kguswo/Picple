@@ -1,14 +1,14 @@
 package com.ssafy.picple.domain.background.dto.request;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.Data;
 
-@Getter
-@NoArgsConstructor
-@AllArgsConstructor
+/**
+ * 배경 사진 삭제 요청 DTO
+ */
+
+@Data
 public class DeleteBackgroundRequest {
-	private Long userId;
+	private Long userId; // 사용자 ID
 
 	// 유효성 검사용
 

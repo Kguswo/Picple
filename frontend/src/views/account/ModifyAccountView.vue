@@ -3,67 +3,62 @@ import FormComp from '@/components/form/FormComp.vue';
 import FormInputComp from '@/components/form/FormInputComp.vue';
 import FormButtonComp from '@/components/form/FormButtonComp.vue';
 import { useRouter } from 'vue-router';
-import { validateNicknamePattern, setFormMessage } from '@/composables/validation';
-import Swal from 'sweetalert2';
+import { validateNicknamePattern, setFormMessage } from '@/assets/js/validation';
 import { useUserStore } from '@/stores/userStore';
 import { storeToRefs } from 'pinia';
 import { deleteAccountApi, modifyAccountApi } from '@/api/userApi';
 import { useFormStore } from '@/stores/formStore';
+import { alertCheckBox, alertResult } from '@/api/baseApi';
+import { ref } from 'vue';
+import { throttle } from '@/assets/js/util';
 
 const router = useRouter();
 const userStore = useUserStore();
 const formStore = useFormStore();
 
-const { user } = storeToRefs(userStore);
+const { userEmail, userNickname } = storeToRefs(userStore);
 const { nickname, nicknameField } = storeToRefs(formStore);
 formStore.initForm([nickname], [nicknameField]);
-nickname.value.value = user.value.nickname;
+nickname.value.value = userNickname.value;
 
-const modifyAccount = async () => {
+const lastCall = ref(0);
+
+const onClickModify = () => {
 	nicknameField.value.message = validateNicknamePattern(nickname.value.value);
-	if (nickname.value.value === user.value.nickname) {
+	if (nickname.value.value === userNickname.value) {
 		nicknameField.value.message = setFormMessage('기존 닉네임과 동일합니다.', true);
 	}
-
 	if (formStore.focusInputField(nicknameField)) {
 		return;
 	}
+	throttle(lastCall, modifyAccount, 2000)();
+};
 
-	const data = await modifyAccountApi(nickname.value.value);
-	if (!data.isSuccess && data.code === 3003) {
-		nicknameField.value.message = setFormMessage(data.message, true);
-		nicknameField.value.focusInput();
-		return;
-	}
+const modifyAccount = async () => {
+	const { data } = await modifyAccountApi(nickname.value.value);
 	if (!data.isSuccess) {
-		await Swal.fire({ icon: 'error', title: `${data.message}`, width: 600 });
+		await alertResult(false, '닉네임 변경에 실패하였습니다.');
 		return;
 	}
 	userStore.changeNickname(nickname.value.value);
-	await Swal.fire({ icon: 'success', title: '닉네임이 변경되었습니다.', width: 600 });
+	await alertResult(true, '닉네임이 변경되었습니다.');
 	router.push({ name: 'main' });
 };
 
 const deleteAccount = async () => {
-	const { value: accept } = await Swal.fire({
-		title: '정말 회원을 탈퇴하시겠습니까?',
-		input: 'checkbox',
-		inputValue: 0,
-		inputPlaceholder: `탈퇴 시 서비스를 이용하지 못합니다. 동의하십니까?`,
-		confirmButtonText: `Continue&nbsp;<i class="fa fa-arrow-right"></i>`,
-		showCancelButton: true,
-		inputValidator: (result) => {
-			return !result && '회원탈퇴는 동의가 필요합니다.';
-		},
-	});
+	const { value: accept } = await alertCheckBox(
+		'정말 회원을 탈퇴하시겠습니까?',
+		`탈퇴 시 서비스를 이용하지 못합니다. 동의하십니까?`,
+		'회원탈퇴는 동의가 필요합니다.',
+	);
 	if (accept) {
-		const data = await deleteAccountApi();
+		const { data } = await deleteAccountApi();
 		if (!data.isSuccess) {
-			await Swal.fire({ icon: 'error', title: `${data.message}`, width: 600 });
+			await alertResult(false, '회원탈퇴에 실패하였습니다.');
 			return;
 		}
-		userStore.resetUser();
-		await Swal.fire({ icon: 'success', title: '회원탈퇴가 완료되었습니다.', width: 600 });
+		userStore.resetUserInfo();
+		await alertResult(true, '회원탈퇴가 완료되었습니다.');
 		router.push({ name: 'main' });
 	}
 };
@@ -79,7 +74,7 @@ const deleteAccount = async () => {
 				<input
 					type="text"
 					class="form-input has-content background-color-disabled"
-					:value="user.email"
+					:value="userEmail"
 					disabled
 				/>
 				<label class="form-label">이메일</label>
@@ -102,7 +97,7 @@ const deleteAccount = async () => {
 				<button
 					type="button"
 					class="form-button-small"
-					@click="router.push('modifyPassword/modify')"
+					@click="router.push({ name: 'modifyPassword' })"
 				>
 					변경
 				</button>
@@ -110,7 +105,7 @@ const deleteAccount = async () => {
 
 			<FormButtonComp
 				size="big"
-				@click="modifyAccount"
+				@click="onClickModify"
 				>저장</FormButtonComp
 			>
 
@@ -133,4 +128,24 @@ const deleteAccount = async () => {
 	</FormComp>
 </template>
 
-<style scoped></style>
+<style scoped>
+.form-button-big.form-button-cancel {
+	cursor: url('@/assets/img/app/hoverCursorIcon.png') 5 5, pointer !important;
+}
+
+:deep(.form-button) {
+	cursor: url('@/assets/img/app/hoverCursorIcon.png') 5 5, pointer !important;
+}
+
+:deep(.form-input) {
+	cursor: url('@/assets/img/app/hoverCursorIcon.png') 5 5, text !important;
+}
+
+.form-button-small {
+	cursor: url('@/assets/img/app/hoverCursorIcon.png') 5 5, pointer !important;
+}
+
+:deep(.form-button-none) {
+	cursor: url('@/assets/img/app/hoverCursorIcon.png') 5 5, pointer !important;
+}
+</style>

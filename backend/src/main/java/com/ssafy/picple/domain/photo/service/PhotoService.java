@@ -1,6 +1,6 @@
 package com.ssafy.picple.domain.photo.service;
 
-import com.ssafy.picple.config.baseResponse.BaseException;
+import com.ssafy.picple.config.baseresponse.BaseException;
 import com.ssafy.picple.domain.photo.entity.Photo;
 import org.springframework.web.multipart.MultipartFile;
 

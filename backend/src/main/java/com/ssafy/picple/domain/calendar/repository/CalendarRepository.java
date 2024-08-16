@@ -18,8 +18,8 @@ public interface CalendarRepository extends JpaRepository<Calendar, Long> {
 	List<Calendar> findByUserIdAndCreatedAt(@Param("userId") Long userId, @Param("createdAt") LocalDate createdAt);
 
 	// 특정 사용자의 특정 년월에 해당하는 각 날짜별 캘린더 항목 개수 조회 - LocalDateTime -> LocalDate
-	@Query(value = "SELECT COUNT(*) FROM Calendar c " +
-			"JOIN Photo p ON c.photo_id = p.photo_id " +
+	@Query(value = "SELECT COUNT(*) FROM calendar c " +
+			"JOIN photo p ON c.photo_id = p.photo_id " +
 			"WHERE c.user_id = :userId AND p.is_deleted = false AND DATE(c.created_at) = :createdAt", nativeQuery = true)
 	Long countByUserIdAndDate(@Param("userId") Long userId, @Param("createdAt") LocalDate createdAt);
 

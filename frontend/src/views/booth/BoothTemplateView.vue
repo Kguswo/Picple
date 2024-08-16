@@ -1,193 +1,259 @@
 <script setup>
-import { ref, computed, watch } from 'vue';
-import { useRouter, useRoute } from 'vue-router';
+import { onUnmounted, ref } from 'vue';
 import WhiteBoardComp from '@/components/common/WhiteBoardComp.vue';
 import BoothBack from '@/components/booth/BoothBackComp.vue';
+import TemplateComp from '@/components/template/TemplateComp.vue';
 import { usePhotoStore } from '@/stores/photoStore';
-
-import temp_1x1_4x3_479x360 from '@/assets/img/template/temp_1x1_4x3_479x360.jpg';
-import temp_1x2_4x5_288x360 from '@/assets/img/template/temp_1x2_4x5_288x360.jpg';
-import temp_1x3_3x4_270x360 from '@/assets/img/template/temp_1x3_3x4_270x360.png';
-import temp_2x2_4x3_481x360 from '@/assets/img/template/temp_2x2_4x3_481x360.jpg';
+import { storeToRefs } from 'pinia';
+import { alertChoose, alertConfirm, alertResult } from '@/api/baseApi';
+import { savePhotoApi } from '@/api/photoApi';
+import { useRouter } from 'vue-router';
+import { useBoothStore } from '@/stores/boothStore';
+import WebSocketService from '@/services/WebSocketService';
 
 const router = useRouter();
-const route = useRoute();
 const photoStore = usePhotoStore();
+const boothStore = useBoothStore();
+const { photoList, templateList, draggedPhoto, templateColor, backgroundColor, otherColor } = storeToRefs(photoStore);
+const { session } = storeToRefs(boothStore);
+const selectedTemplate = ref(null);
+const templateDiv = ref(null);
+const isLeaveSite = ref(null);
 
-const selectedTemplate = ref('all');
-const selectedImage = ref(null);
+const sessionId = boothStore.getSessionInfo().sessionId;
 
-const templates = [
-	{ text: '전체', key: 'all' },
-	{ text: '1장', key: '1' },
-	{ text: '2장', key: '2' },
-	{ text: '3장', key: '3' },
-	{ text: '4장', key: '4' },
-];
-
-const templateImages = {
-	1: [temp_1x1_4x3_479x360],
-	2: [temp_1x2_4x5_288x360],
-	3: [temp_1x3_3x4_270x360],
-	4: [temp_2x2_4x3_481x360],
-};
-
-const photos = photoStore.photoList;
-
-const selectTemplate = (template) => {
-	selectedTemplate.value = template.key;
-	selectedImage.value = null;
-};
-
-const selectImage = (image) => {
-	selectedImage.value = image;
-};
-
-const shuffleArray = (array) => {
-	let shuffledArray = array.slice();
-	for (let i = shuffledArray.length - 1; i > 0; i--) {
-		const j = Math.floor(Math.random() * (i + 1));
-		[shuffledArray[i], shuffledArray[j]] = [shuffledArray[j], shuffledArray[i]];
-	}
-	return shuffledArray;
-};
-
-const imagesToShow = computed(() => {
-	let images = [];
-	if (selectedTemplate.value === 'all') {
-		images = Object.values(templateImages).flat();
-	} else {
-		images = templateImages[selectedTemplate.value] || [];
-	}
-	return shuffleArray(images);
+onUnmounted(() => {
+	endSession();
 });
 
-watch(
-	selectedTemplate,
-	(newVal) => {
-		if (newVal === 'all') {
-			imagesToShow.value = shuffleArray(Object.values(templateImages).flat());
-		}
-	},
-	{ immediate: true },
-);
-
-const extractInfoFromFilename = (filename) => {
-	const parts = filename.split('_');
-	const [photoCount, ratio, size] = parts.slice(1);
-	const [width, height] = size.split('x').map(Number);
-	return {
-		photoCount: photoCount.split('x').map(Number),
-		ratio: ratio.split('x').map(Number),
-		size: { width, height },
-	};
+const selectTemplate = (item) => {
+	selectedTemplate.value = item;
 };
 
-const goToNext = () => {
-	if (selectedImage.value) {
-		const imageInfo = extractInfoFromFilename(selectedImage.value);
-		router.push({
-			name: 'insertImg',
-			params: {
-				templateKey: selectedTemplate.value,
-			},
-			query: {
-				selectedImage: encodeURIComponent(selectedImage.value),
-				imageInfo: JSON.stringify(imageInfo),
-			},
-		});
+const onDragStart = (event, src, index) => {
+	if (selectedTemplate.value) {
+		draggedPhoto.value = {
+			src,
+			index,
+		};
+		event.dataTransfer.effectAllowed = 'move';
 	}
 };
 
-const goToPrevious = () => {
-	photoStore.clearPhotoList();
-	router.push('/booth');
+const changeColor = () => {
+	templateColor.value = !templateColor.value;
 };
 
-watch(
-	() => route.query.selectedImage,
-	(newImage) => {
-		if (newImage) {
-			selectedImage.value = decodeURIComponent(newImage);
+const screenshot = async () => {
+	if (!selectedTemplate.value) {
+		alertResult(false, '템플릿을 선택하지 않았습니다.');
+		return;
+	}
+	const { value: accept } = await alertConfirm(
+		'사진 촬영을 완료하시겠습니까?\n확인 버튼을 누르면 사진 부스가 종료됩니다.',
+	);
+	if (accept) {
+		const formData = await templateDiv.value.screenshot();
+		const { data } = await savePhotoApi(formData);
+		if (!data.isSuccess) {
+			await alertResult(false, '사진 만들기에 실패하였습니다.');
+			return;
 		}
-	},
-	{ immediate: true },
-);
+		const result = await alertChoose(
+			'사진 촬영이 완료되었습니다!',
+			'원하는 버튼을 선택하세요.',
+			'홈으로 이동',
+			'캘린더로 이동',
+		);
+		isLeaveSite.value = true;
+		if (result.isConfirmed) {
+			router.push({ name: 'main' });
+			return;
+		}
+		router.push({ name: 'calendarView' });
+		return;
+	}
+};
+
+const endSession = () => {
+	if (session.value) {
+		session.value.disconnect();
+		session.value = null;
+	}
+	WebSocketService.close();
+};
 </script>
 
 <template>
 	<WhiteBoardComp class="whiteboard-area-booth">
 		<div class="booth-content">
-			<div class="close-btn">
-				<button
-					class="close"
-					@click="navigateTo('main')"
+			<div class="template-list">
+				<span>템플릿 선택</span>
+				<div
+					v-for="(item, index) in templateList"
+					:key="index"
+					class="template-text"
 				>
-					X
+					<button
+						@click="selectTemplate(item)"
+						:class="{ 'selected-template-button': selectedTemplate === item }"
+					>
+						{{ item.row }} x {{ item.col }}
+					</button>
+				</div>
+				<button
+					@click="changeColor"
+					class="color-button"
+					:style="{ backgroundColor: otherColor, color: backgroundColor }"
+				>
+					{{ templateColor ? '검정색' : '흰색' }}
 				</button>
 			</div>
 
 			<div class="booth-content-main">
-				<BoothBack class="booth-camera-box">
-					<div class="selected-template-area">
-						<div class="selected-template">
-							<div class="template-images">
-								<div
-									v-for="image in imagesToShow"
-									:key="image"
-									class="image-wrapper"
-									@click="selectImage(image)"
-								>
-									<img
-										:src="image"
-										:class="{
-											selected: selectedImage === image,
-										}"
-										alt="Template Image"
-									/>
-								</div>
-							</div>
-							<div class="box-footer">
-								<button @click="goToPrevious">이전</button>
-								<button
-									@click="goToNext"
-									:disabled="!selectedImage"
-								>
-									다음
-								</button>
-							</div>
-						</div>
-					</div>
+				<BoothBack class="booth-camera-box booth-template-back">
+					<TemplateComp
+						v-if="selectedTemplate"
+						:template="selectedTemplate"
+						ref="templateDiv"
+					/>
 				</BoothBack>
-
 				<BoothBack class="booth-select-box">
 					<div class="select-box">
 						<div class="select-text-box">
-							<div>템플릿 선택</div>
+							<div>사진 선택</div>
 						</div>
-						<div class="select-temp-box">
-							<div class="temp-area">
-								<div
-									v-for="template in templates"
-									:key="template.text"
-									class="array-area"
-								>
-									<button
-										class="array-button"
-										@click="selectTemplate(template)"
-									>
-										{{ template.text }}
-									</button>
-								</div>
+						<div class="select-photo-box">
+							<div
+								v-for="(photo, index) in photoList[sessionId]"
+								:key="index"
+								class="photo-div"
+							>
+								{{ index + 1 }}
+								<img
+									:src="photo.src"
+									class="photo"
+									alt="사진"
+									draggable="true"
+									@dragstart="(event) => onDragStart(event, photo.src, index)"
+								/>
 							</div>
 						</div>
 					</div>
 				</BoothBack>
+			</div>
+			<div class="booth-complete">
+				<button @click="screenshot">사진 완성하기</button>
 			</div>
 		</div>
 	</WhiteBoardComp>
 </template>
 
 <style scoped>
-@import '@/assets/css/boothsSelectTemp.css';
+.booth-content {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	width: 100%;
+	height: 100%;
+}
+
+.template-list {
+	width: 75%;
+	display: flex;
+	justify-content: space-around;
+	margin: 20px 0;
+
+	span {
+		margin: auto 0;
+	}
+
+	button {
+		width: 68px;
+		height: 40px;
+		padding: 5px 10px;
+		font-size: 15px;
+		border-radius: 3px;
+	}
+}
+
+.template-text {
+	button {
+		background-color: transparent;
+		border: 2px solid black;
+	}
+
+	.selected-template-button {
+		background-color: #62abd9;
+		color: white;
+	}
+}
+
+.booth-content-main {
+	display: flex;
+	flex-wrap: wrap;
+	align-content: center;
+	justify-content: space-around;
+	width: 100%;
+	height: 100%;
+	max-height: 99%;
+	overflow: hidden;
+}
+
+.booth-camera-box {
+	width: 75%;
+	height: 100%;
+	max-height: 100%;
+	overflow: auto;
+}
+
+.booth-select-box {
+	width: 20%;
+	height: 100%;
+	overflow: auto;
+}
+
+.select-box {
+	width: 100%;
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
+.select-text-box {
+	width: 100%;
+	height: 13%;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+.select-photo-box {
+	width: 100%;
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-start;
+	align-items: center;
+	gap: 10px;
+	overflow-y: auto;
+	overflow-x: hidden;
+}
+
+.photo {
+	width: 100px;
+	height: 100px;
+}
+
+.booth-complete {
+	margin: 20px 0;
+
+	button {
+		width: 130px;
+		height: 40px;
+		padding: 5px 10px;
+		font-size: 15px;
+		border-radius: 3px;
+	}
+}
 </style>

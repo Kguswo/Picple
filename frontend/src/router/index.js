@@ -1,6 +1,7 @@
-import { useUserStore } from '@/stores/userStore';
 import { createRouter, createWebHistory } from 'vue-router';
-import Swal from 'sweetalert2';
+import WebSocketService from '@/services/WebSocketService';
+import { useUserStore } from '@/stores/userStore';
+import { alertResult } from '@/api/baseApi';
 
 const router = createRouter({
 	history: createWebHistory(import.meta.env.BASE_URL),
@@ -23,34 +24,50 @@ const router = createRouter({
 			meta: { notAuthRequired: true },
 		},
 		{
+			path: '/email-verification',
+			children: [
+				{
+					path: '/email-verification/signup',
+					name: 'signupEmail',
+					component: () => import('@/views/account/SignupEmailView.vue'),
+					meta: { notAuthRequired: true },
+				},
+				{
+					path: '/email-verification/find-password',
+					name: 'findPasswordEmail',
+					component: () => import('@/views/account/FindPasswordEmailView.vue'),
+					meta: { notAuthRequired: true },
+				},
+			],
+		},
+		{
 			path: '/signup',
 			name: 'signup',
 			component: () => import('@/views/account/SignupView.vue'),
 			meta: { emailRequired: true, notAuthRequired: true },
 		},
 		{
-			path: '/signup/email',
-			name: 'signupEmail',
-			component: () => import('@/views/account/SignupEmailView.vue'),
-			meta: { notAuthRequired: true },
-		},
-		{
-			path: '/modifyAccount',
+			path: '/modify-account',
 			name: 'modifyAccount',
 			component: () => import('@/views/account/ModifyAccountView.vue'),
 			meta: { authRequired: true },
 		},
 		{
-			path: '/modifyPassword/:path',
-			name: 'modifyPassword',
-			component: () => import('@/views/account/ModifyPasswordView.vue'),
-			meta: { authRequired: true },
-		},
-		{
-			path: '/findPassword',
-			name: 'findPassword',
-			component: () => import('@/views/account/FindPasswordView.vue'),
-			meta: { notAuthRequired: true },
+			path: '/modify-password',
+			children: [
+				{
+					path: '/modify-password/modify',
+					name: 'modifyPassword',
+					component: () => import('@/views/account/ModifyPasswordView.vue'),
+					meta: { authRequired: true },
+				},
+				{
+					path: '/modify-password/find',
+					name: 'findPassword',
+					component: () => import('@/views/account/ModifyPasswordView.vue'),
+					meta: { emailRequired: true, notAuthRequired: true },
+				},
+			],
 		},
 		{
 			path: '/board',
@@ -65,8 +82,9 @@ const router = createRouter({
 			meta: { authRequired: true },
 		},
 		{
-			path: '/booth',
+			path: '/booth/:boothId',
 			component: () => import('@/views/booth/BoothShootView.vue'),
+			redirect: { name: 'background' },
 			children: [
 				{
 					path: 'bg',
@@ -93,6 +111,12 @@ const router = createRouter({
 			meta: { authRequired: true },
 		},
 		{
+			path: '/boothVideoTest/:boothId',
+			name: 'boothVideoTest',
+			component: () => import('@/views/booth/BoothVideoTestView.vue'),
+			meta: { authRequired: true },
+		},
+		{
 			path: '/selectTemp',
 			name: 'selectTemp',
 			component: () => import('@/views/booth/BoothTemplateView.vue'),
@@ -108,23 +132,53 @@ const router = createRouter({
 			}),
 			meta: { authRequired: true },
 		},
+		{
+			path: '/:pathMatch(.*)*',
+			name: 'notFound',
+			component: () => import('@/views/NotFoundView.vue'),
+		},
 	],
 });
+
+// WebSocket 연결이 필요한 라우트 목록
+const websocketRoutes = ['createbooth', 'booth', 'boothCode', 'selectTemp', 'insertImg'];
 
 router.beforeEach(async (to, from) => {
 	const userStore = useUserStore();
 
-	if (to.meta.emailRequired && !userStore.verifiedEmail) {
-		await Swal.fire({ icon: 'error', title: '이메일 인증이 필요합니다.', width: 600 });
-		return { name: 'login', replace: true };
+	if (to.meta.authRequired && !userStore.isLogined) {
+		await alertResult(false, '로그인이 필요합니다.');
+		return { name: 'login' };
 	}
-	if (to.meta.authRequired && !localStorage.getItem('accessToken')) {
-		await Swal.fire({ icon: 'error', title: '로그인이 필요합니다.', width: 600 });
-		return { name: 'login', replace: true };
+
+	if ((to.meta.notAuthRequired && userStore.isLogined) || (to.meta.emailRequired && !userStore.verifiedEmail)) {
+		await alertResult(false, '잘못된 접근입니다.');
+		return { name: 'main' };
 	}
-	if (to.meta.notAuthRequired && localStorage.getItem('accessToken')) {
-		await Swal.fire({ icon: 'error', title: '올바르지 않은 접근입니다.', width: 600 });
-		return { name: 'main', replace: true };
+
+	if (websocketRoutes.includes(to.name)) {
+		if (!WebSocketService.isConnected()) {
+			try {
+				await WebSocketService.connect(import.meta.env.VITE_WS);
+			} catch (error) {
+				console.error('Failed to connect to WebSocket:', error);
+				// 에러 처리
+			}
+		}
+	} else if (websocketRoutes.includes(from.name) && !websocketRoutes.includes(to.name)) {
+		// WebSocketService.close();
+	}
+
+	if (
+		(to.name === 'background' &&
+			from.name !== 'createbooth' &&
+			from.name !== 'boothVideoTest' &&
+			from.name !== 'showphoto') ||
+		(to.name === 'showphoto' && from.name !== 'background') ||
+		(to.name === 'selectTemp' && from.name !== 'background' && from.name !== 'showphoto')
+	) {
+		await alertResult(false, '새로고침 시 부스에 재입장해야 합니다.');
+		return { name: 'boothCode' };
 	}
 });
 
