@@ -8,7 +8,7 @@
 
 <br>
 
-### 서비스 소개 영상 : **[Picple UCC Link](https://www.youtube.com/)**
+### 서비스 소개 영상 : [Picple UCC](assets) <video controls src="assets/Desktop 2024.08.16 - 10.22.37.02.mp4" title="S11P12A503/assets/Desktop 2024.08.16 - 10.22.37.02.mp4"></video>
 
 ---
 
@@ -23,7 +23,7 @@
 7. [**개발 팀 소개**](#-개발-팀-소개)
 8. [**산출물**](#-산출물)
 
-<div id="1"></div>
+<div id="웹-서비스-소개"></div>
 <br>
 
 ## ✨ 웹 서비스 소개
@@ -54,7 +54,7 @@ Picple만의 실시간 화상 연결을 통해 전 세계 어디에 있든 함�
 
 ### **[PICPLE과 함께 사진 찍기](https://i11a503.p.ssafy.io/)**
 
-<div id="2"></div>
+<div id="기술-스택"></div>
 <br>
 
 ## 🔨 기술 스택
@@ -109,7 +109,7 @@ Picple만의 실시간 화상 연결을 통해 전 세계 어디에 있든 함�
 </table>
 
 <br>
-<div id="3"></div>
+<div id="주요-기능"></div>
 
 ## 💡 주요 기능
 
@@ -123,7 +123,7 @@ Picple만의 실시간 화상 연결을 통해 전 세계 어디에 있든 함�
 
 <br/>
 
-<div id="4"></div>
+<div id="시스템-아키텍처"></div>
 <br>
 
 ## 📊 시스템 아키텍쳐
@@ -133,7 +133,7 @@ Picple만의 실시간 화상 연결을 통해 전 세계 어디에 있든 함�
 ![System Architecture](./assets/System%20Architecture.png)
 
 <br/>
-<div id="5"></div>
+<div id="프로젝트-파일-구조"></div>
 
 ## 📁 프로젝트 파일 구조
 
@@ -529,7 +529,65 @@ Picple만의 실시간 화상 연결을 통해 전 세계 어디에 있든 함�
 </details>
 
 <br>
-<div id="7"></div>
+<div id="서비스-화면"></div>
+
+## 💻 서비스 화면
+
+---
+
+### 메인 화면
+
+![alt text](assets/메인화면.png)
+
+### 로그인
+
+![alt text](assets/로그인화면.png)
+
+### 회원가입
+
+![alt text](assets/회원가입화면.png)
+
+### 이메일 인증
+
+![alt text](<assets/이메일 인증 후.png>)
+
+### 부스 생성
+
+![alt text](<assets/부스 생성.png>)
+![alt text](<assets/부스생성 후.png>)
+
+### 사진 촬영(AI 배경)
+
+![alt text](<assets/AI 배경 생성.png>)
+![alt text](<assets/AI 배경 적용.png>)
+
+### 프레임 적용
+
+![alt text](<assets/프레임 적용.png>)
+
+### 사진 저장
+
+![alt text](<assets/사진 넣기.png>)
+
+### 부스 참여자
+
+![alt text](<assets/참여자 입장 부스 참가.png>)
+
+### 캘린더
+
+![alt text](assets/캘린더.png)
+![alt text](<assets/캘린더 날짜 선택.png>)
+![alt text](<assets/캘린더 날짜 자세히 보기.png>)
+![alt text](<assets/캘린더에서 공유.png>)
+
+### 게시판
+
+![alt text](assets/게시판.png)
+![alt text](assets/좋아요.png)
+![alt text](<assets/게시판 자세히보기.png>)
+
+<br>
+<div id="개발-팀-소개"></div>
 
 ## 👨🏻‍💻 개발 팀 소개
 
@@ -540,7 +598,7 @@ Picple만의 실시간 화상 연결을 통해 전 세계 어디에 있든 함�
 |            [김예훈<br>@gnsdp99](https://github.com/gnsdp99)<br/>`MAIN FRONTEND`            |          [김현재<br>@Kguswo](https://github.com/Kguswo)<br/>`LEADER`<br>`BACKEND`           |       [박성훈<br>@seongddiyong](https://github.com/seongddiyong)<br/>`MAIN BACKEND`        |            [염규영<br>@gyuoo](https://github.com/gyuoo)<br/>`BACKEND` <br> `AI`             |          [옥진석<br>@JJOK97](https://github.com/JJOK97)<br/>`FRONTEND`<br>`WEBRTC`          |           [유병주<br>@youbj](https://github.com/youbj)<br/>`FRONTEND`<br>`Infra`           |
 
 <br />
-<div id="8"></div>
+<div id="산출물"></div>
 
 ## 📝 산출물
 
