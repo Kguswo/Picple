@@ -1,0 +1,38 @@
+{
+    "name": "frontend",
+    "version": "0.0.0",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "dev": "vite",
+        "build": "vite build",
+        "preview": "vite preview"
+    },
+    "dependencies": {
+        "@mediapipe/camera_utils": "^0.3.1675466862",
+        "@mediapipe/selfie_segmentation": "^0.1.1675465747",
+        "@stomp/stompjs": "^7.0.0",
+        "@vueuse/core": "^10.11.0",
+        "axios": "^1.7.3",
+        "html2canvas": "^1.4.1",
+        "jwt-decode": "^4.0.0",
+        "openvidu-browser": "^2.22.0",
+        "pinia": "^2.1.7",
+        "pinia-plugin-persistedstate": "^3.2.1",
+        "sockjs-client": "^1.6.1",
+        "sweetalert2": "^11.12.3",
+        "terser": "^5.31.5",
+        "v-calendar": "^3.1.2",
+        "vue": "^3.4.29",
+        "vue-cookies": "^1.8.4",
+        "vue-router": "^4.3.3",
+        "vue-sweetalert2": "^5.0.11",
+        "vue3-datepicker": "^0.4.0",
+        "webstomp-client": "^1.2.6"
+    },
+    "devDependencies": {
+        "@vitejs/plugin-vue": "^5.0.5",
+        "vite": "^5.3.1",
+        "vite-plugin-vue-devtools": "^7.3.1"
+    }
+}

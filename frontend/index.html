@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<link rel="icon" href="/picple.png" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>PicPle</title>
+		<!-- index.html -->
+		<script src="https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/selfie_segmentation.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+	</head>
+	<body>
+		<div id="app"></div>
+		<script type="module" src="/src/main.js"></script>
+		<script>
+			window.loadSelfieSegmentation = async function() {
+				return new Promise((resolve, reject) => {
+					const script = document.createElement('script');
+					script.src = "https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation";
+					script.onload = resolve;
+					script.onerror = reject;
+					document.body.appendChild(script);
+				});
+			}
+		</script>
+	</body>
+</html>
