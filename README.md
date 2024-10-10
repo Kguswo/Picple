@@ -8,9 +8,11 @@
 
 <br>
 
-### 서비스 소개 영상 : [Picple UCC](assets/Desktop%202024.08.16%20-%2010.22.37.02.mp4) <video controls src="assets/Desktop 2024.08.16 - 10.22.37.02.mp4" title="S11P12A503/assets/Desktop 2024.08.16 - 10.22.37.02.mp4"></video>
+### 서비스 소개 영상 : 
 
-https://github.com/user-attachments/assets/ef3355d5-8d73-4605-ab6e-77bab2c80eb4
+https://github.com/user-attachments/assets/2f3285a7-f345-4fcb-a8b2-5bf3a8f6f40f
+
+
 
 
 ---
