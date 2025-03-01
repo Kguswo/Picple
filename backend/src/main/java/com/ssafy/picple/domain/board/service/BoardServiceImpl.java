@@ -39,22 +39,28 @@ public class BoardServiceImpl implements BoardService {
 	@Override
 	public List<BoardDto> findBoards(Long userId, String nickname, Pageable pageable) {
 		if (nickname == null || nickname.isEmpty() || nickname.equals("")) {
-			Page<Board> pageResult = boardRepository.findAll(pageable);
+			// Page<Board> pageResult = boardRepository.findAll(pageable);
+			Page<Board> pageResult = boardRepository.findAllWithFetchJoin(pageable);
+
 			return pageResult.getContent().stream().map(board -> new BoardDto(
 					board.getId(),
 					board.getCreatedAt().toString(),
-					getPhotoUrl(board),
+					// getPhotoUrl(board),
+					board.getPhoto().getPhotoUrl(),
 					isLikedByUser(board, userId),
 					board.getHit()
 			)).collect(Collectors.toList());
 		} else {
-			Page<Board> pageResult = boardRepository.findAllByNickname(nickname, pageable);
+			// Page<Board> pageResult = boardRepository.findAllByNickname(nickname, pageable);
+			Page<Board> pageResult = boardRepository.findAllByNicknameWithFetchJoin(nickname, pageable);
+
 			return pageResult.stream()
 					.filter(board -> !board.isDeleted())
 					.map(board -> new BoardDto(
 							board.getId(),
 							board.getCreatedAt().toString(),
-							getPhotoUrl(board),
+							// getPhotoUrl(board),
+							board.getPhoto().getPhotoUrl(),
 							isLikedByUser(board, userId),
 							board.getHit()
 					))
