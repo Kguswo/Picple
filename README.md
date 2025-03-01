@@ -10,7 +10,7 @@
 
 ### 서비스 소개 영상 : 
 
-- https://github.com/user-attachments/assets/8b47c4d2-41cf-4290-bbf7-75f240635348
+https://github.com/user-attachments/assets/8b47c4d2-41cf-4290-bbf7-75f240635348
 
 
 
