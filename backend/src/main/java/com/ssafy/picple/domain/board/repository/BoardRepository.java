@@ -41,4 +41,18 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
 
 	// 특정 유저가 특정 사진 공유한 게시물 찾기
 	Board findByUserIdAndPhotoIdAndIsDeletedFalse(Long userId, Long photoId);
+
+	// fetch join을 적용한 전체 조회 메서드
+    @Query("SELECT DISTINCT b FROM Board b " +
+           "LEFT JOIN FETCH b.photo p " +
+           "LEFT JOIN FETCH b.user u " +
+           "WHERE b.isDeleted = false")
+    Page<Board> findAllWithFetchJoin(Pageable pageable);
+
+    // fetch join을 적용한 닉네임 검색 메서드
+    @Query("SELECT DISTINCT b FROM Board b " +
+           "LEFT JOIN FETCH b.photo p " +
+           "LEFT JOIN FETCH b.user u " +
+           "WHERE b.isDeleted = false AND u.nickname = :nickname")
+    Page<Board> findAllByNicknameWithFetchJoin(@Param("nickname") String nickname, Pageable pageable);
 }
