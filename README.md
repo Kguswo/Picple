@@ -2,7 +2,7 @@
 
 ![Picple Logo](./frontend/src/assets/img/mainView/picpleLogo.png)
 
-### Samsung Software Academy For Youth 11th - 공통 프로젝트
+<!-- ### Samsung Software Academy For Youth 11th - 공통 프로젝트 -->
 
 > 2024.07.02 ~ 2024.08.16
 
